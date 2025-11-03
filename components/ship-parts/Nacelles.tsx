@@ -136,18 +136,14 @@ const BussardRadiator: React.FC<{ p: any }> = ({ p }) => {
 interface NacellePairProps {
     x: number; z: number; y: number; rotation: number;
     nacelleGeo: THREE.BufferGeometry;
-    sideGrillGeo: THREE.BufferGeometry;
     params: any;
     portName: string;
     starboardName: string;
 }
 
 const NacellePair: React.FC<NacellePairProps> = (props) => {
-    const { x, z, y, rotation, nacelleGeo, sideGrillGeo, params, portName, starboardName } = props;
+    const { x, z, y, rotation, nacelleGeo, params, portName, starboardName } = props;
     
-    const midpointRadius = (Math.sin(0.5 * Math.PI / 2) * 0.5 + 0.5) * params.radius * params.widthRatio;
-    const grillXPosition = midpointRadius * 0.95;
-
     const BussardComponentType = useMemo(() => {
         switch (params.bussardType) {
             case 'TNG': return BussardTNG;
@@ -157,24 +153,71 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
         }
     }, [params.bussardType]);
 
-    const NacelleAssembly = () => (
-        <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
-            <mesh name="Nacelle_Body" geometry={nacelleGeo} material={shipMaterial} castShadow receiveShadow />
-            <group name="Bussard_Collector" position={[0, params.bussardYOffset, params.bussardZOffset]}>
-                <BussardComponentType p={params} />
+    const NacelleAssembly = ({ mirrored }: { mirrored: boolean }) => {
+        const midpointRadius = (Math.sin(0.5 * Math.PI / 2) * 0.5 + 0.5) * params.radius * params.widthRatio;
+        const baseGrillXPosition = midpointRadius * 0.95;
+
+        const grillArgs: [number, number, number] = [
+            params.radius * 0.2 * params.grill_depth_scale,
+            params.length * 0.7 * params.grill_length_scale,
+            params.radius * 0.5 * params.grill_width_scale
+        ];
+
+        const inboardSign = mirrored ? -1 : 1;
+        const inboardPos: [number, number, number] = [inboardSign * (baseGrillXPosition + params.grill_spread_offset), 0, 0];
+        const outboardPos: [number, number, number] = [-inboardSign * (baseGrillXPosition + params.grill_spread_offset), 0, 0];
+
+        // Symmetrical rotation logic: the rotation direction depends on the grill's physical side (local X position).
+        // This ensures the starboard nacelle's rotation pattern is a mirror image of the port's.
+        const grillRotation = params.grill_rotation_z;
+        const inboardRotationZ = Math.sign(inboardPos[0]) * grillRotation;
+        const outboardRotationZ = Math.sign(outboardPos[0]) * grillRotation;
+
+        return (
+            <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
+                <mesh name="Nacelle_Body" geometry={nacelleGeo} material={shipMaterial} castShadow receiveShadow />
+                <group name="Bussard_Collector" position={[0, params.bussardYOffset, params.bussardZOffset]}>
+                    <BussardComponentType p={params} />
+                </group>
+                {params.grill_toggle && (
+                    <group 
+                        name="Warp_Grills"
+                        position={[
+                            0,
+                            params.length / 2 + params.grill_y_offset,
+                            params.grill_z_offset,
+                        ]}
+                        rotation={[params.grill_rotation_x, params.grill_rotation_y, 0]}
+                    >
+                        <RoundedBox
+                            name="SideGrill_Inboard"
+                            args={grillArgs}
+                            radius={params.grill_borderRadius}
+                            material={nacelleSideGrillMaterial}
+                            position={inboardPos}
+                            rotation={[0, 0, inboardRotationZ]}
+                        />
+                        <RoundedBox
+                            name="SideGrill_Outboard"
+                            args={grillArgs}
+                            radius={params.grill_borderRadius}
+                            material={nacelleSideGrillMaterial}
+                            position={outboardPos}
+                            rotation={[0, 0, outboardRotationZ]}
+                        />
+                    </group>
+                )}
             </group>
-            <mesh name="SideGrill_Inboard" geometry={sideGrillGeo} material={nacelleSideGrillMaterial} position={[grillXPosition, params.length / 2, 0]}/>
-            <mesh name="SideGrill_Outboard" geometry={sideGrillGeo} material={nacelleSideGrillMaterial} position={[-grillXPosition, params.length / 2, 0]}/>
-        </group>
-    );
+        );
+    };
 
     return (
         <>
             <group name={portName} position={[-x, z, y]} rotation={[0, 0, rotation]}>
-                <NacelleAssembly />
+                <NacelleAssembly mirrored={false} />
             </group>
             <group name={starboardName} position={[x, z, y]} rotation={[0, 0, -rotation]}>
-                <NacelleAssembly />
+                <NacelleAssembly mirrored={true} />
             </group>
         </>
     );
@@ -198,22 +241,14 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
         
         const nacelleGeo = new THREE.LatheGeometry(nacellePoints, Math.floor(segments));
         
-        const sideGrillGeo = new THREE.BoxGeometry(radius * 0.2, length * 0.7, radius * 0.5);
-        
         nacelleGeo.scale(widthRatio, 1, 1);
 
-        const applySharedDeformations = (geo: THREE.BufferGeometry, isGrill: boolean = false) => {
+        const applySharedDeformations = (geo: THREE.BufferGeometry) => {
             const vertices = geo.attributes.position.array;
             for (let i = 0; i < vertices.length; i += 3) {
-                const localY = vertices[i + 1];
-                const absoluteY = isGrill ? localY + (length / 2) : localY;
+                const absoluteY = vertices[i + 1];
                 const z = vertices[i + 2];
-                if (isGrill) {
-                    const progress = Math.max(0, Math.min(1, absoluteY / length));
-                    const taper = THREE.MathUtils.lerp(foreTaper, aftTaper, progress);
-                    const nacelleRadiusAtY = (Math.sin(progress * Math.PI / 2) * 0.5 + 0.5) * radius * taper;
-                    vertices[i + 2] *= (nacelleRadiusAtY / radius);
-                }
+                
                 vertices[i + 2] += absoluteY * skew;
                 const startPos = length * undercutStart;
                 if (z < -0.01 && absoluteY <= startPos && undercut > 0 && startPos > 0.01) {
@@ -228,9 +263,8 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
         }
 
         applySharedDeformations(nacelleGeo);
-        applySharedDeformations(sideGrillGeo, true);
         
-        return { nacelleGeo, sideGrillGeo };
+        return { nacelleGeo };
     };
 
     const upperNacelleGeos = useMemo(() => {
@@ -263,7 +297,6 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 y={params.nacelle_y}
                 rotation={params.nacelle_rotation}
                 nacelleGeo={upperNacelleGeos.nacelleGeo}
-                sideGrillGeo={upperNacelleGeos.sideGrillGeo}
                 params={{
                     length: params.nacelle_length,
                     radius: params.nacelle_radius,
@@ -280,6 +313,17 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                     bussardColor1: params.nacelle_bussardColor1,
                     bussardColor2: params.nacelle_bussardColor2,
                     bussardGlowIntensity: params.nacelle_bussardGlowIntensity,
+                    grill_toggle: params.nacelle_grill_toggle,
+                    grill_length_scale: params.nacelle_grill_length_scale,
+                    grill_width_scale: params.nacelle_grill_width_scale,
+                    grill_depth_scale: params.nacelle_grill_depth_scale,
+                    grill_y_offset: params.nacelle_grill_y_offset,
+                    grill_z_offset: params.nacelle_grill_z_offset,
+                    grill_spread_offset: params.nacelle_grill_spread_offset,
+                    grill_rotation_x: params.nacelle_grill_rotation_x,
+                    grill_rotation_y: params.nacelle_grill_rotation_y,
+                    grill_rotation_z: params.nacelle_grill_rotation_z,
+                    grill_borderRadius: params.nacelle_grill_borderRadius,
                 }}
             />}
             {lowerNacelleGeos && <NacellePair 
@@ -290,7 +334,6 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 y={params.nacelleLower_y}
                 rotation={params.nacelleLower_rotation}
                 nacelleGeo={lowerNacelleGeos.nacelleGeo}
-                sideGrillGeo={lowerNacelleGeos.sideGrillGeo}
                 params={{
                     length: params.nacelleLower_length,
                     radius: params.nacelleLower_radius,
@@ -307,6 +350,17 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                     bussardColor1: params.nacelleLower_bussardColor1,
                     bussardColor2: params.nacelleLower_bussardColor2,
                     bussardGlowIntensity: params.nacelleLower_bussardGlowIntensity,
+                    grill_toggle: params.nacelleLower_grill_toggle,
+                    grill_length_scale: params.nacelleLower_grill_length_scale,
+                    grill_width_scale: params.nacelleLower_grill_width_scale,
+                    grill_depth_scale: params.nacelleLower_grill_depth_scale,
+                    grill_y_offset: params.nacelleLower_grill_y_offset,
+                    grill_z_offset: params.nacelleLower_grill_z_offset,
+                    grill_spread_offset: params.nacelleLower_grill_spread_offset,
+                    grill_rotation_x: params.nacelleLower_grill_rotation_x,
+                    grill_rotation_y: params.nacelleLower_grill_rotation_y,
+                    grill_rotation_z: params.nacelleLower_grill_rotation_z,
+                    grill_borderRadius: params.nacelleLower_grill_borderRadius,
                 }}
             />}
         </>

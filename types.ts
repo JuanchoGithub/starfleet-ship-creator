@@ -103,6 +103,19 @@ export interface ShipParameters {
   nacelle_bussardColor2: string;
   nacelle_bussardGlowIntensity: number;
 
+  // Upper Nacelle Grills
+  nacelle_grill_toggle: boolean;
+  nacelle_grill_length_scale: number;
+  nacelle_grill_width_scale: number;
+  nacelle_grill_depth_scale: number;
+  nacelle_grill_y_offset: number;
+  nacelle_grill_z_offset: number;
+  nacelle_grill_spread_offset: number;
+  nacelle_grill_rotation_x: number;
+  nacelle_grill_rotation_y: number;
+  nacelle_grill_rotation_z: number;
+  nacelle_grill_borderRadius: number;
+
   // Upper Pylons
   pylon_toggle: boolean;
   pylon_nacelleForeOffset: number;
@@ -145,6 +158,19 @@ export interface ShipParameters {
   nacelleLower_bussardColor2: string;
   nacelleLower_bussardGlowIntensity: number;
   
+  // Lower Nacelle Grills
+  nacelleLower_grill_toggle: boolean;
+  nacelleLower_grill_length_scale: number;
+  nacelleLower_grill_width_scale: number;
+  nacelleLower_grill_depth_scale: number;
+  nacelleLower_grill_y_offset: number;
+  nacelleLower_grill_z_offset: number;
+  nacelleLower_grill_spread_offset: number;
+  nacelleLower_grill_rotation_x: number;
+  nacelleLower_grill_rotation_y: number;
+  nacelleLower_grill_rotation_z: number;
+  nacelleLower_grill_borderRadius: number;
+
   // Lower Boom
   boomLower_toggle: boolean;
 
