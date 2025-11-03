@@ -1,0 +1,7 @@
+{
+  "name": "Procedural Starship Creator",
+  "description": "A 3D procedural starship creator using React, Three.js, and the Gemini API. Design unique starships by adjusting a wide range of parameters and use AI to generate names, descriptions, and even full ship designs from a text prompt.",
+  "requestFramePermissions": [
+    "clipboard-read"
+  ]
+}

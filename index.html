@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Procedural Starship Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'space-dark': '#0D1117',
+              'space-mid': '#161B22',
+              'space-light': '#21262D',
+              'accent-blue': '#388BFD',
+              'accent-glow': '#58A6FF',
+              'light-gray': '#C9D1D9',
+              'mid-gray': '#8B949E',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <style>
+      html { font-family: 'Inter', sans-serif; }
+      @supports (font-variation-settings: normal) {
+        html { font-family: 'Inter var', sans-serif; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://aistudiocdn.com/three@^0.181.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.6",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
+    "three/": "https://aistudiocdn.com/three@^0.181.0/",
+    "three/addons/": "https://aistudiocdn.com/three@^0.181.0/examples/jsm/",
+    "lil-gui": "https://aistudiocdn.com/lil-gui@^0.21.0",
+    "three-subdivide": "https://aistudiocdn.com/three-subdivide@^1.1.5"
+  }
+}
+</script>
+</head>
+  <body class="bg-space-dark text-light-gray">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
