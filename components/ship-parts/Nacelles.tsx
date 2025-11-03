@@ -183,12 +183,19 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
 
 export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
 
-    const generateNacelleGeometries = ( length: number, radius: number, widthRatio: number, segments: number, skew: number, undercut: number, undercutStart: number ) => {
+    const generateNacelleGeometries = ( length: number, radius: number, widthRatio: number, foreTaper: number, aftTaper: number, segments: number, skew: number, undercut: number, undercutStart: number ) => {
         const nacellePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
-        for (let i = 0; i <= 40; i++) {
-            nacellePoints.push(new THREE.Vector2((Math.sin(i / 40 * Math.PI / 2) * 0.5 + 0.5) * radius, i / 40 * length));
+        const pointCount = 40;
+        for (let i = 0; i <= pointCount; i++) {
+            const p = i / pointCount;
+            const taper = THREE.MathUtils.lerp(foreTaper, aftTaper, p);
+            nacellePoints.push(new THREE.Vector2(
+                (Math.sin(p * Math.PI / 2) * 0.5 + 0.5) * radius * taper, 
+                p * length
+            ));
         }
-        nacellePoints.push(new THREE.Vector2(radius, length));
+        nacellePoints.push(new THREE.Vector2(0, length));
+        
         const nacelleGeo = new THREE.LatheGeometry(nacellePoints, Math.floor(segments));
         
         const sideGrillGeo = new THREE.BoxGeometry(radius * 0.2, length * 0.7, radius * 0.5);
@@ -203,7 +210,8 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 const z = vertices[i + 2];
                 if (isGrill) {
                     const progress = Math.max(0, Math.min(1, absoluteY / length));
-                    const nacelleRadiusAtY = (Math.sin(progress * Math.PI / 2) * 0.5 + 0.5) * radius;
+                    const taper = THREE.MathUtils.lerp(foreTaper, aftTaper, progress);
+                    const nacelleRadiusAtY = (Math.sin(progress * Math.PI / 2) * 0.5 + 0.5) * radius * taper;
                     vertices[i + 2] *= (nacelleRadiusAtY / radius);
                 }
                 vertices[i + 2] += absoluteY * skew;
@@ -228,7 +236,9 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
     const upperNacelleGeos = useMemo(() => {
         if (!params.nacelle_toggle) return null;
         return generateNacelleGeometries(
-            params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_segments,
+            params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio,
+            params.nacelle_foreTaper, params.nacelle_aftTaper,
+            params.nacelle_segments,
             params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
         );
     }, [params]);
@@ -236,7 +246,9 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
     const lowerNacelleGeos = useMemo(() => {
         if (!params.nacelleLower_toggle) return null;
         return generateNacelleGeometries(
-            params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_segments,
+            params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio,
+            params.nacelleLower_foreTaper, params.nacelleLower_aftTaper,
+            params.nacelleLower_segments,
             params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
         );
     }, [params]);

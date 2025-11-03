@@ -45,9 +45,14 @@ export interface ShipParameters {
   neck_engineeringForeOffset: number;
   neck_engineeringAftOffset: number;
   neck_primaryThickness: number;
-  neck_thickness: number;
   neck_foretaper: number;
   neck_afttaper: number;
+  neck_taperSaucer: number;
+  neck_taperEng: number;
+  neck_undercut: number;
+  neck_undercut_location: number;
+  neck_undercut_width: number;
+  neck_undercut_curve: number;
 
   // Engineering Hull
   engineering_toggle: boolean;
@@ -79,6 +84,8 @@ export interface ShipParameters {
   nacelle_length: number;
   nacelle_radius: number;
   nacelle_widthRatio: number;
+  nacelle_foreTaper: number;
+  nacelle_aftTaper: number;
   nacelle_rotation: number;
   nacelle_skew: number;
   nacelle_undercutStart: number;
@@ -102,8 +109,12 @@ export interface ShipParameters {
   pylon_nacelleAftOffset: number;
   pylon_engineeringForeOffset: number;
   pylon_engineeringAftOffset: number;
+  pylon_baseSpread: number;
   pylon_engineeringZOffset: number;
   pylon_midPointOffset: number;
+  pylon_midPointOffsetX: number;
+  pylon_midPointOffsetY: number;
+  pylon_midPointOffsetZ: number;
   pylon_thickness: number;
   pylon_subdivisions: number;
 
@@ -115,6 +126,8 @@ export interface ShipParameters {
   nacelleLower_length: number;
   nacelleLower_radius: number;
   nacelleLower_widthRatio: number;
+  nacelleLower_foreTaper: number;
+  nacelleLower_aftTaper: number;
   nacelleLower_rotation: number;
   nacelleLower_skew: number;
   nacelleLower_undercutStart: number;
@@ -141,8 +154,12 @@ export interface ShipParameters {
   pylonLower_nacelleAftOffset: number;
   pylonLower_engineeringForeOffset: number;
   pylonLower_engineeringAftOffset: number;
+  pylonLower_baseSpread: number;
   pylonLower_engineeringZOffset: number;
   pylonLower_midPointOffset: number;
+  pylonLower_midPointOffsetX: number;
+  pylonLower_midPointOffsetY: number;
+  pylonLower_midPointOffsetZ: number;
   pylonLower_thickness: number;
   pylonLower_subdivisions: number;
 }

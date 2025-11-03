@@ -22,13 +22,16 @@ const createPylonGeo = (
         engineeringForeOffset: number,
         engineeringAftOffset: number,
         midpointOffset: number,
+        midpointOffsetX: number,
+        midpointOffsetY: number,
+        midpointOffsetZ: number,
         thickness: number,
         subdivisions: number,
     },
 ) => {
     const {
         nacelleForeOffset, nacelleAftOffset, engineeringForeOffset, engineeringAftOffset,
-        thickness, midpointOffset, subdivisions
+        thickness, midpointOffset, midpointOffsetX, midpointOffsetY, midpointOffsetZ, subdivisions
     } = pylonParams;
 
     // --- Corrected Attachment Point Calculations ---
@@ -49,13 +52,12 @@ const createPylonGeo = (
     if (nacelleFore < nacelleAft) [nacelleFore, nacelleAft] = [nacelleAft, nacelleFore];
     if (engineeringFore < engineeringAft) [engineeringFore, engineeringAft] = [engineeringAft, engineeringFore];
 
-    const midCenter = new THREE.Vector3(
-        THREE.MathUtils.lerp(engineeringCenter.x, nacelleCenter.x, midpointOffset),
-        engineeringCenter.y,
-        engineeringCenter.z
-    );
-    const midFore = engineeringFore;
-    const midAft = engineeringAft;
+    const interpMidCenter = new THREE.Vector3().lerpVectors(engineeringCenter, nacelleCenter, midpointOffset);
+    // The Z offset is applied to the fore/aft points, not the center point's Z.
+    const midCenter = interpMidCenter.clone().add(new THREE.Vector3(midpointOffsetX, midpointOffsetY, 0));
+    // Interpolate the fore/aft Z positions for the elbow joint, and add the Z offset.
+    const midFore = THREE.MathUtils.lerp(engineeringFore, nacelleFore, midpointOffset) + midpointOffsetZ;
+    const midAft = THREE.MathUtils.lerp(engineeringAft, nacelleAft, midpointOffset) + midpointOffsetZ;
     
     // Calculate perpendicular thickness vectors for each segment
     const delta_nm = new THREE.Vector3().subVectors(nacelleCenter, midCenter);
@@ -146,9 +148,8 @@ export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
         if (params.pylon_toggle && params.nacelle_toggle) {
             [-1, 1].forEach(sign => {
                 const nacelleCenter = new THREE.Vector3(params.nacelle_x * sign, params.nacelle_z, params.nacelle_y);
-                // Push the pylon base further into the hull for a better connection
                 const engineeringCenter = new THREE.Vector3(
-                    (params.engineering_radius * params.engineering_widthRatio * 0.6) * sign,
+                    (params.engineering_radius * params.engineering_widthRatio * params.pylon_baseSpread) * sign,
                     params.engineering_z + (params.pylon_engineeringZOffset * 0.8),
                     params.engineering_y
                 );
@@ -162,6 +163,9 @@ export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
                         engineeringForeOffset: params.pylon_engineeringForeOffset,
                         engineeringAftOffset: params.pylon_engineeringAftOffset,
                         midpointOffset: params.pylon_midPointOffset,
+                        midpointOffsetX: params.pylon_midPointOffsetX * sign,
+                        midpointOffsetY: params.pylon_midPointOffsetY,
+                        midpointOffsetZ: params.pylon_midPointOffsetZ,
                         thickness: params.pylon_thickness,
                         subdivisions: params.pylon_subdivisions,
                     }
@@ -181,30 +185,51 @@ export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 params.engineering_z - params.engineering_radius,
                 boomBaseZ
             );
-            const pylonJunction = boomTop.clone().add(new THREE.Vector3(0, params.pylonLower_engineeringZOffset, 0));
+            const pylonJunctionBase = boomTop.clone().add(new THREE.Vector3(0, params.pylonLower_engineeringZOffset, 0));
 
             if (params.boomLower_toggle) {
-                const diff = new THREE.Vector3().subVectors(pylonJunction, boomTop);
-                const length = diff.length();
-                if (length > 0.01) {
-                    const midpoint = new THREE.Vector3().addVectors(pylonJunction, boomTop).multiplyScalar(0.5);
-                    const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff.clone().normalize());
-                    const boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, 1, 16);
-                    const scaleMatrix = new THREE.Matrix4().makeScale(1, length, 1);
-                    const rotationMatrix = new THREE.Matrix4().makeRotationFromQuaternion(orientation);
-                    const translationMatrix = new THREE.Matrix4().makeTranslation(midpoint.x, midpoint.y, midpoint.z);
-                    
-                    boomGeo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(translationMatrix, new THREE.Matrix4().multiplyMatrices(rotationMatrix, scaleMatrix)));
-                    geos.lowerBoom = boomGeo;
+                if (params.pylonLower_baseSpread > 0.01) {
+                    // Horizontal Strut
+                    const pylonJunctionLeft = pylonJunctionBase.clone().add(new THREE.Vector3(-params.pylonLower_baseSpread, 0, 0));
+                    const pylonJunctionRight = pylonJunctionBase.clone().add(new THREE.Vector3(params.pylonLower_baseSpread, 0, 0));
+                    const diff = new THREE.Vector3().subVectors(pylonJunctionRight, pylonJunctionLeft);
+                    const length = diff.length();
+
+                    if (length > 0.01) {
+                        const midpoint = new THREE.Vector3().addVectors(pylonJunctionLeft, pylonJunctionRight).multiplyScalar(0.5);
+                        
+                        const boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, length, 16);
+                        boomGeo.rotateZ(Math.PI / 2); // Cylinder is on Y axis, rotate to X axis
+                        boomGeo.translate(midpoint.x, midpoint.y, midpoint.z);
+                        geos.lowerBoom = boomGeo;
+                    }
+                } else {
+                    // Original vertical boom
+                    const diff = new THREE.Vector3().subVectors(pylonJunctionBase, boomTop);
+                    const length = diff.length();
+                    if (length > 0.01) {
+                        const midpoint = new THREE.Vector3().addVectors(pylonJunctionBase, boomTop).multiplyScalar(0.5);
+                        const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff.clone().normalize());
+                        
+                        let boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, 1, 16);
+                        const scaleMatrix = new THREE.Matrix4().makeScale(1, length, 1);
+                        const rotationMatrix = new THREE.Matrix4().makeRotationFromQuaternion(orientation);
+                        const translationMatrix = new THREE.Matrix4().makeTranslation(midpoint.x, midpoint.y, midpoint.z);
+                        
+                        boomGeo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(translationMatrix, new THREE.Matrix4().multiplyMatrices(rotationMatrix, scaleMatrix)));
+                        geos.lowerBoom = boomGeo;
+                    }
                 }
             }
 
              [-1, 1].forEach(sign => {
                 const nacelleCenter = new THREE.Vector3(params.nacelleLower_x * sign, params.nacelleLower_z, params.nacelleLower_y);
-                const engineeringSpan = params.engineering_length * Math.abs(params.pylonLower_engineeringForeOffset - params.pylonLower_engineeringAftOffset)
+                const engineeringSpan = params.engineering_length * Math.abs(params.pylonLower_engineeringForeOffset - params.pylonLower_engineeringAftOffset);
+                
+                const pylonJunctionForSide = pylonJunctionBase.clone().add(new THREE.Vector3(params.pylonLower_baseSpread * sign, 0, 0));
                 
                 const geo = createPylonGeo(
-                    nacelleCenter, pylonJunction,
+                    nacelleCenter, pylonJunctionForSide,
                     params.nacelleLower_length, engineeringSpan,
                     {
                         nacelleForeOffset: params.pylonLower_nacelleForeOffset,
@@ -212,6 +237,9 @@ export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
                         engineeringForeOffset: 1, // Junction point has no length, so use full range
                         engineeringAftOffset: 0,
                         midpointOffset: params.pylonLower_midPointOffset,
+                        midpointOffsetX: params.pylonLower_midPointOffsetX * sign,
+                        midpointOffsetY: params.pylonLower_midPointOffsetY,
+                        midpointOffsetZ: params.pylonLower_midPointOffsetZ,
                         thickness: params.pylonLower_thickness,
                         subdivisions: params.pylonLower_subdivisions,
                     }
