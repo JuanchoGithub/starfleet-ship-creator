@@ -5,17 +5,12 @@ import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { useFrame } from '@react-three/fiber';
 
-const shipMaterial = new THREE.MeshStandardMaterial({
-  color: '#cccccc',
-  metalness: 0.8,
-  roughness: 0.4,
-});
-
 interface ImpulseEnginesProps {
     params: ShipParameters;
+    material: THREE.Material;
 }
 
-export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params }) => {
+export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params, material }) => {
 
     const impulseMaterial = useMemo(() => new THREE.MeshStandardMaterial({
         color: params.sublight_color1,
@@ -98,7 +93,7 @@ export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params }) => {
         <group name="ImpulseEngines_Assembly" position={[0, params.sublight_z, params.sublight_y]}>
             <group name="ImpulseEngine_Port" position={[-params.sublight_x, 0, 0]} rotation={[0, 0, params.sublight_rotation]}>
                 <group name="Engine_Housing_and_Grill" rotation={[-Math.PI / 2, 0, 0]}>
-                    <mesh name="Housing" geometry={geos.left.housingGeo} material={shipMaterial} castShadow receiveShadow/>
+                    <mesh name="Housing" geometry={geos.left.housingGeo} material={material} castShadow receiveShadow/>
                     <mesh 
                         name="Grill"
                         geometry={geos.left.grillGeo} 
@@ -109,7 +104,7 @@ export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params }) => {
             </group>
             <group name="ImpulseEngine_Starboard" position={[params.sublight_x, 0, 0]} rotation={[0, 0, -params.sublight_rotation]}>
                 <group name="Engine_Housing_and_Grill" rotation={[-Math.PI / 2, 0, 0]}>
-                    <mesh name="Housing" geometry={geos.right.housingGeo} material={shipMaterial} castShadow receiveShadow />
+                    <mesh name="Housing" geometry={geos.right.housingGeo} material={material} castShadow receiveShadow />
                     <mesh 
                         name="Grill"
                         geometry={geos.right.grillGeo} 

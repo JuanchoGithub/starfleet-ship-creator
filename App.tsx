@@ -5,10 +5,11 @@ import { Scene } from './components/Scene';
 import { ControlsPanel } from './components/ControlsPanel';
 import { INITIAL_SHIP_PARAMS, PARAM_CONFIG } from './constants';
 import { STOCK_SHIPS } from './ships';
-import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon } from './components/icons';
+import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
+import { generateTextures } from './components/TextureGenerator';
 
 const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean;}> = ({ label, checked, onChange, disabled }) => (
     <div className="flex justify-between items-center">
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
   const [pastebinText, setPastebinText] = useState('');
   const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(true);
+  const [isTexturePanelOpen, setIsTexturePanelOpen] = useState(true);
   const [isMultiviewOpen, setIsMultiviewOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(352); // Approx 10% wider than 320px (w-80)
 
@@ -43,6 +45,77 @@ const App: React.FC = () => {
       dedupe: true,
       instance: true,
   });
+
+  const [hullMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+    emissive: '#ffffff', // Use white emissive color to be modulated by emissive map
+  }));
+
+  const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
+
+  const handleGenerateTextures = useCallback(() => {
+    setIsGeneratingTextures(true);
+    // Use a timeout to allow the UI to update to the loading state
+    setTimeout(() => {
+        const { map, normalMap, emissiveMap } = generateTextures({
+            seed: params.texture_seed,
+            density: params.texture_density,
+            panelColorVariation: params.texture_panel_color_variation,
+            window_density: params.texture_window_density,
+            window_color1: params.texture_window_color1,
+            window_color2: params.texture_window_color2,
+        });
+
+        // Dispose of old textures to free up GPU memory
+        if (hullMaterial.map) hullMaterial.map.dispose();
+        if (hullMaterial.normalMap) hullMaterial.normalMap.dispose();
+        if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.dispose();
+
+        hullMaterial.map = map;
+        hullMaterial.normalMap = normalMap;
+        hullMaterial.emissiveMap = emissiveMap;
+        hullMaterial.needsUpdate = true;
+        
+        setIsGeneratingTextures(false);
+    }, 50);
+  }, [params.texture_seed, params.texture_density, params.texture_panel_color_variation, params.texture_window_density, params.texture_window_color1, params.texture_window_color2, hullMaterial]);
+
+  // Effect to update material properties when params change
+  useEffect(() => {
+    const textureScale = params.texture_scale || 8;
+    if (hullMaterial.map) {
+        hullMaterial.map.repeat.set(textureScale, textureScale);
+    }
+    if (hullMaterial.normalMap) {
+        hullMaterial.normalMap.repeat.set(textureScale, textureScale);
+    }
+    if (hullMaterial.emissiveMap) {
+        hullMaterial.emissiveMap.repeat.set(textureScale, textureScale);
+    }
+
+    hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
+    
+    // Toggle textures on/off
+    if (!params.texture_toggle) {
+        hullMaterial.map = null;
+        hullMaterial.normalMap = null;
+        hullMaterial.emissiveMap = null;
+    } else if (!hullMaterial.map) {
+        // If textures are toggled on but not generated, generate them.
+        handleGenerateTextures();
+    }
+
+    hullMaterial.needsUpdate = true;
+
+  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, hullMaterial, handleGenerateTextures]);
+  
+  // Generate initial textures on load
+  useEffect(() => {
+    handleGenerateTextures();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
@@ -93,20 +166,8 @@ const App: React.FC = () => {
           alert("Could not export ship. The 3D model reference is not available.");
           return;
       }
-
-      // NOTE: The following export options (weld, prune, dedupe, instance) are features
-      // of advanced GLTF optimization tools like gltf-transform, not THREE.GLTFExporter.
-      // The Draco option requires a separate Draco encoder library which is not included.
-      // This implementation performs a standard binary GLB export. The UI is provided
-      // for future extension if such tools become available in this environment.
-      // The "double compression" feature is also not implemented as it's not a standard
-      // feature of GLTFExporter.
       const exporter = new GLTFExporter();
-      const exporterOptions = {
-          binary: true,
-          // In a real scenario with a Draco encoder:
-          // dracoOptions: exportOptions.draco && !exportOptions.noCompression ? { compressionLevel: 7 } : undefined,
-      };
+      const exporterOptions = { binary: true };
 
       exporter.parse(
           shipRef.current,
@@ -128,7 +189,7 @@ const App: React.FC = () => {
           exporterOptions
       );
       setIsExportModalOpen(false);
-  }, [exportOptions]);
+  }, []);
 
   const handleImportClick = () => {
     importInputRef.current?.click();
@@ -242,18 +303,9 @@ const App: React.FC = () => {
     setExportOptions(prev => {
         const newOptions = { ...prev, [option]: value };
         if (option === 'noCompression' && value) {
-            // If "No compression" is checked, uncheck others
-            return {
-                noCompression: true,
-                weldVertices: false,
-                draco: false,
-                prune: false,
-                dedupe: false,
-                instance: false,
-            };
+            return { noCompression: true, weldVertices: false, draco: false, prune: false, dedupe: false, instance: false, };
         }
         if (option !== 'noCompression' && value) {
-             // If any other option is checked, uncheck "No compression"
             newOptions.noCompression = false;
         }
         return newOptions;
@@ -266,11 +318,12 @@ const App: React.FC = () => {
         <Multiview 
             shipParams={params}
             width={sidebarWidth}
-            setWidth={setSidebarWidth} 
+            setWidth={setSidebarWidth}
+            hullMaterial={hullMaterial} 
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} />
       </div>
       <div className={`w-full ${isMultiviewOpen ? 'md:w-72 lg:w-80' : 'md:w-80 lg:w-96'} h-1/2 md:h-full flex-shrink-0`}>
         <ControlsPanel params={params} paramConfig={PARAM_CONFIG} onParamChange={handleParamChange}>
@@ -371,6 +424,28 @@ const App: React.FC = () => {
                       </div>
                   </>
               )}
+            </div>
+            <div className="border-b border-space-light">
+                <button
+                    onClick={() => setIsTexturePanelOpen(!isTexturePanelOpen)}
+                    className="w-full flex justify-between items-center p-3 text-left hover:bg-space-light transition-colors"
+                >
+                    <span className="font-semibold text-light-gray">Texture Generation</span>
+                    <ChevronDownIcon className={`w-5 h-5 text-mid-gray transition-transform ${isTexturePanelOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isTexturePanelOpen && (
+                    <div className="p-3 space-y-3">
+                        <p className="text-sm text-mid-gray">Use the controls in the "Hull Texturing" panel below to customize the texture, then click here to apply it.</p>
+                        <button 
+                            onClick={handleGenerateTextures} 
+                            disabled={isGeneratingTextures}
+                            className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
+                        >
+                            <SparklesIcon className='w-5 h-5' />
+                            {isGeneratingTextures ? 'Generating...' : 'Generate Textures'}
+                        </button>
+                    </div>
+                )}
             </div>
         </ControlsPanel>
       </div>

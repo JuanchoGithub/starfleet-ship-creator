@@ -8,21 +8,22 @@ import { Neck } from './ship-parts/Neck';
 import { Nacelles } from './ship-parts/Nacelles';
 import { Pylons } from './ship-parts/Pylons';
 import { ImpulseEngines } from './ship-parts/ImpulseEngines';
-import { Group } from 'three';
+import { Group, Material } from 'three';
 
 interface ShipProps {
     shipParams: ShipParameters;
+    material: Material;
 }
 
-export const Ship = forwardRef<Group, ShipProps>(({ shipParams }, ref) => {
+export const Ship = forwardRef<Group, ShipProps>(({ shipParams, material }, ref) => {
   return (
     <group ref={ref} name="Starship">
-        <PrimaryHull params={shipParams} />
-        <EngineeringHull params={shipParams} />
-        <Neck params={shipParams} />
-        <Nacelles params={shipParams} />
-        <Pylons params={shipParams} />
-        <ImpulseEngines params={shipParams} />
+        <PrimaryHull params={shipParams} material={material} />
+        <EngineeringHull params={shipParams} material={material} />
+        <Neck params={shipParams} material={material} />
+        <Nacelles params={shipParams} material={material} />
+        <Pylons params={shipParams} material={material} />
+        <ImpulseEngines params={shipParams} material={material} />
     </group>
   );
 });

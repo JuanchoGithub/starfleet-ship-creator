@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrthographicCamera, Stars, Environment } from '@react-three/drei';
 import { Ship } from './Ship';
 import { ShipParameters } from '../types';
+import * as THREE from 'three';
 
 interface ViewportProps {
   label: string;
@@ -13,10 +14,11 @@ interface ViewportProps {
     zoom: number;
   };
   shipParams: ShipParameters;
+  hullMaterial: THREE.Material;
   children?: React.ReactNode;
 }
 
-const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, children }) => (
+const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hullMaterial, children }) => (
   <div className="flex-1 relative border-b border-space-light last:border-b-0 overflow-hidden">
     <div className="absolute top-1 left-2 text-xs text-mid-gray bg-space-dark/50 px-1 rounded z-10 pointer-events-none">{label}</div>
     <Canvas>
@@ -26,7 +28,7 @@ const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, chi
         <directionalLight position={[10, 20, 5]} intensity={1} />
         <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.2} />
         <Environment preset="city" />
-        <Ship shipParams={shipParams} />
+        <Ship shipParams={shipParams} material={hullMaterial} />
       </Suspense>
     </Canvas>
     {children}
@@ -37,12 +39,13 @@ interface MultiviewProps {
   shipParams: ShipParameters;
   width: number;
   setWidth: (width: number) => void;
+  hullMaterial: THREE.Material;
 }
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 800;
 
-export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth }) => {
+export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth, hullMaterial }) => {
   const isResizing = useRef(false);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -97,21 +100,25 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
         label="FRONT"
         cameraProps={{ position: [0, 0, 50], zoom }}
         shipParams={shipParams}
+        hullMaterial={hullMaterial}
       />
       <Viewport 
         label="TOP"
         cameraProps={{ position: [0, 50, 0], rotation: [-Math.PI / 2, 0, -Math.PI / 2], zoom }}
         shipParams={shipParams}
+        hullMaterial={hullMaterial}
       />
       <Viewport 
         label="SIDE (PORT)"
         cameraProps={{ position: [-50, 0, 0], rotation: [0, -Math.PI / 2, 0], zoom }}
         shipParams={shipParams}
+        hullMaterial={hullMaterial}
       />
       <Viewport 
         label="BOTTOM"
         cameraProps={{ position: [0, -50, 0], rotation: [Math.PI / 2, 0, Math.PI / 2], zoom }}
         shipParams={shipParams}
+        hullMaterial={hullMaterial}
       >
       </Viewport>
     </div>

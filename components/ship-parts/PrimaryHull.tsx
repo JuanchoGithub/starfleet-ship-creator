@@ -4,18 +4,6 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 
-const shipMaterial = new THREE.MeshStandardMaterial({
-  color: '#cccccc',
-  metalness: 0.8,
-  roughness: 0.4,
-});
-
-const notchMaterial = new THREE.MeshStandardMaterial({
-  color: '#999999',
-  metalness: 0.7,
-  roughness: 0.5,
-});
-
 // Helper function to extract the edge vertices from a LatheGeometry piece
 const generateEndPlatesForGeometry = (geometry: THREE.BufferGeometry, profilePointCount: number) => {
     const posAttr = geometry.attributes.position;
@@ -65,9 +53,10 @@ const createCapGeometry = (ring: THREE.Vector3[]) => {
 
 interface PrimaryHullProps {
     params: ShipParameters;
+    material: THREE.Material;
 }
 
-export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params }) => {
+export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) => {
     const { saucerLeft, saucerRight, bridge, notchCaps } = useMemo(() => {
         const geos: {
             saucerLeft?: THREE.BufferGeometry,
@@ -226,10 +215,10 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params }) => {
             position={[0, params.primary_z, params.primary_y]}
         >
             <group name="Saucer">
-                {saucerLeft && <mesh name="Saucer_Port" geometry={saucerLeft} material={shipMaterial} castShadow receiveShadow />}
-                {saucerRight && <mesh name="Saucer_Starboard" geometry={saucerRight} material={shipMaterial} castShadow receiveShadow />}
+                {saucerLeft && <mesh name="Saucer_Port" geometry={saucerLeft} material={material} castShadow receiveShadow />}
+                {saucerRight && <mesh name="Saucer_Starboard" geometry={saucerRight} material={material} castShadow receiveShadow />}
                 {notchCaps.map((geo, i) => (
-                    <mesh key={i} name={`Saucer_NotchCap_${i}`} geometry={geo} material={notchMaterial} castShadow receiveShadow />
+                    <mesh key={i} name={`Saucer_NotchCap_${i}`} geometry={geo} material={material} castShadow receiveShadow />
                 ))}
 
                 {/* Bridge is placed on top of the saucer (at y=0) with a vertical offset */}
@@ -237,7 +226,7 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params }) => {
                     <mesh 
                         name="Bridge"
                         geometry={bridge} 
-                        material={shipMaterial}
+                        material={material}
                         position={[
                             0, // x
                             params.primary_bridgeZ, // y (vertical offset)

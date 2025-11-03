@@ -4,17 +4,12 @@ import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { useFrame } from '@react-three/fiber';
 
-const shipMaterial = new THREE.MeshStandardMaterial({
-  color: '#cccccc',
-  metalness: 0.8,
-  roughness: 0.4,
-});
-
 interface EngineeringHullProps {
     params: ShipParameters;
+    material: THREE.Material;
 }
 
-export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params }) => {
+export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, material }) => {
 
     const deflectorMaterial = useMemo(() => new THREE.MeshStandardMaterial({
         color: params.engineering_dishColor1,
@@ -161,7 +156,7 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params }) => {
                 <mesh 
                     name="EngineeringHull_Body"
                     geometry={engineering} 
-                    material={shipMaterial}
+                    material={material}
                     castShadow receiveShadow
                 />
             )}

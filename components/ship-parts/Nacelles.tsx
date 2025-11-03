@@ -6,12 +6,6 @@ import { ShipParameters } from '../../types';
 import { useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, RoundedBox, Box } from '@react-three/drei';
 
-const shipMaterial = new THREE.MeshStandardMaterial({
-  color: '#cccccc',
-  metalness: 0.8,
-  roughness: 0.4,
-});
-
 const nacelleSideGrillMaterial = new THREE.MeshStandardMaterial({
     color: '#88aaff',
     emissive: '#66ccff',
@@ -21,7 +15,7 @@ const nacelleSideGrillMaterial = new THREE.MeshStandardMaterial({
 
 // --- Bussard Collector Components ---
 
-const BussardTOS: React.FC<{ p: any }> = ({ p }) => {
+const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, material }) => {
     const firefliesRef = useRef<any>(null);
     const rotatorRef = useRef<THREE.Group>(null!);
 
@@ -82,7 +76,7 @@ const BussardTOS: React.FC<{ p: any }> = ({ p }) => {
 
     return (
         <group>
-            <mesh name="Bussard_Rear_Casing" geometry={bussardRearGeo} material={shipMaterial} castShadow receiveShadow />
+            <mesh name="Bussard_Rear_Casing" geometry={bussardRearGeo} material={material} castShadow receiveShadow />
             <mesh name="Bussard_Outer_Dome" geometry={bussardGeo}>
                 <meshStandardMaterial color={p.bussardColor1} emissive={p.bussardColor1} emissiveIntensity={p.bussardGlowIntensity * 0.5} roughness={0.2} transparent={true} opacity={0.6} side={THREE.DoubleSide}/>
             </mesh>
@@ -137,12 +131,13 @@ interface NacellePairProps {
     x: number; z: number; y: number; rotation: number;
     nacelleGeo: THREE.BufferGeometry;
     params: any;
+    material: THREE.Material;
     portName: string;
     starboardName: string;
 }
 
 const NacellePair: React.FC<NacellePairProps> = (props) => {
-    const { x, z, y, rotation, nacelleGeo, params, portName, starboardName } = props;
+    const { x, z, y, rotation, nacelleGeo, params, material, portName, starboardName } = props;
     
     const BussardComponentType = useMemo(() => {
         switch (params.bussardType) {
@@ -175,9 +170,9 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
 
         return (
             <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="Nacelle_Body" geometry={nacelleGeo} material={shipMaterial} castShadow receiveShadow />
+                <mesh name="Nacelle_Body" geometry={nacelleGeo} material={material} castShadow receiveShadow />
                 <group name="Bussard_Collector" position={[0, params.bussardYOffset, params.bussardZOffset]}>
-                    <BussardComponentType p={params} />
+                    <BussardComponentType p={params} material={material} />
                 </group>
                 {params.grill_toggle && (
                     <group 
@@ -224,7 +219,7 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
 };
 
 
-export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
+export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Material }> = ({ params, material }) => {
 
     const generateNacelleGeometries = ( length: number, radius: number, widthRatio: number, foreTaper: number, aftTaper: number, segments: number, skew: number, undercut: number, undercutStart: number ) => {
         const nacellePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
@@ -297,6 +292,7 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 y={params.nacelle_y}
                 rotation={params.nacelle_rotation}
                 nacelleGeo={upperNacelleGeos.nacelleGeo}
+                material={material}
                 params={{
                     length: params.nacelle_length,
                     radius: params.nacelle_radius,
@@ -334,6 +330,7 @@ export const Nacelles: React.FC<{ params: ShipParameters }> = ({ params }) => {
                 y={params.nacelleLower_y}
                 rotation={params.nacelleLower_rotation}
                 nacelleGeo={lowerNacelleGeos.nacelleGeo}
+                material={material}
                 params={{
                     length: params.nacelleLower_length,
                     radius: params.nacelleLower_radius,

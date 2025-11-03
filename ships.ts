@@ -1,7 +1,21 @@
 import { ShipParameters } from './types';
 
+const defaultTextureParams = {
+  texture_toggle: true,
+  texture_seed: 1,
+  texture_scale: 8,
+  texture_density: 0.7,
+  texture_panel_color_variation: 0.05,
+  texture_window_color1: '#ffffaa',
+  texture_window_color2: '#aaccff',
+  texture_window_density: 0.5,
+  texture_emissive_intensity: 2,
+};
+
 export const STOCK_SHIPS: { [name: string]: ShipParameters } = {
   'Stargazer Class': {
+    ...defaultTextureParams,
+    "texture_seed": 101,
     "primary_toggle": true,
     "primary_y": -17.41,
     "primary_z": 10.52,
@@ -170,6 +184,8 @@ export const STOCK_SHIPS: { [name: string]: ShipParameters } = {
     "pylonLower_subdivisions": 1
   },
   'Advanced Enterprise': {
+    ...defaultTextureParams,
+    "texture_seed": 202,
     "primary_toggle": true,
     "primary_y": -14.02,
     "primary_z": 9.39,
@@ -338,6 +354,8 @@ export const STOCK_SHIPS: { [name: string]: ShipParameters } = {
     "pylonLower_subdivisions": 1
   },
   'Galaxy Class': {
+  ...defaultTextureParams,
+  "texture_seed": 303,
   "primary_toggle": true,
   "primary_y": -21.82,
   "primary_z": 8.73,

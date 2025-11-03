@@ -188,6 +188,17 @@ export interface ShipParameters {
   pylonLower_midPointOffsetZ: number;
   pylonLower_thickness: number;
   pylonLower_subdivisions: number;
+
+  // Hull Texturing
+  texture_toggle: boolean;
+  texture_seed: number;
+  texture_scale: number;
+  texture_density: number;
+  texture_panel_color_variation: number;
+  texture_window_color1: string;
+  texture_window_color2: string;
+  texture_window_density: number;
+  texture_emissive_intensity: number;
 }
 
 export interface ParamConfig {

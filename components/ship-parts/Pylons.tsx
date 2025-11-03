@@ -5,12 +5,6 @@ import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { LoopSubdivision } from 'three-subdivide';
 
-const shipMaterial = new THREE.MeshStandardMaterial({
-  color: '#cccccc',
-  metalness: 0.8,
-  roughness: 0.4,
-});
-
 const createPylonGeo = (
     nacelleCenter: THREE.Vector3, // (x, y, z) -> (spread, vertical, fore/aft)
     engineeringCenter: THREE.Vector3,
@@ -135,7 +129,7 @@ const createPylonGeo = (
     return geo;
 };
 
-export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
+export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material }> = ({ params, material }) => {
     
     const geometries = useMemo(() => {
         const geos: {
@@ -255,11 +249,11 @@ export const Pylons: React.FC<{ params: ShipParameters }> = ({ params }) => {
 
     return (
         <group name="Pylons">
-            {geometries.upperLeft && <mesh name="Pylon_Upper_Port" geometry={geometries.upperLeft} material={shipMaterial} castShadow receiveShadow />}
-            {geometries.upperRight && <mesh name="Pylon_Upper_Starboard" geometry={geometries.upperRight} material={shipMaterial} castShadow receiveShadow />}
-            {geometries.lowerBoom && <mesh name="Pylon_Lower_Boom" geometry={geometries.lowerBoom} material={shipMaterial} castShadow receiveShadow />}
-            {geometries.lowerLeft && <mesh name="Pylon_Lower_Port" geometry={geometries.lowerLeft} material={shipMaterial} castShadow receiveShadow />}
-            {geometries.lowerRight && <mesh name="Pylon_Lower_Starboard" geometry={geometries.lowerRight} material={shipMaterial} castShadow receiveShadow />}
+            {geometries.upperLeft && <mesh name="Pylon_Upper_Port" geometry={geometries.upperLeft} material={material} castShadow receiveShadow />}
+            {geometries.upperRight && <mesh name="Pylon_Upper_Starboard" geometry={geometries.upperRight} material={material} castShadow receiveShadow />}
+            {geometries.lowerBoom && <mesh name="Pylon_Lower_Boom" geometry={geometries.lowerBoom} material={material} castShadow receiveShadow />}
+            {geometries.lowerLeft && <mesh name="Pylon_Lower_Port" geometry={geometries.lowerLeft} material={material} castShadow receiveShadow />}
+            {geometries.lowerRight && <mesh name="Pylon_Lower_Starboard" geometry={geometries.lowerRight} material={material} castShadow receiveShadow />}
         </group>
     );
 };

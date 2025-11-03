@@ -4,6 +4,17 @@ import { STOCK_SHIPS } from './ships';
 export const INITIAL_SHIP_PARAMS: ShipParameters = STOCK_SHIPS['Stargazer Class'];
 
 export const PARAM_CONFIG: ParamConfigGroups = {
+  "Hull Texturing": {
+    texture_toggle: { label: "Enable Textures", type: 'toggle' },
+    texture_seed: { label: "Seed", min: 0, max: 1000, step: 1, type: 'slider' },
+    texture_scale: { label: "Panel Scale", min: 2, max: 20, step: 0.1, type: 'slider' },
+    texture_density: { label: "Detail Density", min: 0.1, max: 1.0, step: 0.01, type: 'slider' },
+    texture_panel_color_variation: { label: "Panel Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
+    texture_window_color1: { label: "Window Color 1", type: 'color' },
+    texture_window_color2: { label: "Window Color 2", type: 'color' },
+    texture_window_density: { label: "Window Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+    texture_emissive_intensity: { label: "Window Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
+  },
   "Primary Hull (Saucer)": {
     primary_toggle: { label: "Enable", type: 'toggle' },
     primary_y: { label: "Fore/Aft Position", min: -40, max: 40, step: 0.01, type: 'slider' },
