@@ -334,8 +334,16 @@ export interface ParamConfig {
   options?: string[];
 }
 
-export type ParamConfigGroups = {
-  [group: string]: {
-    [key in keyof ShipParameters | keyof LightParameters]?: ParamConfig;
+export type FlatParamGroup = {
+  [key in keyof ShipParameters | keyof LightParameters]?: ParamConfig;
+};
+
+export type SubParamGroup = {
+  [subgroup: string]: {
+    [key: string]: ParamConfig; // Using string key here for practicality with nested structure
   };
+}
+
+export type ParamConfigGroups = {
+  [group: string]: FlatParamGroup | SubParamGroup;
 };

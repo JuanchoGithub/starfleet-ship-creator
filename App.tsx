@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ShipParameters, LightParameters } from './types';
+import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
-import { ControlsPanel } from './components/ControlsPanel';
 import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants';
 import { STOCK_SHIPS } from './ships';
 import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
@@ -22,6 +21,99 @@ const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (check
     </div>
 );
 
+const renderControl = (
+    key: string, 
+    config: ParamConfig, 
+    params: ShipParameters | LightParameters, 
+    onParamChange: (key: any, value: any) => void
+) => {
+    const paramKey = key as keyof (ShipParameters & LightParameters);
+    const value = params[paramKey];
+
+    switch (config.type) {
+        case 'slider':
+            return (
+                <Slider
+                    key={paramKey}
+                    label={config.label}
+                    value={value as number}
+                    min={config.min!}
+                    max={config.max!}
+                    step={config.step!}
+                    onChange={(val) => onParamChange(paramKey, val)}
+                />
+            );
+        case 'toggle':
+            return (
+                <Toggle
+                    key={paramKey}
+                    label={config.label}
+                    checked={value as boolean}
+                    onChange={(val) => onParamChange(paramKey, val)}
+                />
+            );
+        case 'select':
+            return (
+                <Select
+                    key={paramKey}
+                    label={config.label}
+                    value={value as string}
+                    options={config.options!}
+                    onChange={(val) => onParamChange(paramKey, val as any)}
+                />
+            );
+        case 'color':
+            return (
+                <ColorPicker
+                    key={paramKey}
+                    label={config.label}
+                    value={value as string}
+                    onChange={(val) => onParamChange(paramKey, val as any)}
+                />
+            );
+        default:
+            return null;
+    }
+};
+
+const ControlGroup: React.FC<{
+  groupName: string;
+  configs: FlatParamGroup | SubParamGroup;
+  params: ShipParameters | LightParameters;
+  onParamChange: (key: any, value: any) => void;
+  defaultOpen?: boolean;
+}> = ({ groupName, configs, params, onParamChange, defaultOpen = true }) => {
+  if (!configs) return null;
+  
+  const entries = Object.entries(configs);
+  if (entries.length === 0) return null;
+
+  // Check the structure of the first item to determine if we have subgroups.
+  // A config item will have a 'type' property, a subgroup object will not.
+  const hasSubgroups = typeof (entries[0][1] as any).type === 'undefined';
+
+  return (
+    <Accordion title={groupName} defaultOpen={defaultOpen}>
+      {hasSubgroups ? (
+        (entries as [string, { [key: string]: ParamConfig }][]).map(([subgroupName, subconfigs]) => (
+          <div key={subgroupName} className="space-y-3 pt-4 first:pt-0">
+            <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3">{subgroupName}</h4>
+            {Object.entries(subconfigs).map(([key, config]) => 
+              renderControl(key, config, params, onParamChange)
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="space-y-3">
+            {(entries as [string, ParamConfig][]).map(([key, config]) => 
+                renderControl(key, config, params, onParamChange)
+            )}
+        </div>
+      )}
+    </Accordion>
+  );
+};
+
 
 const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
@@ -34,8 +126,6 @@ const App: React.FC = () => {
   const [designName, setDesignName] = useState<string>('');
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
   const [pastebinText, setPastebinText] = useState('');
-  const [isManagementPanelOpen, setIsManagementPanelOpen] = useState(true);
-  const [isTexturePanelOpen, setIsTexturePanelOpen] = useState(true);
   const [isMultiviewOpen, setIsMultiviewOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(352); // Approx 10% wider than 320px (w-80)
 
@@ -183,15 +273,25 @@ const App: React.FC = () => {
 
   const handleRandomize = useCallback(() => {
     const newParams = { ...params };
-    Object.entries(PARAM_CONFIG).forEach(([, configs]) => {
-        Object.entries(configs).forEach(([key, config]) => {
-            if (config.type === 'slider') {
-                const min = config.min!;
-                const max = config.max!;
-                const randomValue = Math.random() * (max - min) + min;
-                newParams[key as keyof ShipParameters] = randomValue as never;
-            }
-        });
+    Object.entries(PARAM_CONFIG).forEach(([, groupConfigs]) => {
+        const processConfigs = (configs: any) => {
+            Object.entries(configs).forEach(([key, configOrSubgroup]) => {
+                if(typeof (configOrSubgroup as any).type !== 'undefined') {
+                    // It's a config
+                    const config = configOrSubgroup as ParamConfig;
+                    if (config.type === 'slider') {
+                        const min = config.min!;
+                        const max = config.max!;
+                        const randomValue = Math.random() * (max - min) + min;
+                        newParams[key as keyof ShipParameters] = randomValue as never;
+                    }
+                } else {
+                    // It's a subgroup, recurse
+                    processConfigs(configOrSubgroup);
+                }
+            });
+        };
+        processConfigs(groupConfigs);
     });
     setParams(newParams);
     setShipName('Randomized Design');
@@ -396,182 +496,149 @@ const App: React.FC = () => {
         </div>
       </div>
       <div className={`w-full ${isMultiviewOpen ? 'md:w-72 lg:w-80' : 'md:w-80 lg:w-96'} h-1/2 md:h-full flex-shrink-0`}>
-        <ControlsPanel params={params} paramConfig={PARAM_CONFIG} onParamChange={handleParamChange}>
-          <div className="border-b border-space-light">
-              <button
-                  onClick={() => setIsManagementPanelOpen(!isManagementPanelOpen)}
-                  className="w-full flex justify-between items-center p-3 text-left hover:bg-space-light transition-colors"
-              >
-                  <span className="font-semibold text-light-gray">Ship Management & I/O</span>
-                  <ChevronDownIcon className={`w-5 h-5 text-mid-gray transition-transform ${isManagementPanelOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isManagementPanelOpen && (
-                  <>
-                      <div className='p-3'>
-                          <h2 className="text-lg font-bold mb-3 text-accent-glow">Utilities</h2>
-                          <div className='space-y-3'>
-                              <div className='grid grid-cols-2 gap-2'>
-                                  <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                     <ArrowUpTrayIcon className='w-5 h-5'/> Import
-                                  </button>
-                                  <input type="file" accept=".json" ref={importInputRef} onChange={handleFileImport} className="hidden" />
-                                  <button onClick={handleExportJson} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                      <ArrowDownTrayIcon className='w-5 h-5'/> Export JSON
-                                  </button>
-                                  <button onClick={handlePaste} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                     <ClipboardIcon className='w-5 h-5'/> Paste
-                                  </button>
-                                  <button onClick={handleCopy} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                      <ClipboardDocumentIcon className='w-5 h-5'/> Copy
-                                  </button>
-                              </div>
-                              <button onClick={() => setIsMultiviewOpen(!isMultiviewOpen)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                  <Squares2X2Icon className='w-5 h-5' /> {isMultiviewOpen ? 'Hide' : 'Show'} Ortho Views
+        <div className="w-full h-full bg-space-mid border-l border-space-light overflow-y-auto">
+            <Accordion title="Ship Management & I/O">
+              <>
+                  <div className='p-3'>
+                      <h2 className="text-lg font-bold mb-3 text-accent-glow">Utilities</h2>
+                      <div className='space-y-3'>
+                          <div className='grid grid-cols-2 gap-2'>
+                              <button onClick={handleImportClick} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                                  <ArrowUpTrayIcon className='w-5 h-5'/> Import
                               </button>
-                              <button onClick={() => setIsExportModalOpen(true)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                  <CubeIcon className='w-5 h-5' /> Export GLB
+                              <input type="file" accept=".json" ref={importInputRef} onChange={handleFileImport} className="hidden" />
+                              <button onClick={handleExportJson} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                                  <ArrowDownTrayIcon className='w-5 h-5'/> Export JSON
                               </button>
-                              <button onClick={handleRandomize} className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors">
-                                  <ShuffleIcon className='w-5 h-5'/> Randomize
+                              <button onClick={handlePaste} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                                  <ClipboardIcon className='w-5 h-5'/> Paste
                               </button>
-                              <button onClick={handleResetToDefault} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
-                                  <ArrowUturnLeftIcon className='w-5 h-5'/> Reset to Default
+                              <button onClick={handleCopy} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                                  <ClipboardDocumentIcon className='w-5 h-5'/> Copy
                               </button>
                           </div>
-                      </div>
-                      <div className='p-3 border-t border-space-light'>
-                        <h2 className="text-lg font-bold mb-3 text-accent-glow">Stock Designs</h2>
-                        <div className='space-y-2 max-h-48 overflow-y-auto'>
-                          {Object.entries(STOCK_SHIPS).map(([name, shipParams]) => (
-                            <div key={name} className='flex items-center justify-between bg-space-light p-2 rounded-md'>
-                              <span className='text-sm font-medium truncate' title={name}>{name}</span>
-                              <div className='flex gap-1 flex-shrink-0'>
-                                <button onClick={() => handleLoadStockDesign(name, shipParams)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
-                                  Load
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className='p-3 border-t border-space-light'>
-                        <h2 className="text-lg font-bold mb-3 text-accent-glow">Saved Designs</h2>
-                        <div className="flex gap-2 mb-3">
-                          <input 
-                            type="text" 
-                            value={designName}
-                            onChange={(e) => setDesignName(e.target.value)}
-                            placeholder="Enter design name..."
-                            className="flex-grow bg-space-dark border border-space-light rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue"
-                          />
-                          <button 
-                            onClick={handleSaveDesign}
-                            className="flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-3 rounded-md hover:bg-accent-glow transition-colors"
-                            aria-label="Save current design"
-                          >
-                            <ArchiveBoxIcon className='w-5 h-5'/>
+                          <button onClick={() => setIsMultiviewOpen(!isMultiviewOpen)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                              <Squares2X2Icon className='w-5 h-5' /> {isMultiviewOpen ? 'Hide' : 'Show'} Ortho Views
                           </button>
-                        </div>
-                        <div className='space-y-2 max-h-48 overflow-y-auto'>
-                          {Object.keys(savedDesigns).length === 0 ? (
-                            <p className='text-sm text-mid-gray text-center italic py-2'>No designs saved yet.</p>
-                          ) : (
-                            Object.keys(savedDesigns).map(name => (
-                              <div key={name} className='flex items-center justify-between bg-space-light p-2 rounded-md'>
-                                <span className='text-sm font-medium truncate' title={name}>{name}</span>
-                                <div className='flex gap-1 flex-shrink-0'>
-                                  <button onClick={() => handleLoadDesign(name)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
-                                    Load
-                                  </button>
-                                  <button onClick={() => handleDeleteDesign(name)} className='p-1 rounded-md hover:bg-red-500/20 text-mid-gray hover:text-red-400 transition-colors' aria-label={`Delete ${name}`}>
-                                    <TrashIcon className='w-4 h-4'/>
-                                  </button>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
+                          <button onClick={() => setIsExportModalOpen(true)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                              <CubeIcon className='w-5 h-5' /> Export GLB
+                          </button>
+                          <button onClick={handleRandomize} className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors">
+                              <ShuffleIcon className='w-5 h-5'/> Randomize
+                          </button>
+                          <button onClick={handleResetToDefault} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                              <ArrowUturnLeftIcon className='w-5 h-5'/> Reset to Default
+                          </button>
                       </div>
-                  </>
-              )}
-            </div>
-            {Object.entries(LIGHT_PARAM_CONFIG).map(([groupName, configs]) => (
-              <Accordion key={groupName} title={groupName}>
-                {Object.entries(configs).map(([key, config]) => {
-                  const paramKey = key as keyof LightParameters;
-                  const value = lightParams[paramKey];
-
-                  if (config.type === 'slider') {
-                    return (
-                      <Slider
-                        key={paramKey}
-                        label={config.label}
-                        value={value as number}
-                        min={config.min!}
-                        max={config.max!}
-                        step={config.step!}
-                        onChange={(val) => handleLightParamChange(paramKey, val)}
-                      />
-                    );
-                  }
-                  if (config.type === 'toggle') {
-                      return (
-                          <Toggle
-                              key={paramKey}
-                              label={config.label}
-                              checked={value as boolean}
-                              onChange={(val) => handleLightParamChange(paramKey, val)}
-                          />
-                      )
-                  }
-                  if (config.type === 'select' && config.options) {
-                      return (
-                          <Select
-                              key={paramKey}
-                              label={config.label}
-                              value={value as string}
-                              options={config.options}
-                              onChange={(val) => handleLightParamChange(paramKey, val as any)}
-                          />
-                      )
-                  }
-                  if (config.type === 'color') {
-                      return (
-                          <ColorPicker
-                              key={paramKey}
-                              label={config.label}
-                              value={value as string}
-                              onChange={(val) => handleLightParamChange(paramKey, val as any)}
-                          />
-                      )
-                  }
-                  return null;
-                })}
-              </Accordion>
-            ))}
-            <div className="border-b border-space-light">
-                <button
-                    onClick={() => setIsTexturePanelOpen(!isTexturePanelOpen)}
-                    className="w-full flex justify-between items-center p-3 text-left hover:bg-space-light transition-colors"
-                >
-                    <span className="font-semibold text-light-gray">Texture Generation</span>
-                    <ChevronDownIcon className={`w-5 h-5 text-mid-gray transition-transform ${isTexturePanelOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isTexturePanelOpen && (
-                    <div className="p-3 space-y-3">
-                        <p className="text-sm text-mid-gray">Use the controls in the "Hull Texturing" panel below to customize the texture, then click here to apply it.</p>
-                        <button 
-                            onClick={handleGenerateTextures} 
-                            disabled={isGeneratingTextures}
-                            className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
-                        >
-                            <SparklesIcon className='w-5 h-5' />
-                            {isGeneratingTextures ? 'Generating...' : 'Generate Textures'}
-                        </button>
+                  </div>
+                  <div className='p-3 border-t border-space-light'>
+                    <h2 className="text-lg font-bold mb-3 text-accent-glow">Stock Designs</h2>
+                    <div className='space-y-2 max-h-48 overflow-y-auto'>
+                      {Object.entries(STOCK_SHIPS).map(([name, shipParams]) => (
+                        <div key={name} className='flex items-center justify-between bg-space-light p-2 rounded-md'>
+                          <span className='text-sm font-medium truncate' title={name}>{name}</span>
+                          <div className='flex gap-1 flex-shrink-0'>
+                            <button onClick={() => handleLoadStockDesign(name, shipParams)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
+                              Load
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                )}
-            </div>
-        </ControlsPanel>
+                  </div>
+                  <div className='p-3 border-t border-space-light'>
+                    <h2 className="text-lg font-bold mb-3 text-accent-glow">Saved Designs</h2>
+                    <div className="flex gap-2 mb-3">
+                      <input 
+                        type="text" 
+                        value={designName}
+                        onChange={(e) => setDesignName(e.target.value)}
+                        placeholder="Enter design name..."
+                        className="flex-grow bg-space-dark border border-space-light rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue"
+                      />
+                      <button 
+                        onClick={handleSaveDesign}
+                        className="flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-3 rounded-md hover:bg-accent-glow transition-colors"
+                        aria-label="Save current design"
+                      >
+                        <ArchiveBoxIcon className='w-5 h-5'/>
+                      </button>
+                    </div>
+                    <div className='space-y-2 max-h-48 overflow-y-auto'>
+                      {Object.keys(savedDesigns).length === 0 ? (
+                        <p className='text-sm text-mid-gray text-center italic py-2'>No designs saved yet.</p>
+                      ) : (
+                        Object.keys(savedDesigns).map(name => (
+                          <div key={name} className='flex items-center justify-between bg-space-light p-2 rounded-md'>
+                            <span className='text-sm font-medium truncate' title={name}>{name}</span>
+                            <div className='flex gap-1 flex-shrink-0'>
+                              <button onClick={() => handleLoadDesign(name)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
+                                Load
+                              </button>
+                              <button onClick={() => handleDeleteDesign(name)} className='p-1 rounded-md hover:bg-red-500/20 text-mid-gray hover:text-red-400 transition-colors' aria-label={`Delete ${name}`}>
+                                <TrashIcon className='w-4 h-4'/>
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+              </>
+            </Accordion>
+            
+            <Accordion title="Lights" defaultOpen={false}>
+              <ControlGroup groupName="Directional Light" configs={LIGHT_PARAM_CONFIG["Directional Light"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
+              <ControlGroup groupName="Ambient Light" configs={LIGHT_PARAM_CONFIG["Ambient Light"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
+              <ControlGroup groupName="Environment" configs={LIGHT_PARAM_CONFIG["Environment"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
+            </Accordion>
+
+            <Accordion title="Background" defaultOpen={false}>
+              <ControlGroup groupName="Nebula Background" configs={LIGHT_PARAM_CONFIG["Nebula Background"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
+              <ControlGroup groupName="Milky Way Effect" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
+            </Accordion>
+            
+            <Accordion title="Textures">
+              <div className="p-3 space-y-3">
+                  <p className="text-sm text-mid-gray">Use the controls in the "Hull Texturing" panel below to customize the texture, then click here to apply it.</p>
+                  <button 
+                      onClick={handleGenerateTextures} 
+                      disabled={isGeneratingTextures}
+                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
+                  >
+                      <SparklesIcon className='w-5 h-5' />
+                      {isGeneratingTextures ? 'Generating...' : 'Generate Textures'}
+                  </button>
+              </div>
+              <ControlGroup groupName="Hull Texturing" configs={PARAM_CONFIG["Hull Texturing"]} params={params} onParamChange={handleParamChange} />
+            </Accordion>
+            
+            <Accordion title="Saucer Assembly">
+                <ControlGroup groupName="Saucer" configs={PARAM_CONFIG["Saucer"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Bridge" configs={PARAM_CONFIG["Bridge"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Impulse Engines" configs={PARAM_CONFIG["Impulse Engines"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+            </Accordion>
+            
+            <Accordion title="Engineering Assembly">
+                <ControlGroup groupName="Engineering" configs={PARAM_CONFIG["Engineering"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Connecting Neck" configs={PARAM_CONFIG["Connecting Neck"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+            </Accordion>
+
+            <Accordion title="Upper Nacelle Assembly" defaultOpen={false}>
+                <ControlGroup groupName="Nacelle Body (Upper)" configs={PARAM_CONFIG["Nacelle Body (Upper)"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Bussard Collectors (Upper)" configs={PARAM_CONFIG["Bussard Collectors (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Warp Grills (Upper)" configs={PARAM_CONFIG["Warp Grills (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Pylons (Upper)" configs={PARAM_CONFIG["Pylons (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+            </Accordion>
+            
+            <Accordion title="Lower Nacelle Assembly" defaultOpen={false}>
+                <ControlGroup groupName="Nacelle Body (Lower)" configs={PARAM_CONFIG["Nacelle Body (Lower)"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Bussard Collectors (Lower)" configs={PARAM_CONFIG["Bussard Collectors (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Warp Grills (Lower)" configs={PARAM_CONFIG["Warp Grills (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Lower Boom" configs={PARAM_CONFIG["Lower Boom"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <ControlGroup groupName="Pylons (Lower)" configs={PARAM_CONFIG["Pylons (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+            </Accordion>
+        </div>
       </div>
       
       {/* GLB Export Modal */}
