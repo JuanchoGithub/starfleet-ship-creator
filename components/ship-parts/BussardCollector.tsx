@@ -31,7 +31,7 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
 
         const outerShellGeo = createBussardDome(1.0);
         const innerCoreGeo = createBussardDome(0.8);
-        const bussardRearGeo = outerShellGeo.clone().rotateZ(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
+        const bussardRearGeo = outerShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
 
         return { outerShellGeo, innerCoreGeo, bussardRearGeo };
     }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical]);
@@ -177,7 +177,7 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
 
         const outerShellGeo = createBussardDome(1.0);
         const innerCoreGeo = createBussardDome(0.8);
-        const bussardRearGeo = outerShellGeo.clone().rotateZ(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
+        const bussardRearGeo = outerShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
 
         return { outerShellGeo, innerCoreGeo, bussardRearGeo };
     }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical]);

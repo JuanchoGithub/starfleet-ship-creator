@@ -26,8 +26,9 @@ declare global {
       mesh: ThreeElements['mesh'];
       pointLight: ThreeElements['pointLight'];
       meshStandardMaterial: ThreeElements['meshStandardMaterial'];
-      // FIX: Using the locally defined 'Node' type for the custom ArrowHelper element.
-      arrowHelper: Node<THREE.ArrowHelper, typeof THREE.ArrowHelper>;
+      // FIX: Use `ConstructorParameters` to correctly type the `args` for `ArrowHelper`.
+      // `typeof THREE.ArrowHelper` is a class constructor, not an array type for the arguments.
+      arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
 
       // FIX: Add missing HTML and SVG element types to resolve JSX errors.
       // HTML Elements
