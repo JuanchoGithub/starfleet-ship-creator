@@ -7,6 +7,7 @@ import { Ship } from './Ship';
 import { ShipParameters, LightParameters } from '../types';
 import { Compass } from './Compass';
 import * as THREE from 'three';
+import { ProceduralNebulaBackground } from './ProceduralNebulaBackground';
 
 interface SceneProps {
   shipParams: ShipParameters;
@@ -35,7 +36,11 @@ export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
         
         {lightParams.env_enabled && <Environment preset={lightParams.env_preset} />}
         
-        <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
+        {lightParams.nebula_enabled ? (
+          <ProceduralNebulaBackground params={lightParams} />
+        ) : (
+          <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
+        )}
         
         <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
         

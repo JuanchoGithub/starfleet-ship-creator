@@ -126,7 +126,7 @@ export interface ShipParameters {
   engineering_topcut: number;
   engineering_topcutStart: number;
   engineering_topcutCurve: number;
-  engineering_dishType: 'Pulse' | 'Movie Refit' | 'Vortex' | 'TNG';
+  engineering_dishType: 'Pulse' | 'Movie Refit' | 'Vortex' | 'Advanced Refit';
   engineering_dishRadius: number;
   engineering_dishInset: number;
   engineering_dishColor1: string;
@@ -303,6 +303,18 @@ export interface LightParameters {
     env_enabled: boolean;
     env_intensity: number;
     env_preset: EnvironmentPreset;
+
+    // Nebula
+    nebula_enabled: boolean;
+    nebula_seed: number;
+    nebula_density: number;
+    nebula_falloff: number;
+    nebula_color1: string;
+    nebula_color2: string;
+    nebula_color3: string;
+    nebula_stars_count: number;
+    nebula_stars_intensity: number;
+    nebula_animSpeed: number;
 }
 
 export interface ParamConfig {

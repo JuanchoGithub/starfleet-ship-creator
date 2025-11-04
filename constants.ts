@@ -18,6 +18,17 @@ export const INITIAL_LIGHT_PARAMS: LightParameters = {
     env_enabled: false,
     env_intensity: 1,
     env_preset: 'city',
+
+    nebula_enabled: true,
+    nebula_seed: 42,
+    nebula_density: 2,
+    nebula_falloff: 0.5,
+    nebula_color1: '#4a2a69',
+    nebula_color2: '#2a5d69',
+    nebula_color3: '#692a4a',
+    nebula_stars_count: 9000,
+    nebula_stars_intensity: 2,
+    nebula_animSpeed: 1.0,
 };
 
 export const ENVIRONMENT_PRESETS: EnvironmentPreset[] = ['city', 'sunset', 'dawn', 'night', 'warehouse', 'forest', 'apartment', 'studio', 'lobby'];
@@ -40,6 +51,18 @@ export const LIGHT_PARAM_CONFIG: ParamConfigGroups = {
         env_enabled: { label: "Enable", type: 'toggle' },
         env_intensity: { label: "Intensity", min: 0, max: 2, step: 0.05, type: 'slider' },
         env_preset: { label: "Preset", type: 'select', options: ENVIRONMENT_PRESETS },
+    },
+    "Nebula Background": {
+        nebula_enabled: { label: "Enable", type: 'toggle' },
+        nebula_seed: { label: "Seed", min: 0, max: 1000, step: 1, type: 'slider' },
+        nebula_density: { label: "Cloud Density", min: 0.1, max: 6, step: 0.01, type: 'slider' },
+        nebula_falloff: { label: "Cloud Falloff", min: 0.01, max: 8, step: 0.01, type: 'slider' },
+        nebula_color1: { label: "Color 1", type: 'color' },
+        nebula_color2: { label: "Color 2", type: 'color' },
+        nebula_color3: { label: "Color 3", type: 'color' },
+        nebula_stars_count: { label: "Star Count", min: 0, max: 10000, step: 100, type: 'slider' },
+        nebula_stars_intensity: { label: "Star Brightness", min: 0, max: 6, step: 0.01, type: 'slider' },
+        nebula_animSpeed: { label: "Animation Speed", min: 0, max: 5, step: 0.1, type: 'slider' },
     }
 };
 
@@ -100,13 +123,13 @@ export const PARAM_CONFIG: ParamConfigGroups = {
     engineering_length: { label: "Length", min: 5, max: 30, step: 0.01, type: 'slider' },
     engineering_radius: { label: "Radius", min: 0.5, max: 5, step: 0.01, type: 'slider' },
     engineering_widthRatio: { label: "Width Ratio", min: 0.5, max: 8, step: 0.01, type: 'slider' },
-    engineering_dishType: { label: 'Deflector Style', type: 'select', options: ['Pulse', 'Movie Refit', 'Vortex', 'TNG'] },
+    engineering_dishType: { label: 'Deflector Style', type: 'select', options: ['Pulse', 'Movie Refit', 'Vortex', 'Advanced Refit'] },
     engineering_dishRadius: { label: "Deflector Radius", min: 0, max: 1.5, step: 0.01, type: 'slider' },
     engineering_dishInset: { label: "Deflector Inset", min: -2, max: 5, step: 0.01, type: 'slider' },
-    engineering_dishColor1: { label: 'Deflector Color A', type: 'color' },
-    engineering_dishColor2: { label: 'Deflector Color B', type: 'color' },
-    engineering_dishColor3: { label: 'Deflector Color C', type: 'color' },
-    engineering_dishColor4: { label: 'Deflector Color D', type: 'color' },
+    engineering_dishColor1: { label: 'Color A (Fins/Rays)', type: 'color' },
+    engineering_dishColor2: { label: 'Color B (Ring/Rays)', type: 'color' },
+    engineering_dishColor3: { label: 'Color C (Center/Ellipse)', type: 'color' },
+    engineering_dishColor4: { label: 'Color D (Base/Ellipse)', type: 'color' },
     engineering_dishGlowIntensity: { label: 'Deflector Glow', min: 0, max: 10, step: 0.1, type: 'slider' },
     engineering_dishPulseSpeed: { label: 'Deflector Pulse Speed', min: 0, max: 5, step: 0.1, type: 'slider' },
     engineering_dishAnimSpeed: { label: 'Deflector Anim. Speed', min: -5, max: 5, step: 0.1, type: 'slider' },

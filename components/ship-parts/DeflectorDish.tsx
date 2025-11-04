@@ -1,10 +1,10 @@
 import '@react-three/fiber';
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { useFrame } from '@react-three/fiber';
 
-function generateMovieRefitTexture(color1: string, color2: string) {
+function generateMovieRefitTexture(color1: string, color2: string, centerColor: string, baseColor: string) {
     const size = 256;
     const mapCanvas = document.createElement('canvas');
     mapCanvas.width = size;
@@ -38,14 +38,14 @@ function generateMovieRefitTexture(color1: string, color2: string) {
     emissiveCtx.save();
     emissiveCtx.beginPath();
     emissiveCtx.arc(center, center, radius * 0.18, 0, Math.PI * 2);
-    emissiveCtx.fillStyle = '#FFFFFF';
-    emissiveCtx.shadowColor = '#FFFFFF';
+    emissiveCtx.fillStyle = centerColor;
+    emissiveCtx.shadowColor = centerColor;
     emissiveCtx.shadowBlur = size * 0.1;
     emissiveCtx.fill();
     emissiveCtx.restore();
 
     // --- Color Map ---
-    mapCtx.fillStyle = '#181008'; // Dark coppery brown
+    mapCtx.fillStyle = baseColor; // Dark coppery brown
     mapCtx.fillRect(0, 0, size, size);
     
     // Copper fins
@@ -158,149 +158,27 @@ function generateVortexTexture(color1: string, color2: string) {
     return { map: texture, emissiveMap: texture };
 }
 
-// --- TNG Deflector Dish Animated Texture ---
-
-function drawTNGBackground(ctx: CanvasRenderingContext2D, width: number, height: number, centerX: number, centerY: number, angleOffset: number, color1: string, color2: string, glowColor: string) {
-    const numRays = 64;
-    const angleStep = (Math.PI * 2) / numRays;
-    const maxRadius = Math.max(width, height);
-    
-    ctx.shadowBlur = 20 * (width / 256); // Scale blur with canvas size
-    ctx.shadowColor = glowColor;
-
-    for (let i = 0; i < numRays; i++) {
-        const startAngle = i * angleStep + angleOffset;
-        const endAngle = (i + 1) * angleStep + angleOffset;
-
-        ctx.fillStyle = (i % 2 === 0) ? color1 : color2;
-
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, maxRadius, startAngle, endAngle);
-        ctx.closePath();
-        ctx.fill();
-    }
-    
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'rgba(0,0,0,0)';
-}
-
-function drawTNGEllipses(ctx: CanvasRenderingContext2D, centerX: number, centerY: number, width: number, height: number, ellipseDark: string, ellipseLight: string, ellipseGlow: string) {
-    // Original canvas was 800x600. Scale dimensions relative to that.
-    const scaleX = width / 800;
-    const scaleY = height / 600;
-
-    // 1. Outer dark ellipse
-    ctx.fillStyle = ellipseDark;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY, 220 * scaleX, 130 * scaleY, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 2. Middle light ellipse with glow
-    ctx.shadowBlur = 10 * (width / 256);
-    ctx.shadowColor = ellipseGlow;
-    ctx.fillStyle = ellipseLight;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY, 200 * scaleX, 110 * scaleY, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0; // Reset shadow
-
-    // 3. Inner dark ellipse
-    ctx.fillStyle = ellipseDark;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY, 180 * scaleX, 90 * scaleY, 0, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-const useAnimatedTNGTexture = (dishColor1: string, dishColor2: string, dishColor3: string, dishColor4: string, animSpeed: number) => {
-    const canvasRef = useRef(document.createElement('canvas'));
-    const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-    const angleOffsetRef = useRef(0);
-
-    const texture = useMemo(() => {
-        const canvas = canvasRef.current;
-        canvas.width = 256;
-        canvas.height = 256;
-        contextRef.current = canvas.getContext('2d');
-        if (contextRef.current) {
-            contextRef.current.fillStyle = 'black';
-            contextRef.current.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        return new THREE.CanvasTexture(canvas);
-    }, []);
-
-    const colors = useMemo(() => {
-        const rayColor1 = new THREE.Color(dishColor1);
-        const rayColor2 = new THREE.Color(dishColor2);
-        const rayGlow = rayColor1.clone().lerp(rayColor2, 0.5).lerp(new THREE.Color('white'), 0.5);
-
-        const ellipseDark = new THREE.Color(dishColor3);
-        const ellipseLight = new THREE.Color(dishColor4);
-        const ellipseGlow = ellipseLight.clone().lerp(new THREE.Color('white'), 0.5);
-
-        return {
-            rayColor1: rayColor1.getStyle(),
-            rayColor2: rayColor2.getStyle(),
-            rayGlow: rayGlow.getStyle(),
-            ellipseDark: ellipseDark.getStyle(),
-            ellipseLight: ellipseLight.getStyle(),
-            ellipseGlow: ellipseGlow.getStyle(),
-        };
-    }, [dishColor1, dishColor2, dishColor3, dishColor4]);
-
-    useFrame((_, delta) => {
-        if (!contextRef.current) return;
-        
-        const effectiveAnimSpeed = animSpeed === 0 ? 0 : (animSpeed > 0 ? Math.max(0.1, animSpeed) : Math.min(-0.1, animSpeed));
-        angleOffsetRef.current += 0.005 * 60 * delta * effectiveAnimSpeed;
-
-        const ctx = contextRef.current;
-        const canvas = canvasRef.current;
-        const { width, height } = canvas;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, width, height);
-        
-        drawTNGBackground(ctx, width, height, centerX, centerY, angleOffsetRef.current, colors.rayColor1, colors.rayColor2, colors.rayGlow);
-        drawTNGEllipses(ctx, centerX, centerY, width, height, colors.ellipseDark, colors.ellipseLight, colors.ellipseGlow);
-
-        texture.needsUpdate = true;
-    });
-    
-    useEffect(() => {
-        return () => texture.dispose();
-    }, [texture]);
-
-    return texture;
-};
-
-
 interface DeflectorDishProps {
     params: ShipParameters;
 }
 
 export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
-    const tngTexture = useAnimatedTNGTexture(params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4, params.engineering_dishAnimSpeed);
     
     const textures = useMemo(() => {
         if (params.engineering_dishType === 'Movie Refit') {
-            return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2);
+            return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2, '#FFFFFF', '#181008');
+        }
+        if (params.engineering_dishType === 'Advanced Refit') {
+            return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4);
         }
         if (params.engineering_dishType === 'Vortex') {
             return generateVortexTexture(params.engineering_dishColor1, params.engineering_dishColor2);
         }
         return null;
-    }, [params.engineering_dishType, params.engineering_dishColor1, params.engineering_dishColor2]);
+    }, [params.engineering_dishType, params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4]);
 
     const deflectorMaterial = useMemo(() => {
-        if (params.engineering_dishType === 'TNG') {
-            return new THREE.MeshBasicMaterial({
-                map: tngTexture,
-            });
-        }
-        if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex') && textures) {
+        if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex' || params.engineering_dishType === 'Advanced Refit') && textures) {
             return new THREE.MeshStandardMaterial({
                 map: textures.map,
                 emissiveMap: textures.emissiveMap,
@@ -314,7 +192,7 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
             color: params.engineering_dishColor1,
             roughness: 0.1,
         });
-    }, [params.engineering_dishType, params.engineering_dishColor1, textures, tngTexture]);
+    }, [params.engineering_dishType, params.engineering_dishColor1, textures]);
 
     const color1 = useMemo(() => new THREE.Color(params.engineering_dishColor1), [params.engineering_dishColor1]);
     const color2 = useMemo(() => new THREE.Color(params.engineering_dishColor2), [params.engineering_dishColor2]);
@@ -325,7 +203,7 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
             const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishPulseSpeed) + 1) / 2; // 0..1
             deflectorMaterial.emissive.lerpColors(color1, color2, pulse);
             deflectorMaterial.emissiveIntensity = params.engineering_dishGlowIntensity;
-        } else if (params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex') {
+        } else if (params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex' || params.engineering_dishType === 'Advanced Refit') {
             const pulseFactor = params.engineering_dishType === 'Vortex' ? 0.2 : 0.5;
             const pulseBase = params.engineering_dishType === 'Vortex' ? 0.9 : 0.75;
             const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishPulseSpeed) + 1) / 2 * pulseFactor + pulseBase;
@@ -333,7 +211,7 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
         }
 
         // Texture Animation Logic (for types that support it and aren't handled by a dedicated hook like TNG)
-        if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex') && deflectorMaterial.map) {
+        if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex' || params.engineering_dishType === 'Advanced Refit') && deflectorMaterial.map) {
              const rotation = clock.getElapsedTime() * params.engineering_dishAnimSpeed * -0.1;
              deflectorMaterial.map.rotation = rotation;
              deflectorMaterial.map.needsUpdate = true;
@@ -394,7 +272,7 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
         const matrix = new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, skew, 0, 0, 0, 1, 0, 0, 0, 0, 1);
         geo.applyMatrix4(matrix);
 
-        if (['Vortex', 'TNG', 'Movie Refit'].includes(params.engineering_dishType)) {
+        if (['Vortex', 'Advanced Refit', 'Movie Refit'].includes(params.engineering_dishType)) {
             const positions = geo.attributes.position.array;
             const uvs = new Float32Array(positions.length / 3 * 2);
             geo.computeBoundingBox();
