@@ -39,8 +39,8 @@ export const INITIAL_LIGHT_PARAMS: LightParameters = {
 
     bloom_enabled: true,
     bloom_threshold: 0.55,
-    bloom_strength: 1.1,
-    bloom_radius: 0.3,
+    bloom_strength: 0.6,
+    bloom_radius: 0.2,
     toneMapping_exposure: 1,
 };
 
