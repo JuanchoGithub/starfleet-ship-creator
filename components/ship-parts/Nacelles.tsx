@@ -3,7 +3,124 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { BussardCollector } from './BussardCollector';
-import { WarpGrills } from './WarpGrills';
+import { useFrame } from '@react-three/fiber';
+
+const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+`;
+
+const fragmentShader = `
+    uniform float uTime;
+    uniform vec3 uColor1;
+    uniform vec3 uColor2;
+    uniform vec3 uColor3;
+    uniform float uIntensity;
+    uniform float uAnimSpeed;
+    uniform float uAnimType; // 0: Flow, 1: Pulse, 2: Plasma
+
+    varying vec2 vUv;
+
+    // Hash function for pseudo-randomness
+    float hash1(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+
+    void main() {
+        vec2 uv = vUv;
+
+        vec3 baseColor = uColor3;
+        vec3 finalColor = baseColor;
+
+        if (uAnimType == 0.0) { // Flow
+            float len = uv.y;
+            float pulse = (sin(uTime * 2.0) * 0.5 + 0.5) * 0.5 + 0.5; // 0.5 to 1
+            
+            float lineCount = 80.0;
+            float lineSpeed = -10.0 * uAnimSpeed;
+            
+            float linePattern = sin(len * lineCount + uTime * lineSpeed);
+            
+            float lines = smoothstep(0.8, 0.85, linePattern);
+            float glow = lines * uIntensity * pulse;
+            
+            vec3 color = mix(uColor1, uColor2, fract(len * 5.0 + uTime * uAnimSpeed));
+            finalColor = mix(baseColor, color, glow);
+        } else if (uAnimType == 1.0) { // Pulse
+            float pulse = (sin(uv.y * 20.0 - uTime * 5.0 * uAnimSpeed) * 0.5 + 0.5);
+            float overallPulse = (sin(uTime * 3.0 * uAnimSpeed) * 0.5 + 0.5);
+            float glow = pulse * overallPulse;
+
+            vec3 color = mix(uColor1, uColor2, pulse);
+            finalColor = mix(baseColor, color, glow * uIntensity);
+        } else if (uAnimType == 2.0) { // Plasma Balls
+            float totalGlow = 0.0;
+            for (float i = 1.0; i <= 3.0; i += 1.0) {
+                float speed = (0.8 + i * 0.2) * uAnimSpeed * 0.2;
+                vec2 gridUv = fract(uv * vec2(3.0 * i, 7.0) + vec2(0.0, uTime * speed));
+                vec2 cellId = floor(uv * vec2(3.0 * i, 7.0) - vec2(0.0, uTime * speed));
+
+                float rand = hash1(cellId);
+                if (rand > 0.7) {
+                    vec2 center = vec2(0.5, 0.5);
+                    center.x += sin(uTime * 0.2 + cellId.y * 1.5) * 0.3; // Wobble
+                    
+                    float dist = distance(gridUv, center);
+                    float radius = (0.2 + hash1(cellId + 10.0) * 0.2); // Random radius
+                    
+                    float ball = smoothstep(radius, radius * 0.5, dist);
+                    totalGlow += ball * 0.5;
+                }
+            }
+            totalGlow = clamp(totalGlow, 0.0, 1.0);
+            vec3 color = mix(uColor1, uColor2, totalGlow);
+            finalColor = mix(baseColor, color, totalGlow * uIntensity);
+        }
+        
+        gl_FragColor = vec4(finalColor, 1.0);
+    }
+`;
+
+const ANIM_TYPE_MAP = {
+    'Flow': 0.0,
+    'Pulse': 1.0,
+    'Plasma Balls': 2.0,
+};
+
+interface NacelleAssemblyProps {
+    nacelleGeo: THREE.BufferGeometry;
+    mirrored: boolean;
+    assemblyParams: any;
+    material: THREE.Material;
+    grillMaterial: THREE.ShaderMaterial;
+}
+
+const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored, assemblyParams, material, grillMaterial }) => {
+    
+    useFrame(({ clock }) => {
+        if (grillMaterial?.uniforms) {
+            grillMaterial.uniforms.uTime.value = clock.getElapsedTime();
+            grillMaterial.uniforms.uAnimSpeed.value = assemblyParams.grill_animSpeed * (mirrored ? -1 : 1);
+            grillMaterial.uniforms.uColor1.value.set(assemblyParams.grill_color1);
+            grillMaterial.uniforms.uColor2.value.set(assemblyParams.grill_color2);
+            grillMaterial.uniforms.uColor3.value.set(assemblyParams.grill_color3);
+            grillMaterial.uniforms.uIntensity.value = assemblyParams.grill_intensity;
+            grillMaterial.uniforms.uAnimType.value = ANIM_TYPE_MAP[assemblyParams.grill_anim_type as keyof typeof ANIM_TYPE_MAP] || 0.0;
+        }
+    });
+
+    return (
+        <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh name="Nacelle_Body" geometry={nacelleGeo} material={[material, grillMaterial]} castShadow receiveShadow />
+            <group name="Bussard_Collector" position={[0, assemblyParams.bussardYOffset, assemblyParams.bussardZOffset]}>
+                <BussardCollector params={assemblyParams} material={material} />
+            </group>
+        </group>
+    );
+};
 
 interface NacellePairProps {
     x: number; z: number; y: number; rotation: number;
@@ -17,32 +134,32 @@ interface NacellePairProps {
 const NacellePair: React.FC<NacellePairProps> = (props) => {
     const { x, z, y, rotation, nacelleGeo, params, material, portName, starboardName } = props;
 
-    // Create a separate params object for the starboard (mirrored) nacelle
-    // with an inverted animation speed for the bussard collector.
     const starboardParams = useMemo(() => ({
         ...params,
-        bussardAnimSpeed: -params.bussardAnimSpeed
+        bussardAnimSpeed: -params.bussardAnimSpeed,
     }), [params]);
-    
-    const NacelleAssembly = ({ mirrored, assemblyParams }: { mirrored: boolean, assemblyParams: any }) => {
-        return (
-            <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="Nacelle_Body" geometry={nacelleGeo} material={material} castShadow receiveShadow />
-                <group name="Bussard_Collector" position={[0, assemblyParams.bussardYOffset, assemblyParams.bussardZOffset]}>
-                    <BussardCollector params={assemblyParams} material={material} />
-                </group>
-                <WarpGrills params={assemblyParams} mirrored={mirrored} />
-            </group>
-        );
-    };
+
+    const grillMaterial = useMemo(() => new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uColor1: { value: new THREE.Color(params.grill_color1) },
+            uColor2: { value: new THREE.Color(params.grill_color2) },
+            uColor3: { value: new THREE.Color(params.grill_color3) },
+            uIntensity: { value: params.grill_intensity },
+            uAnimSpeed: { value: params.grill_animSpeed },
+            uAnimType: { value: 0.0 }
+        },
+        vertexShader,
+        fragmentShader,
+    }), []);
 
     return (
         <>
             <group name={portName} position={[-x, z, y]} rotation={[0, 0, rotation]}>
-                <NacelleAssembly mirrored={false} assemblyParams={params} />
+                <NacelleAssembly mirrored={false} assemblyParams={params} grillMaterial={grillMaterial} nacelleGeo={nacelleGeo} material={material} />
             </group>
             <group name={starboardName} position={[x, z, y]} rotation={[0, 0, -rotation]}>
-                <NacelleAssembly mirrored={true} assemblyParams={starboardParams} />
+                <NacelleAssembly mirrored={true} assemblyParams={starboardParams} grillMaterial={grillMaterial} nacelleGeo={nacelleGeo} material={material} />
             </group>
         </>
     );
@@ -51,7 +168,16 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
 
 export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Material }> = ({ params, material }) => {
 
-    const generateNacelleGeometries = ( length: number, radius: number, widthRatio: number, foreTaper: number, aftTaper: number, segments: number, skew: number, undercut: number, undercutStart: number ) => {
+    const generateNacelleGeometries = (
+        length: number, radius: number, widthRatio: number, foreTaper: number, aftTaper: number, segments: number, skew: number, undercut: number, undercutStart: number,
+        grillParams: {
+            toggle: boolean,
+            length: number,
+            width: number,
+            vertical_offset: number,
+            rotation: number,
+        }
+    ) => {
         const nacellePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
         const pointCount = 40;
         for (let i = 0; i <= pointCount; i++) {
@@ -88,6 +214,63 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
         }
 
         applySharedDeformations(nacelleGeo);
+
+        if (grillParams.toggle) {
+            nacelleGeo.clearGroups();
+            const uvs = nacelleGeo.attributes.uv.array;
+            const indices = nacelleGeo.index!.array;
+            const grillFaces: number[] = [];
+            const hullFaces: number[] = [];
+
+            const grillCenterV = 0.5 + grillParams.vertical_offset / length;
+            const grillLengthV = (length * 0.7 * grillParams.length) / length;
+            const grillStartV = grillCenterV - grillLengthV / 2;
+            const grillEndV = grillCenterV + grillLengthV / 2;
+
+            const grillWidthU = (0.25 * grillParams.width) / 2.0;
+            const grillCenterU_Port = 0.75;
+            const grillCenterU_Starboard = 0.25;
+            const rotationOffset = grillParams.rotation / (2.0 * Math.PI);
+
+            const isUInGrill = (u: number) => {
+                const rotatedU = THREE.MathUtils.euclideanModulo(u + rotationOffset, 1.0);
+                if (Math.abs(rotatedU - grillCenterU_Port) < grillWidthU) return true;
+                if (Math.abs(rotatedU - grillCenterU_Starboard) < grillWidthU) return true;
+                return false;
+            };
+
+            const isVertexInGrill = (u: number, v: number) => {
+                if (v < grillStartV || v > grillEndV) return false;
+                return isUInGrill(u);
+            };
+
+            for (let i = 0; i < indices.length; i += 3) {
+                const iA = indices[i];
+                const iB = indices[i+1];
+                const iC = indices[i+2];
+
+                const isGrillFace = 
+                    isVertexInGrill(uvs[iA * 2], uvs[iA * 2 + 1]) &&
+                    isVertexInGrill(uvs[iB * 2], uvs[iB * 2 + 1]) &&
+                    isVertexInGrill(uvs[iC * 2], uvs[iC * 2 + 1]);
+                
+                if (isGrillFace) {
+                    grillFaces.push(iA, iB, iC);
+                } else {
+                    hullFaces.push(iA, iB, iC);
+                }
+            }
+            
+            const newIndices = new Uint32Array(hullFaces.length + grillFaces.length);
+            newIndices.set(hullFaces, 0);
+            newIndices.set(grillFaces, hullFaces.length);
+            nacelleGeo.setIndex(new THREE.BufferAttribute(newIndices, 1));
+            
+            nacelleGeo.addGroup(0, hullFaces.length, 0);
+            if (grillFaces.length > 0) {
+                nacelleGeo.addGroup(hullFaces.length, grillFaces.length, 1);
+            }
+        }
         
         return { nacelleGeo };
     };
@@ -99,8 +282,19 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             params.nacelle_foreTaper, params.nacelle_aftTaper,
             params.nacelle_segments,
             params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
+            {
+                toggle: params.nacelle_grill_toggle,
+                length: params.nacelle_grill_length,
+                width: params.nacelle_grill_width,
+                vertical_offset: params.nacelle_grill_vertical_offset,
+                rotation: params.nacelle_grill_rotation,
+            }
         );
-    }, [params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart]);
+    }, [
+        params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, 
+        params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
+        params.nacelle_grill_toggle, params.nacelle_grill_length, params.nacelle_grill_width, params.nacelle_grill_vertical_offset, params.nacelle_grill_rotation
+    ]);
 
     const lowerNacelleGeos = useMemo(() => {
         if (!params.nacelleLower_toggle) return null;
@@ -109,8 +303,19 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             params.nacelleLower_foreTaper, params.nacelleLower_aftTaper,
             params.nacelleLower_segments,
             params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
+            {
+                toggle: params.nacelleLower_grill_toggle,
+                length: params.nacelleLower_grill_length,
+                width: params.nacelleLower_grill_width,
+                vertical_offset: params.nacelleLower_grill_vertical_offset,
+                rotation: params.nacelleLower_grill_rotation,
+            }
         );
-    }, [params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart]);
+    }, [
+        params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, 
+        params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
+        params.nacelleLower_grill_toggle, params.nacelleLower_grill_length, params.nacelleLower_grill_width, params.nacelleLower_grill_vertical_offset, params.nacelleLower_grill_rotation
+    ]);
 
     return (
         <>
@@ -145,16 +350,12 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     bussardGlowIntensity: params.nacelle_bussardGlowIntensity,
                     bussardShellOpacity: params.nacelle_bussardShellOpacity,
                     grill_toggle: params.nacelle_grill_toggle,
-                    grill_length_scale: params.nacelle_grill_length_scale,
-                    grill_width_scale: params.nacelle_grill_width_scale,
-                    grill_depth_scale: params.nacelle_grill_depth_scale,
-                    grill_y_offset: params.nacelle_grill_y_offset,
-                    grill_z_offset: params.nacelle_grill_z_offset,
-                    grill_spread_offset: params.nacelle_grill_spread_offset,
-                    grill_rotation_x: params.nacelle_grill_rotation_x,
-                    grill_rotation_y: params.nacelle_grill_rotation_y,
-                    grill_rotation_z: params.nacelle_grill_rotation_z,
-                    grill_borderRadius: params.nacelle_grill_borderRadius,
+                    grill_animSpeed: params.nacelle_grill_animSpeed,
+                    grill_color1: params.nacelle_grill_color1,
+                    grill_color2: params.nacelle_grill_color2,
+                    grill_color3: params.nacelle_grill_color3,
+                    grill_intensity: params.nacelle_grill_intensity,
+                    grill_anim_type: params.nacelle_grill_anim_type,
                 }}
             />}
             {lowerNacelleGeos && <NacellePair 
@@ -188,16 +389,12 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     bussardGlowIntensity: params.nacelleLower_bussardGlowIntensity,
                     bussardShellOpacity: params.nacelleLower_bussardShellOpacity,
                     grill_toggle: params.nacelleLower_grill_toggle,
-                    grill_length_scale: params.nacelleLower_grill_length_scale,
-                    grill_width_scale: params.nacelleLower_grill_width_scale,
-                    grill_depth_scale: params.nacelleLower_grill_depth_scale,
-                    grill_y_offset: params.nacelleLower_grill_y_offset,
-                    grill_z_offset: params.nacelleLower_grill_z_offset,
-                    grill_spread_offset: params.nacelleLower_grill_spread_offset,
-                    grill_rotation_x: params.nacelleLower_grill_rotation_x,
-                    grill_rotation_y: params.nacelleLower_grill_rotation_y,
-                    grill_rotation_z: params.nacelleLower_grill_rotation_z,
-                    grill_borderRadius: params.nacelleLower_grill_borderRadius,
+                    grill_animSpeed: params.nacelleLower_grill_animSpeed,
+                    grill_color1: params.nacelleLower_grill_color1,
+                    grill_color2: params.nacelleLower_grill_color2,
+                    grill_color3: params.nacelleLower_grill_color3,
+                    grill_intensity: params.nacelleLower_grill_intensity,
+                    grill_anim_type: params.nacelleLower_grill_anim_type,
                 }}
             />}
         </>
