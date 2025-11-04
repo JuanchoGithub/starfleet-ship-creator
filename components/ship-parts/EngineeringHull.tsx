@@ -1,8 +1,9 @@
+
 import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
-import { useFrame } from '@react-three/fiber';
+import { DeflectorDish } from './DeflectorDish';
 
 interface EngineeringHullProps {
     params: ShipParameters;
@@ -11,22 +12,8 @@ interface EngineeringHullProps {
 
 export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, material }) => {
 
-    const deflectorMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: params.engineering_dishColor1,
-        roughness: 0.1,
-    }), [params.engineering_dishColor1]);
-
-    const color1 = useMemo(() => new THREE.Color(params.engineering_dishColor1), [params.engineering_dishColor1]);
-    const color2 = useMemo(() => new THREE.Color(params.engineering_dishColor2), [params.engineering_dishColor2]);
-
-    useFrame(({ clock }) => {
-        const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishAnimSpeed) + 1) / 2; // 0..1
-        deflectorMaterial.emissive.lerpColors(color1, color2, pulse);
-        deflectorMaterial.emissiveIntensity = params.engineering_dishGlowIntensity;
-    });
-
-    const { engineering, deflector } = useMemo(() => {
-        const geos: { engineering?: THREE.BufferGeometry, deflector?: THREE.BufferGeometry } = {};
+    const engineeringGeo = useMemo(() => {
+        let geo: THREE.BufferGeometry | undefined;
         if (params.engineering_toggle) {
             // Map params from app state to the new logic's variables
             const length = params.engineering_length;
@@ -41,7 +28,6 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             const topcutStart = params.engineering_topcutStart;
             const topcutCurve = params.engineering_topcutCurve;
             const dishRadius = params.engineering_dishRadius;
-            const dishInset = params.engineering_dishInset;
 
             // --- Engineering Hull Profile ---
             const engineeringPoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
@@ -57,39 +43,13 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             // Taper the end of the hull to match the deflector dish radius
             engineeringPoints[engineeringPoints.length - 1].x *= dishRadius;
 
-            // --- Deflector Dish Profile (concave with antenna) ---
-            const deflectorPoints: THREE.Vector2[] = [];
-            const deflectorOuterEdge = new THREE.Vector2().copy(engineeringPoints[engineeringPoints.length - 1]);
-            deflectorPoints.push(deflectorOuterEdge);
-            
-            const dishConcavity = 0.2 * width; // Scaled concavity factor
-            const deflectorPointCount = 8;
-            for (let i = 0; i <= deflectorPointCount; i++) {
-                const r = i / deflectorPointCount;
-                deflectorPoints.push(
-                    new THREE.Vector2(
-                        deflectorOuterEdge.x * (1.0 - r),
-                        deflectorOuterEdge.y - Math.sin(Math.PI * r / 2.0) * dishConcavity - dishInset
-                    )
-                );
-            }
-
-            // Antenna Spike
-            const lastDishPoint = deflectorPoints[deflectorPoints.length - 1];
-            lastDishPoint.setX(deflectorOuterEdge.x * 0.1);
-            deflectorPoints.push(
-                new THREE.Vector2(0.0, deflectorOuterEdge.y + 0.4 * width)
-            );
-
             // --- Create Geometries ---
             const engGeo = new THREE.LatheGeometry(engineeringPoints, segments);
-            const deflectorGeo = new THREE.LatheGeometry(deflectorPoints, segments);
-
+            
             // --- Apply Transformations in order: Scale -> Undercut -> Skew ---
             
             // Scale (Width Ratio)
             engGeo.scale(widthRatio, 1.0, 1.0);
-            deflectorGeo.scale(widthRatio, 1.0, 1.0);
 
             // "Undercut" (Bottom and Top Compression from aft)
             if (undercut > 0 || topcut > 0) {
@@ -132,15 +92,11 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
                 0, 0,    0, 1
             );
             engGeo.applyMatrix4(matrix);
-            deflectorGeo.applyMatrix4(matrix);
             
             engGeo.computeVertexNormals();
-            deflectorGeo.computeVertexNormals();
-
-            geos.engineering = engGeo;
-            geos.deflector = deflectorGeo;
+            geo = engGeo;
         }
-        return geos;
+        return geo;
     }, [params]);
     
     if (!params.engineering_toggle) return null;
@@ -152,21 +108,15 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             position={[0, params.engineering_z, params.engineering_y]}
             rotation={[-Math.PI / 2, 0, 0]}
         >
-            {engineering && (
+            {engineeringGeo && (
                 <mesh 
                     name="EngineeringHull_Body"
-                    geometry={engineering} 
+                    geometry={engineeringGeo} 
                     material={material}
                     castShadow receiveShadow
                 />
             )}
-            {deflector && (
-                <mesh 
-                    name="DeflectorDish"
-                    geometry={deflector} 
-                    material={deflectorMaterial}
-                />
-            )}
+            <DeflectorDish params={params} />
         </group>
     );
 };

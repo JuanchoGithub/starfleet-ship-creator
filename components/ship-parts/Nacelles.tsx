@@ -1,131 +1,9 @@
-
 import '@react-three/fiber';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
-import { useFrame } from '@react-three/fiber';
-import { Points, PointMaterial, RoundedBox, Box } from '@react-three/drei';
-
-const nacelleSideGrillMaterial = new THREE.MeshStandardMaterial({
-    color: '#88aaff',
-    emissive: '#66ccff',
-    emissiveIntensity: 3,
-    roughness: 0.3,
-});
-
-// --- Bussard Collector Components ---
-
-const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, material }) => {
-    const firefliesRef = useRef<any>(null);
-    const rotatorRef = useRef<THREE.Group>(null!);
-
-    const { bussardGeo, bussardInnerGeo, bussardRearGeo } = useMemo(() => {
-        const bussardPoints: THREE.Vector2[] = [];
-        const bussardInnerPoints: THREE.Vector2[] = [];
-        const bussardPointCount = 32;
-        const bussardOuterRadius = p.radius * p.bussardRadius;
-
-        bussardPoints.push(new THREE.Vector2(bussardOuterRadius, p.length));
-        bussardInnerPoints.push(new THREE.Vector2(bussardOuterRadius * 0.94, p.length));
-
-        for (let i = bussardPointCount; i >= 0; i--) {
-            const progress = i / bussardPointCount;
-            const rOuter = Math.pow(progress, 0.35) * bussardOuterRadius;
-            const yOuter = p.length * 1.01 + p.bussardCurvature * (1 - progress) * bussardOuterRadius * 1.5;
-            bussardPoints.push(new THREE.Vector2(rOuter, yOuter));
-            
-            const rInner = Math.pow(progress, 0.35) * bussardOuterRadius * 0.94;
-            const yInner = p.length * 1.01 + p.bussardCurvature * (1 - progress) * bussardOuterRadius * 1.1;
-            bussardInnerPoints.push(new THREE.Vector2(rInner, yInner));
-        }
-
-        const bussardGeo = new THREE.LatheGeometry(bussardPoints, Math.floor(p.segments));
-        const bussardInnerGeo = new THREE.LatheGeometry(bussardInnerPoints, Math.floor(p.segments));
-        const bussardRearGeo = bussardGeo.clone().rotateZ(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
-
-        [bussardGeo, bussardInnerGeo, bussardRearGeo].forEach(geo => {
-            geo.scale(p.widthRatio * p.bussardWidthRatio, 1, 1);
-            const bussardSkewMatrix = new THREE.Matrix4().set(1,0,0,0, 0,1,p.bussardSkewVertical,0, 0,0,1,0, 0,0,0,1);
-            geo.applyMatrix4(bussardSkewMatrix);
-            geo.computeVertexNormals();
-        });
-        
-        return { bussardGeo, bussardInnerGeo, bussardRearGeo };
-    }, [p]);
-
-    const fireflyPositions = useMemo(() => {
-        const positions = new Float32Array(100 * 3);
-        const sphere = new THREE.Sphere(new THREE.Vector3(0, p.length, 0), p.radius * p.bussardRadius);
-        for (let i = 0; i < 100; i++) {
-            const pos = new THREE.Vector3();
-            pos.set(
-                (Math.random() - 0.5),
-                (Math.random() - 0.5),
-                (Math.random() - 0.5)
-            ).normalize().multiplyScalar(sphere.radius * Math.random());
-            pos.add(sphere.center);
-            positions.set([pos.x, pos.y, pos.z], i * 3);
-        }
-        return positions;
-    }, [p.radius, p.bussardRadius, p.length]);
-
-    useFrame((state, delta) => {
-        if (rotatorRef.current) rotatorRef.current.rotation.y += delta * p.bussardAnimSpeed;
-        if (firefliesRef.current) firefliesRef.current.rotation.y += delta * p.bussardAnimSpeed * 0.2;
-    });
-
-    return (
-        <group>
-            <mesh name="Bussard_Rear_Casing" geometry={bussardRearGeo} material={material} castShadow receiveShadow />
-            <mesh name="Bussard_Outer_Dome" geometry={bussardGeo}>
-                <meshStandardMaterial color={p.bussardColor1} emissive={p.bussardColor1} emissiveIntensity={p.bussardGlowIntensity * 0.5} roughness={0.2} transparent={true} opacity={0.6} side={THREE.DoubleSide}/>
-            </mesh>
-            <group name="Bussard_Spinner" ref={rotatorRef} position-y={p.length + p.radius * p.bussardRadius * 0.3}>
-                <mesh geometry={bussardInnerGeo} scale={[0.2, 0.02, 1.0]}>
-                    <meshBasicMaterial color={p.bussardColor2} toneMapped={false} />
-                </mesh>
-                 <mesh geometry={bussardInnerGeo} scale={[0.2, 0.02, 1.0]} rotation-z={Math.PI / 2}>
-                    <meshBasicMaterial color={p.bussardColor2} toneMapped={false} />
-                </mesh>
-            </group>
-            <Points ref={firefliesRef} positions={fireflyPositions}>
-                <PointMaterial transparent color={p.bussardColor2} size={0.05} sizeAttenuation={true} depthWrite={false} />
-            </Points>
-        </group>
-    );
-};
-
-const BussardTNG: React.FC<{ p: any }> = ({ p }) => {
-    const materialRef = useRef<THREE.MeshStandardMaterial>(null!);
-    useFrame(({ clock }) => {
-        if (materialRef.current) {
-             const pulse = (Math.sin(clock.getElapsedTime() * p.bussardAnimSpeed) + 1) / 2;
-             materialRef.current.emissiveIntensity = p.bussardGlowIntensity * (0.5 + pulse * 0.5);
-        }
-    });
-
-    return (
-        <group position-y={p.length - p.radius * p.bussardRadius * 0.2}>
-            <RoundedBox name="Bussard_Casing" args={[p.radius * 2.2 * p.bussardWidthRatio, p.radius * 1.5 * p.bussardRadius, p.radius * 1.5 * p.bussardRadius ]} radius={p.radius * p.bussardRadius * 0.7} smoothness={4} >
-                <meshStandardMaterial ref={materialRef} color={p.bussardColor1} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.1} />
-            </RoundedBox>
-        </group>
-    );
-};
-
-const BussardRadiator: React.FC<{ p: any }> = ({ p }) => {
-    const fins = useMemo(() => Array.from({ length: 10 }), []);
-    return (
-        <group name="Radiator_Assembly" position-y={p.length + p.radius * p.bussardRadius * 0.8}>
-            {fins.map((_, i) => (
-                <Box key={i} name={`Radiator_Fin_${i}`} args={[p.radius * 1.8 * p.widthRatio * p.bussardWidthRatio, 0.1, p.radius * 1.8 * p.bussardRadius]} position-y={-i * 0.2 * p.bussardRadius} >
-                     <meshStandardMaterial color={p.bussardColor1} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.4}/>
-                </Box>
-            ))}
-        </group>
-    );
-};
-
+import { BussardCollector } from './BussardCollector';
+import { WarpGrills } from './WarpGrills';
 
 interface NacellePairProps {
     x: number; z: number; y: number; rotation: number;
@@ -138,70 +16,22 @@ interface NacellePairProps {
 
 const NacellePair: React.FC<NacellePairProps> = (props) => {
     const { x, z, y, rotation, nacelleGeo, params, material, portName, starboardName } = props;
+
+    // Create a separate params object for the starboard (mirrored) nacelle
+    // with an inverted animation speed for the bussard collector.
+    const starboardParams = useMemo(() => ({
+        ...params,
+        bussardAnimSpeed: -params.bussardAnimSpeed
+    }), [params]);
     
-    const BussardComponentType = useMemo(() => {
-        switch (params.bussardType) {
-            case 'TNG': return BussardTNG;
-            case 'Radiator': return BussardRadiator;
-            case 'TOS':
-            default: return BussardTOS;
-        }
-    }, [params.bussardType]);
-
-    const NacelleAssembly = ({ mirrored }: { mirrored: boolean }) => {
-        const midpointRadius = (Math.sin(0.5 * Math.PI / 2) * 0.5 + 0.5) * params.radius * params.widthRatio;
-        const baseGrillXPosition = midpointRadius * 0.95;
-
-        const grillArgs: [number, number, number] = [
-            params.radius * 0.2 * params.grill_depth_scale,
-            params.length * 0.7 * params.grill_length_scale,
-            params.radius * 0.5 * params.grill_width_scale
-        ];
-
-        const inboardSign = mirrored ? -1 : 1;
-        const inboardPos: [number, number, number] = [inboardSign * (baseGrillXPosition + params.grill_spread_offset), 0, 0];
-        const outboardPos: [number, number, number] = [-inboardSign * (baseGrillXPosition + params.grill_spread_offset), 0, 0];
-
-        // Symmetrical rotation logic: the rotation direction depends on the grill's physical side (local X position).
-        // This ensures the starboard nacelle's rotation pattern is a mirror image of the port's.
-        const grillRotation = params.grill_rotation_z;
-        const inboardRotationZ = Math.sign(inboardPos[0]) * grillRotation;
-        const outboardRotationZ = Math.sign(outboardPos[0]) * grillRotation;
-
+    const NacelleAssembly = ({ mirrored, assemblyParams }: { mirrored: boolean, assemblyParams: any }) => {
         return (
             <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
                 <mesh name="Nacelle_Body" geometry={nacelleGeo} material={material} castShadow receiveShadow />
-                <group name="Bussard_Collector" position={[0, params.bussardYOffset, params.bussardZOffset]}>
-                    <BussardComponentType p={params} material={material} />
+                <group name="Bussard_Collector" position={[0, assemblyParams.bussardYOffset, assemblyParams.bussardZOffset]}>
+                    <BussardCollector params={assemblyParams} material={material} />
                 </group>
-                {params.grill_toggle && (
-                    <group 
-                        name="Warp_Grills"
-                        position={[
-                            0,
-                            params.length / 2 + params.grill_y_offset,
-                            params.grill_z_offset,
-                        ]}
-                        rotation={[params.grill_rotation_x, params.grill_rotation_y, 0]}
-                    >
-                        <RoundedBox
-                            name="SideGrill_Inboard"
-                            args={grillArgs}
-                            radius={params.grill_borderRadius}
-                            material={nacelleSideGrillMaterial}
-                            position={inboardPos}
-                            rotation={[0, 0, inboardRotationZ]}
-                        />
-                        <RoundedBox
-                            name="SideGrill_Outboard"
-                            args={grillArgs}
-                            radius={params.grill_borderRadius}
-                            material={nacelleSideGrillMaterial}
-                            position={outboardPos}
-                            rotation={[0, 0, outboardRotationZ]}
-                        />
-                    </group>
-                )}
+                <WarpGrills params={assemblyParams} mirrored={mirrored} />
             </group>
         );
     };
@@ -209,10 +39,10 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
     return (
         <>
             <group name={portName} position={[-x, z, y]} rotation={[0, 0, rotation]}>
-                <NacelleAssembly mirrored={false} />
+                <NacelleAssembly mirrored={false} assemblyParams={params} />
             </group>
             <group name={starboardName} position={[x, z, y]} rotation={[0, 0, -rotation]}>
-                <NacelleAssembly mirrored={true} />
+                <NacelleAssembly mirrored={true} assemblyParams={starboardParams} />
             </group>
         </>
     );
@@ -270,7 +100,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             params.nacelle_segments,
             params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
         );
-    }, [params]);
+    }, [params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart]);
 
     const lowerNacelleGeos = useMemo(() => {
         if (!params.nacelleLower_toggle) return null;
@@ -280,7 +110,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             params.nacelleLower_segments,
             params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
         );
-    }, [params]);
+    }, [params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart]);
 
     return (
         <>
@@ -305,10 +135,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     bussardZOffset: params.nacelle_bussardZOffset,
                     bussardSkewVertical: params.nacelle_bussardSkewVertical,
                     bussardType: params.nacelle_bussardType,
+                    bussardSubtleVanes: params.nacelle_bussardSubtleVanes,
+                    bussardVaneCount: params.nacelle_bussardVaneCount,
+                    bussardVaneLength: params.nacelle_bussardVaneLength,
                     bussardAnimSpeed: params.nacelle_bussardAnimSpeed,
                     bussardColor1: params.nacelle_bussardColor1,
                     bussardColor2: params.nacelle_bussardColor2,
+                    bussardColor3: params.nacelle_bussardColor3,
                     bussardGlowIntensity: params.nacelle_bussardGlowIntensity,
+                    bussardShellOpacity: params.nacelle_bussardShellOpacity,
                     grill_toggle: params.nacelle_grill_toggle,
                     grill_length_scale: params.nacelle_grill_length_scale,
                     grill_width_scale: params.nacelle_grill_width_scale,
@@ -343,10 +178,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     bussardZOffset: params.nacelleLower_bussardZOffset,
                     bussardSkewVertical: params.nacelleLower_bussardSkewVertical,
                     bussardType: params.nacelleLower_bussardType,
+                    bussardSubtleVanes: params.nacelleLower_bussardSubtleVanes,
+                    bussardVaneCount: params.nacelleLower_bussardVaneCount,
+                    bussardVaneLength: params.nacelleLower_bussardVaneLength,
                     bussardAnimSpeed: params.nacelleLower_bussardAnimSpeed,
                     bussardColor1: params.nacelleLower_bussardColor1,
                     bussardColor2: params.nacelleLower_bussardColor2,
+                    bussardColor3: params.nacelleLower_bussardColor3,
                     bussardGlowIntensity: params.nacelleLower_bussardGlowIntensity,
+                    bussardShellOpacity: params.nacelleLower_bussardShellOpacity,
                     grill_toggle: params.nacelleLower_grill_toggle,
                     grill_length_scale: params.nacelleLower_grill_length_scale,
                     grill_width_scale: params.nacelleLower_grill_width_scale,

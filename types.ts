@@ -1,3 +1,56 @@
+// FIX: Add global JSX namespace augmentation for react-three-fiber elements
+// This is necessary because the automatic type extension via `import '@react-three/fiber'`
+// seems to be failing in this project's setup.
+// FIX: The type `Object3DNode` is no longer exported by @react-three/fiber. Reverting to `Node`.
+import {
+  ThreeElements,
+  // Node, // This is no longer exported. Defining a compatible type below.
+} from '@react-three/fiber';
+import * as THREE from 'three';
+// FIX: Import React to use its types for augmenting JSX.IntrinsicElements.
+import * as React from 'react';
+
+// FIX: The 'Node' type (previously 'Object3DNode') is no longer exported from @react-three/fiber.
+// This is a compatible type definition to enable using extended elements in JSX.
+type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
+    args?: P;
+    ref?: React.Ref<T>;
+};
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      ambientLight: ThreeElements['ambientLight'];
+      directionalLight: ThreeElements['directionalLight'];
+      group: ThreeElements['group'];
+      mesh: ThreeElements['mesh'];
+      pointLight: ThreeElements['pointLight'];
+      meshStandardMaterial: ThreeElements['meshStandardMaterial'];
+      // FIX: Using the locally defined 'Node' type for the custom ArrowHelper element.
+      arrowHelper: Node<THREE.ArrowHelper, typeof THREE.ArrowHelper>;
+
+      // FIX: Add missing HTML and SVG element types to resolve JSX errors.
+      // HTML Elements
+      div: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
+      button: React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>;
+      span: React.DetailedHTMLProps<React.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>;
+      label: React.DetailedHTMLProps<React.LabelHTMLAttributes<HTMLLabelElement>, HTMLLabelElement>;
+      input: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
+      select: React.DetailedHTMLProps<React.SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;
+      option: React.DetailedHTMLProps<React.OptionHTMLAttributes<HTMLOptionElement>, HTMLOptionElement>;
+      h2: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
+      h3: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
+      p: React.DetailedHTMLProps<React.HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>;
+      hr: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHRElement>, HTMLHRElement>;
+      textarea: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>;
+
+      // SVG Elements
+      svg: React.SVGProps<SVGSVGElement>;
+      path: React.SVGProps<SVGPathElement>;
+    }
+  }
+}
+
 export interface ShipParameters {
   // Primary Hull
   primary_toggle: boolean;
@@ -97,11 +150,16 @@ export interface ShipParameters {
   nacelle_bussardYOffset: number;
   nacelle_bussardZOffset: number;
   nacelle_segments: number;
-  nacelle_bussardType: 'TOS' | 'TNG' | 'Radiator';
+  nacelle_bussardType: 'TOS' | 'TNG' | 'Radiator' | 'TNG Swirl';
+  nacelle_bussardSubtleVanes: boolean;
+  nacelle_bussardVaneCount: number;
+  nacelle_bussardVaneLength: number;
   nacelle_bussardAnimSpeed: number;
   nacelle_bussardColor1: string;
   nacelle_bussardColor2: string;
+  nacelle_bussardColor3: string;
   nacelle_bussardGlowIntensity: number;
+  nacelle_bussardShellOpacity: number;
 
   // Upper Nacelle Grills
   nacelle_grill_toggle: boolean;
@@ -152,11 +210,16 @@ export interface ShipParameters {
   nacelleLower_bussardYOffset: number;
   nacelleLower_bussardZOffset: number;
   nacelleLower_segments: number;
-  nacelleLower_bussardType: 'TOS' | 'TNG' | 'Radiator';
+  nacelleLower_bussardType: 'TOS' | 'TNG' | 'Radiator' | 'TNG Swirl';
+  nacelleLower_bussardSubtleVanes: boolean;
+  nacelleLower_bussardVaneCount: number;
+  nacelleLower_bussardVaneLength: number;
   nacelleLower_bussardAnimSpeed: number;
   nacelleLower_bussardColor1: string;
   nacelleLower_bussardColor2: string;
+  nacelleLower_bussardColor3: string;
   nacelleLower_bussardGlowIntensity: number;
+  nacelleLower_bussardShellOpacity: number;
   
   // Lower Nacelle Grills
   nacelleLower_grill_toggle: boolean;

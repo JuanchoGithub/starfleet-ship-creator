@@ -1,4 +1,5 @@
-
+// FIX: Add import for react-three-fiber to extend JSX namespace for R3F elements.
+import '@react-three/fiber';
 import React, { Suspense, useCallback, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrthographicCamera, Stars, Environment } from '@react-three/drei';

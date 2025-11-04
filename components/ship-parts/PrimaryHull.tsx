@@ -3,6 +3,7 @@ import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
+import { Bridge } from './Bridge';
 
 // Helper function to extract the edge vertices from a LatheGeometry piece
 const generateEndPlatesForGeometry = (geometry: THREE.BufferGeometry, profilePointCount: number) => {
@@ -57,11 +58,10 @@ interface PrimaryHullProps {
 }
 
 export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) => {
-    const { saucerLeft, saucerRight, bridge, notchCaps } = useMemo(() => {
+    const { saucerLeft, saucerRight, notchCaps } = useMemo(() => {
         const geos: {
             saucerLeft?: THREE.BufferGeometry,
             saucerRight?: THREE.BufferGeometry,
-            bridge?: THREE.BufferGeometry,
             notchCaps: THREE.BufferGeometry[]
         } = { notchCaps: [] };
 
@@ -71,15 +71,11 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                 primary_thickness: thickness,
                 primary_pointiness: pointiness,
                 primary_widthRatio: widthRatio,
-                primary_bridgeThickness: bridgeThickness,
-                primary_bridgeRadius: bridgeRadius,
-                primary_bridgeWidthRatio: bridgeWidthRatio,
                 primary_notch_fore: foreNotch,
                 primary_notch_aft: aftNotch,
             } = params;
             
             const segments = Math.floor(params.primary_segments);
-            const bridgeSegments = Math.floor(params.primary_bridgeSegments);
 
             // --- Saucer Profile ---
             // The saucer is generated with its flat "top" at y=0, extruding downwards in negative y.
@@ -96,18 +92,6 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                 );
             }
             const profileDetail = profilePoints.length;
-
-            // --- Bridge Profile ---
-            // The bridge is generated with its flat "bottom" at y=0, extruding upwards.
-            const bridgeProfile: THREE.Vector2[] = [];
-            for ( let i = 0; i <= saucerPointCount; i ++ ) {
-                bridgeProfile.push(
-                    new THREE.Vector2( 
-                        Math.pow(Math.sin( i / saucerPointCount * Math.PI ) * radius * bridgeRadius, 0.5) * 3.0,
-                        i / saucerPointCount * thickness * bridgeThickness
-                    ) 
-                );
-            }
 
             const sweep = Math.PI - foreNotch - aftNotch;
             
@@ -195,13 +179,6 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                     if (cap4) geos.notchCaps.push(cap4);
                 }
             }
-            
-            // --- Bridge Geometry (with correct scaling) ---
-            const bridgeGeo = new THREE.LatheGeometry(bridgeProfile, bridgeSegments);
-            bridgeGeo.scale(bridgeWidthRatio, 1, 1);
-            // Replicating the user's reference code, which applies the saucer's width ratio as well
-            bridgeGeo.scale(widthRatio, 1, 1);
-            geos.bridge = bridgeGeo;
         }
         return geos;
     }, [params]);
@@ -222,20 +199,7 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                 ))}
 
                 {/* Bridge is placed on top of the saucer (at y=0) with a vertical offset */}
-                {bridge && (
-                    <mesh 
-                        name="Bridge"
-                        geometry={bridge} 
-                        material={material}
-                        position={[
-                            0, // x
-                            params.primary_bridgeZ, // y (vertical offset)
-                            params.primary_bridgeY // z (fore/aft)
-                        ]}
-                        castShadow 
-                        receiveShadow 
-                    />
-                )}
+                <Bridge params={params} material={material} />
             </group>
         </group>
     )
