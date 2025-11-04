@@ -315,6 +315,14 @@ export interface LightParameters {
     nebula_stars_count: number;
     nebula_stars_intensity: number;
     nebula_animSpeed: number;
+
+    // Milky Way
+    milkyway_enabled: boolean;
+    milkyway_intensity: number;
+    milkyway_density: number;
+    milkyway_width: number;
+    milkyway_color1: string;
+    milkyway_color2: string;
 }
 
 export interface ParamConfig {
