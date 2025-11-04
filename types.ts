@@ -39,6 +39,8 @@ declare global {
       input: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
       select: React.DetailedHTMLProps<React.SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;
       option: React.DetailedHTMLProps<React.OptionHTMLAttributes<HTMLOptionElement>, HTMLOptionElement>;
+      // FIX: Add missing h1 element type to resolve JSX error.
+      h1: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       h2: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       h3: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       p: React.DetailedHTMLProps<React.HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>;
@@ -122,12 +124,19 @@ export interface ShipParameters {
   engineering_topcut: number;
   engineering_topcutStart: number;
   engineering_topcutCurve: number;
+  engineering_dishType: 'Pulse' | 'Movie Refit' | 'Vortex' | 'TNG';
   engineering_dishRadius: number;
   engineering_dishInset: number;
   engineering_dishColor1: string;
   engineering_dishColor2: string;
+  engineering_dishColor3: string;
+  engineering_dishColor4: string;
   engineering_dishGlowIntensity: number;
   engineering_dishAnimSpeed: number;
+  engineering_dishTextureScaleX: number;
+  engineering_dishTextureScaleY: number;
+  engineering_dishTextureShearX: number;
+  engineering_dishTextureShearY: number;
   engineering_segments: number;
 
   // Upper Nacelles
