@@ -26,6 +26,7 @@ const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (check
 const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
   const [lightParams, setLightParams] = useState<LightParameters>(INITIAL_LIGHT_PARAMS);
+  const [shipName, setShipName] = useState<string>('Stargazer Class');
 
   const importInputRef = useRef<HTMLInputElement>(null);
   const shipRef = useRef<THREE.Group>(null);
@@ -168,6 +169,12 @@ const App: React.FC = () => {
 
   const handleParamChange = useCallback(<K extends keyof ShipParameters>(key: K, value: ShipParameters[K]) => {
     setParams(prev => ({ ...prev, [key]: value }));
+    setShipName(prevShipName => {
+        if (prevShipName.endsWith('*')) {
+            return prevShipName;
+        }
+        return prevShipName + '*';
+    });
   }, []);
 
   const handleLightParamChange = useCallback(<K extends keyof LightParameters>(key: K, value: LightParameters[K]) => {
@@ -187,6 +194,7 @@ const App: React.FC = () => {
         });
     });
     setParams(newParams);
+    setShipName('Randomized Design');
   }, [params]);
 
   const handleExportJson = useCallback(() => {
@@ -250,6 +258,7 @@ const App: React.FC = () => {
           if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
              const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
              setParams(newParams);
+             setShipName(file.name.replace(/\.json$/i, '') || 'Imported Design');
           } else {
             alert('This does not appear to be a valid starship configuration file.');
           }
@@ -280,6 +289,7 @@ const App: React.FC = () => {
           if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
               const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
               setParams(newParams);
+              setShipName('Pasted Design');
           } else {
               alert('Clipboard content is not a valid starship configuration.');
           }
@@ -300,6 +310,7 @@ const App: React.FC = () => {
         if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
             const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
             setParams(newParams);
+            setShipName('Pasted Design');
             setIsPasteModalOpen(false); // Close modal on success
             setPastebinText(''); // Clear textarea
         } else {
@@ -323,14 +334,26 @@ const App: React.FC = () => {
       const newSavedDesigns = { ...savedDesigns, [designName]: params };
       setSavedDesigns(newSavedDesigns);
       updateLocalStorage(newSavedDesigns);
+      setShipName(designName);
       setDesignName(''); 
   }, [designName, params, savedDesigns]);
 
   const handleLoadDesign = useCallback((name: string) => {
       if (savedDesigns[name]) {
           setParams(savedDesigns[name]);
+          setShipName(name);
       }
   }, [savedDesigns]);
+  
+  const handleLoadStockDesign = (name: string, params: ShipParameters) => {
+    setParams(params);
+    setShipName(name);
+  };
+
+  const handleResetToDefault = () => {
+    setParams(INITIAL_SHIP_PARAMS);
+    setShipName('Stargazer Class');
+  };
 
   const handleDeleteDesign = useCallback((name: string) => {
       if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -367,6 +390,10 @@ const App: React.FC = () => {
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
         <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} secondaryMaterial={secondaryMaterial} lightParams={lightParams} />
+        <div className="absolute bottom-4 right-4 text-right text-white p-2 bg-black/30 rounded-md pointer-events-none">
+          <h1 className="text-2xl tracking-wider uppercase">{shipName.replace('*', '')}</h1>
+          {shipName.endsWith('*') && <p className="text-sm text-accent-glow uppercase">Modified</p>}
+        </div>
       </div>
       <div className={`w-full ${isMultiviewOpen ? 'md:w-72 lg:w-80' : 'md:w-80 lg:w-96'} h-1/2 md:h-full flex-shrink-0`}>
         <ControlsPanel params={params} paramConfig={PARAM_CONFIG} onParamChange={handleParamChange}>
@@ -407,7 +434,7 @@ const App: React.FC = () => {
                               <button onClick={handleRandomize} className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors">
                                   <ShuffleIcon className='w-5 h-5'/> Randomize
                               </button>
-                              <button onClick={() => setParams(INITIAL_SHIP_PARAMS)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
+                              <button onClick={handleResetToDefault} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                                   <ArrowUturnLeftIcon className='w-5 h-5'/> Reset to Default
                               </button>
                           </div>
@@ -419,7 +446,7 @@ const App: React.FC = () => {
                             <div key={name} className='flex items-center justify-between bg-space-light p-2 rounded-md'>
                               <span className='text-sm font-medium truncate' title={name}>{name}</span>
                               <div className='flex gap-1 flex-shrink-0'>
-                                <button onClick={() => setParams(shipParams)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
+                                <button onClick={() => handleLoadStockDesign(name, shipParams)} className='text-sm bg-space-mid text-light-gray font-semibold py-1 px-3 rounded-md hover:bg-accent-blue hover:text-white transition-colors'>
                                   Load
                                 </button>
                               </div>
