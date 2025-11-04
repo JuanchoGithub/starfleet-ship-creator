@@ -59,7 +59,7 @@ export const PARAM_CONFIG: ParamConfigGroups = {
     primary_toggle: { label: "Enable", type: 'toggle' },
     primary_y: { label: "Fore/Aft Position", min: -40, max: 40, step: 0.01, type: 'slider' },
     primary_z: { label: "Vertical Position", min: -20, max: 20, step: 0.01, type: 'slider' },
-    primary_radius: { label: "Radius", min: 5, max: 30, step: 0.01, type: 'slider' },
+    primary_radius: { label: "Radius", min: 1, max: 40, step: 0.01, type: 'slider' },
     primary_thickness: { label: "Thickness", min: 0.5, max: 30, step: 0.01, type: 'slider' },
     primary_widthRatio: { label: "Width Ratio", min: 0.01, max: 3, step: 0.01, type: 'slider' },
     primary_pointiness: { label: "Pointiness", min: -0.95, max: 4, step: 0.01, type: 'slider' },

@@ -56,6 +56,12 @@ const App: React.FC = () => {
     emissive: '#ffffff', // Use white emissive color to be modulated by emissive map
   }));
 
+  const [secondaryMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+  }));
+
   const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
 
   const handleGenerateTextures = useCallback(() => {
@@ -75,17 +81,39 @@ const App: React.FC = () => {
         if (hullMaterial.map) hullMaterial.map.dispose();
         if (hullMaterial.normalMap) hullMaterial.normalMap.dispose();
         if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.dispose();
+        if (secondaryMaterial.map) secondaryMaterial.map.dispose();
+        if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.dispose();
 
         hullMaterial.map = map;
         hullMaterial.normalMap = normalMap;
         hullMaterial.emissiveMap = emissiveMap;
         hullMaterial.needsUpdate = true;
+
+        // Create new textures for the second material to avoid disposal conflicts
+        const secondaryMap = new THREE.CanvasTexture(map.image as HTMLCanvasElement);
+        secondaryMap.wrapS = THREE.RepeatWrapping;
+        secondaryMap.wrapT = THREE.RepeatWrapping;
+        const secondaryNormalMap = new THREE.CanvasTexture(normalMap.image as HTMLCanvasElement);
+        secondaryNormalMap.wrapS = THREE.RepeatWrapping;
+        secondaryNormalMap.wrapT = THREE.RepeatWrapping;
+
+        secondaryMaterial.map = secondaryMap;
+        secondaryMaterial.normalMap = secondaryNormalMap;
+        secondaryMaterial.emissiveMap = null; // No windows
+        secondaryMaterial.needsUpdate = true;
         
         setIsGeneratingTextures(false);
     }, 50);
-  }, [params.texture_seed, params.texture_density, params.texture_panel_color_variation, params.texture_window_density, params.texture_window_color1, params.texture_window_color2, hullMaterial]);
+  }, [params.texture_seed, params.texture_density, params.texture_panel_color_variation, params.texture_window_density, params.texture_window_color1, params.texture_window_color2, hullMaterial, secondaryMaterial]);
 
-  // Effect to update material properties when params change
+  // Effect to regenerate textures when generation parameters change (e.g., loading a new ship).
+  useEffect(() => {
+    if (params.texture_toggle) {
+        handleGenerateTextures();
+    }
+  }, [params.texture_toggle, handleGenerateTextures]);
+
+  // Effect to update material properties like scale, intensity, and to toggle textures off.
   useEffect(() => {
     const textureScale = params.texture_scale || 8;
     if (hullMaterial.map) {
@@ -97,33 +125,35 @@ const App: React.FC = () => {
     if (hullMaterial.emissiveMap) {
         hullMaterial.emissiveMap.repeat.set(textureScale, textureScale);
     }
+    if (secondaryMaterial.map) {
+        secondaryMaterial.map.repeat.set(textureScale, textureScale);
+    }
+    if (secondaryMaterial.normalMap) {
+        secondaryMaterial.normalMap.repeat.set(textureScale, textureScale);
+    }
 
     hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
     
-    // Toggle textures on/off
+    // Toggle textures off. Toggling ON is handled by the regeneration effect above.
     if (!params.texture_toggle) {
         hullMaterial.map = null;
         hullMaterial.normalMap = null;
         hullMaterial.emissiveMap = null;
-    } else if (!hullMaterial.map) {
-        // If textures are toggled on but not generated, generate them.
-        handleGenerateTextures();
+        secondaryMaterial.map = null;
+        secondaryMaterial.normalMap = null;
     }
 
     hullMaterial.needsUpdate = true;
+    secondaryMaterial.needsUpdate = true;
 
-  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, hullMaterial, handleGenerateTextures]);
+  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, hullMaterial, secondaryMaterial]);
 
   useEffect(() => {
     (hullMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     hullMaterial.needsUpdate = true;
-  }, [lightParams.env_intensity, hullMaterial]);
-  
-  // Generate initial textures on load
-  useEffect(() => {
-    handleGenerateTextures();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    (secondaryMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    secondaryMaterial.needsUpdate = true;
+  }, [lightParams.env_intensity, hullMaterial, secondaryMaterial]);
 
   useEffect(() => {
     try {
@@ -331,11 +361,12 @@ const App: React.FC = () => {
             shipParams={params}
             width={sidebarWidth}
             setWidth={setSidebarWidth}
-            hullMaterial={hullMaterial} 
+            hullMaterial={hullMaterial}
+            secondaryMaterial={secondaryMaterial}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} lightParams={lightParams} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} secondaryMaterial={secondaryMaterial} lightParams={lightParams} />
       </div>
       <div className={`w-full ${isMultiviewOpen ? 'md:w-72 lg:w-80' : 'md:w-80 lg:w-96'} h-1/2 md:h-full flex-shrink-0`}>
         <ControlsPanel params={params} paramConfig={PARAM_CONFIG} onParamChange={handleParamChange}>

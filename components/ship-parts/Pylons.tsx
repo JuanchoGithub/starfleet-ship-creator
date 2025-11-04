@@ -1,4 +1,3 @@
-
 import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -122,6 +121,45 @@ const createPylonGeo = (
     geo.setIndex(indices);
     geo.computeVertexNormals();
 
+    // --- Manual UV Unwrapping ---
+    // The U coordinate runs along the pylon's length (engineering -> nacelle).
+    // The V coordinate wraps around the pylon's cross-section. This prioritizes
+    // the top and bottom surfaces, preventing texture stretching.
+    const uvs = new Float32Array(16 * 2);
+    const u_eng = 0;
+    const u_mid = midpointOffset;
+    const u_nac = 1;
+
+    // Give 45% of texture V-space to top, 45% to bottom, 5% to each side edge.
+    const v_s1_aft = 0.0;       // Side 1 Aft rail (e.g., bottom-aft edge)
+    const v_s1_fore = 0.45;     // Side 1 Fore rail (e.g., bottom-fore edge)
+    const v_s2_fore = 0.55;     // Side 2 Fore rail (e.g., top-fore edge)
+    const v_s2_aft = 1.0;       // Side 2 Aft rail (e.g., top-aft edge)
+
+    // Assign UVs to match the `vertices` array order.
+    // Segment 1: eng -> mid
+    uvs.set([u_mid, v_s1_fore], 0 * 2);  // 0: mid, side 1, fore
+    uvs.set([u_mid, v_s1_aft], 1 * 2);   // 1: mid, side 1, aft
+    uvs.set([u_eng, v_s1_fore], 2 * 2);  // 2: eng, side 1, fore
+    uvs.set([u_eng, v_s1_aft], 3 * 2);   // 3: eng, side 1, aft
+    uvs.set([u_mid, v_s2_fore], 4 * 2);  // 4: mid, side 2, fore
+    uvs.set([u_mid, v_s2_aft], 5 * 2);   // 5: mid, side 2, aft
+    uvs.set([u_eng, v_s2_fore], 6 * 2);  // 6: eng, side 2, fore
+    uvs.set([u_eng, v_s2_aft], 7 * 2);   // 7: eng, side 2, aft
+
+    // Segment 2: mid -> nacelle
+    uvs.set([u_nac, v_s1_fore], 8 * 2);  // 8: nacelle, side 1, fore
+    uvs.set([u_nac, v_s1_aft], 9 * 2);   // 9: nacelle, side 1, aft
+    uvs.set([u_mid, v_s1_fore], 10 * 2); // 10: mid, side 1, fore
+    uvs.set([u_mid, v_s1_aft], 11 * 2);  // 11: mid, side 1, aft
+    uvs.set([u_nac, v_s2_fore], 12 * 2); // 12: nacelle, side 2, fore
+    uvs.set([u_nac, v_s2_aft], 13 * 2);  // 13: nacelle, side 2, aft
+    uvs.set([u_mid, v_s2_fore], 14 * 2); // 14: mid, side 2, fore
+    uvs.set([u_mid, v_s2_aft], 15 * 2);  // 15: mid, side 2, aft
+    
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+
+
     if (subdivisions > 0) {
         geo = LoopSubdivision.modify(geo, Math.floor(subdivisions), { flatOnly: true });
     }
@@ -139,7 +177,7 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         } = {};
 
         // Upper Pylons
-        if (params.pylon_toggle && params.nacelle_toggle) {
+        if (params.pylon_toggle) {
             [-1, 1].forEach(sign => {
                 const nacelleCenter = new THREE.Vector3(params.nacelle_x * sign, params.nacelle_z, params.nacelle_y);
                 const engineeringCenter = new THREE.Vector3(
@@ -171,7 +209,7 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         }
         
         // Lower Pylons & Boom
-        if (params.pylonLower_toggle && params.nacelleLower_toggle) {
+        if (params.pylonLower_toggle) {
             const boomBaseZ = params.engineering_y - params.engineering_length / 2 + params.engineering_length * ((params.pylonLower_engineeringForeOffset + params.pylonLower_engineeringAftOffset) / 2);
 
             const boomTop = new THREE.Vector3(

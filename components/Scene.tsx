@@ -12,10 +12,11 @@ interface SceneProps {
   shipParams: ShipParameters;
   shipRef: React.RefObject<THREE.Group>;
   hullMaterial: THREE.Material;
+  secondaryMaterial: THREE.Material;
   lightParams: LightParameters;
 }
 
-export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, lightParams }) => {
+export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
   return (
     <Canvas 
       camera={{ position: [20, 20, 40], fov: 50 }}
@@ -36,7 +37,7 @@ export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
         
         <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
         
-        <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} />
+        <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
         
         <OrbitControls 
           enableDamping 
