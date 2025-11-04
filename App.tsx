@@ -1,15 +1,16 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ShipParameters } from './types';
+import { ShipParameters, LightParameters } from './types';
 import { Scene } from './components/Scene';
 import { ControlsPanel } from './components/ControlsPanel';
-import { INITIAL_SHIP_PARAMS, PARAM_CONFIG } from './constants';
+import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants';
 import { STOCK_SHIPS } from './ships';
 import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
 import { generateTextures } from './components/TextureGenerator';
+import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
+
 
 const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean;}> = ({ label, checked, onChange, disabled }) => (
     <div className="flex justify-between items-center">
@@ -24,6 +25,8 @@ const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (check
 
 const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
+  const [lightParams, setLightParams] = useState<LightParameters>(INITIAL_LIGHT_PARAMS);
+
   const importInputRef = useRef<HTMLInputElement>(null);
   const shipRef = useRef<THREE.Group>(null);
   const [savedDesigns, setSavedDesigns] = useState<{ [name: string]: ShipParameters }>({});
@@ -110,6 +113,11 @@ const App: React.FC = () => {
     hullMaterial.needsUpdate = true;
 
   }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, hullMaterial, handleGenerateTextures]);
+
+  useEffect(() => {
+    (hullMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    hullMaterial.needsUpdate = true;
+  }, [lightParams.env_intensity, hullMaterial]);
   
   // Generate initial textures on load
   useEffect(() => {
@@ -130,6 +138,10 @@ const App: React.FC = () => {
 
   const handleParamChange = useCallback(<K extends keyof ShipParameters>(key: K, value: ShipParameters[K]) => {
     setParams(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleLightParamChange = useCallback(<K extends keyof LightParameters>(key: K, value: LightParameters[K]) => {
+    setLightParams(prev => ({ ...prev, [key]: value }));
   }, []);
 
   const handleRandomize = useCallback(() => {
@@ -323,7 +335,7 @@ const App: React.FC = () => {
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} lightParams={lightParams} />
       </div>
       <div className={`w-full ${isMultiviewOpen ? 'md:w-72 lg:w-80' : 'md:w-80 lg:w-96'} h-1/2 md:h-full flex-shrink-0`}>
         <ControlsPanel params={params} paramConfig={PARAM_CONFIG} onParamChange={handleParamChange}>
@@ -425,6 +437,60 @@ const App: React.FC = () => {
                   </>
               )}
             </div>
+            {Object.entries(LIGHT_PARAM_CONFIG).map(([groupName, configs]) => (
+              <Accordion key={groupName} title={groupName}>
+                {Object.entries(configs).map(([key, config]) => {
+                  const paramKey = key as keyof LightParameters;
+                  const value = lightParams[paramKey];
+
+                  if (config.type === 'slider') {
+                    return (
+                      <Slider
+                        key={paramKey}
+                        label={config.label}
+                        value={value as number}
+                        min={config.min!}
+                        max={config.max!}
+                        step={config.step!}
+                        onChange={(val) => handleLightParamChange(paramKey, val)}
+                      />
+                    );
+                  }
+                  if (config.type === 'toggle') {
+                      return (
+                          <Toggle
+                              key={paramKey}
+                              label={config.label}
+                              checked={value as boolean}
+                              onChange={(val) => handleLightParamChange(paramKey, val)}
+                          />
+                      )
+                  }
+                  if (config.type === 'select' && config.options) {
+                      return (
+                          <Select
+                              key={paramKey}
+                              label={config.label}
+                              value={value as string}
+                              options={config.options}
+                              onChange={(val) => handleLightParamChange(paramKey, val as any)}
+                          />
+                      )
+                  }
+                  if (config.type === 'color') {
+                      return (
+                          <ColorPicker
+                              key={paramKey}
+                              label={config.label}
+                              value={value as string}
+                              onChange={(val) => handleLightParamChange(paramKey, val as any)}
+                          />
+                      )
+                  }
+                  return null;
+                })}
+              </Accordion>
+            ))}
             <div className="border-b border-space-light">
                 <button
                     onClick={() => setIsTexturePanelOpen(!isTexturePanelOpen)}

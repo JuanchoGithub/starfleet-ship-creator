@@ -265,6 +265,28 @@ export interface ShipParameters {
   texture_emissive_intensity: number;
 }
 
+export type EnvironmentPreset = 'city' | 'sunset' | 'dawn' | 'night' | 'warehouse' | 'forest' | 'apartment' | 'studio' | 'lobby';
+
+export interface LightParameters {
+    // Directional Light
+    directional_enabled: boolean;
+    directional_intensity: number;
+    directional_color: string;
+    directional_position_x: number;
+    directional_position_y: number;
+    directional_position_z: number;
+
+    // Ambient Light
+    ambient_enabled: boolean;
+    ambient_intensity: number;
+    ambient_color: string;
+
+    // Environment
+    env_enabled: boolean;
+    env_intensity: number;
+    env_preset: EnvironmentPreset;
+}
+
 export interface ParamConfig {
   label: string;
   min?: number;
@@ -276,6 +298,6 @@ export interface ParamConfig {
 
 export type ParamConfigGroups = {
   [group: string]: {
-    [key in keyof ShipParameters]?: ParamConfig;
+    [key in keyof ShipParameters | keyof LightParameters]?: ParamConfig;
   };
 };

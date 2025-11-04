@@ -1,7 +1,47 @@
-import { ShipParameters, ParamConfigGroups } from './types';
+import { ShipParameters, ParamConfigGroups, LightParameters, EnvironmentPreset } from './types';
 import { STOCK_SHIPS } from './ships';
 
 export const INITIAL_SHIP_PARAMS: ShipParameters = STOCK_SHIPS['Stargazer Class'];
+
+export const INITIAL_LIGHT_PARAMS: LightParameters = {
+    directional_enabled: true,
+    directional_intensity: 1,
+    directional_color: '#ffffff',
+    directional_position_x: 10,
+    directional_position_y: 20,
+    directional_position_z: 5,
+
+    ambient_enabled: true,
+    ambient_intensity: 1.0,
+    ambient_color: '#ffffff',
+
+    env_enabled: false,
+    env_intensity: 1,
+    env_preset: 'city',
+};
+
+export const ENVIRONMENT_PRESETS: EnvironmentPreset[] = ['city', 'sunset', 'dawn', 'night', 'warehouse', 'forest', 'apartment', 'studio', 'lobby'];
+
+export const LIGHT_PARAM_CONFIG: ParamConfigGroups = {
+    "Directional Light": {
+        directional_enabled: { label: "Enable", type: 'toggle' },
+        directional_intensity: { label: "Intensity", min: 0, max: 5, step: 0.1, type: 'slider' },
+        directional_color: { label: "Color", type: 'color' },
+        directional_position_x: { label: "Position X", min: -50, max: 50, step: 1, type: 'slider' },
+        directional_position_y: { label: "Position Y", min: -50, max: 50, step: 1, type: 'slider' },
+        directional_position_z: { label: "Position Z", min: -50, max: 50, step: 1, type: 'slider' },
+    },
+    "Ambient Light": {
+        ambient_enabled: { label: "Enable", type: 'toggle' },
+        ambient_intensity: { label: "Intensity", min: 0, max: 2, step: 0.05, type: 'slider' },
+        ambient_color: { label: "Color", type: 'color' },
+    },
+    "Environment": {
+        env_enabled: { label: "Enable", type: 'toggle' },
+        env_intensity: { label: "Intensity", min: 0, max: 2, step: 0.05, type: 'slider' },
+        env_preset: { label: "Preset", type: 'select', options: ENVIRONMENT_PRESETS },
+    }
+};
 
 export const PARAM_CONFIG: ParamConfigGroups = {
   "Hull Texturing": {
@@ -19,9 +59,9 @@ export const PARAM_CONFIG: ParamConfigGroups = {
     primary_toggle: { label: "Enable", type: 'toggle' },
     primary_y: { label: "Fore/Aft Position", min: -40, max: 40, step: 0.01, type: 'slider' },
     primary_z: { label: "Vertical Position", min: -20, max: 20, step: 0.01, type: 'slider' },
-    primary_radius: { label: "Radius", min: 5, max: 25, step: 0.01, type: 'slider' },
-    primary_thickness: { label: "Thickness", min: 0.5, max: 8, step: 0.01, type: 'slider' },
-    primary_widthRatio: { label: "Width Ratio", min: 0.2, max: 2, step: 0.01, type: 'slider' },
+    primary_radius: { label: "Radius", min: 5, max: 30, step: 0.01, type: 'slider' },
+    primary_thickness: { label: "Thickness", min: 0.5, max: 30, step: 0.01, type: 'slider' },
+    primary_widthRatio: { label: "Width Ratio", min: 0.01, max: 3, step: 0.01, type: 'slider' },
     primary_pointiness: { label: "Pointiness", min: -0.95, max: 4, step: 0.01, type: 'slider' },
     primary_notch_fore: { label: "Notch Angle (Fore)", min: -Math.PI / 4, max: Math.PI / 2, step: 0.01, type: 'slider' },
     primary_notch_aft: { label: "Notch Angle (Aft)", min: -Math.PI / 4, max: Math.PI / 2, step: 0.01, type: 'slider' },

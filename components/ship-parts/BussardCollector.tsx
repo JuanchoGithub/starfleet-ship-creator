@@ -60,6 +60,7 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
             colorCore: { value: new THREE.Color(p.bussardColor2) },
             colorEdge: { value: new THREE.Color(p.bussardColor3) },
             vaneLength: { value: p.bussardVaneLength },
+            glowIntensity: { value: 2.0 },
         },
         transparent: false,
         blending: THREE.NormalBlending,
@@ -78,6 +79,7 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
             uniform vec3 colorCore;
             uniform vec3 colorEdge;
             uniform float vaneLength;
+            uniform float glowIntensity;
             varying vec3 vPosition;
           
             // Simple 2D noise for turbulence (gaseous feel)
@@ -119,7 +121,7 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
               float glow = 1.0 - r;
               glow *= (sin(time * 1.0) * 0.1 + 0.9);
               vec3 color = mix(colorEdge, colorCore, glow);
-              color *= vanes * glow * 2.0;
+              color *= vanes * glow * glowIntensity;
           
               // Opaque: Alpha always 1.0
               float alpha = 1.0;
@@ -135,7 +137,8 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
         shaderMaterial.uniforms.colorCore.value.set(p.bussardColor2);
         shaderMaterial.uniforms.colorEdge.value.set(p.bussardColor3);
         shaderMaterial.uniforms.vaneLength.value = p.bussardVaneLength;
-    }, [shaderMaterial, p.bussardVaneCount, maxRadius, p.bussardColor2, p.bussardColor3, p.bussardVaneLength]);
+        shaderMaterial.uniforms.glowIntensity.value = p.bussardGlowIntensity;
+    }, [shaderMaterial, p.bussardVaneCount, maxRadius, p.bussardColor2, p.bussardColor3, p.bussardVaneLength, p.bussardGlowIntensity]);
 
     useFrame(({ clock }) => {
         shaderMaterial.uniforms.time.value = clock.getElapsedTime() * p.bussardAnimSpeed;
@@ -202,6 +205,7 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
             subtleVanes: { value: 1.0 },
             colorCore: { value: new THREE.Color(p.bussardColor3) },
             colorEdge: { value: new THREE.Color(p.bussardColor2) },
+            glowIntensity: { value: 1.4 },
         },
         transparent: false,
         blending: THREE.NormalBlending,
@@ -218,6 +222,7 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
             uniform float subtleVanes;
             uniform vec3 colorCore;
             uniform vec3 colorEdge;
+            uniform float glowIntensity;
             varying vec3 vPosition;
         
             // Periodic noise for seamless theta wrapping (value noise with period 1 in x)
@@ -268,19 +273,20 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
                 float glow = 1.0 - r * 0.4;
                 glow *= (sin(time * 0.8) * 0.1 + 0.9);
                 vec3 color = mix(colorEdge, colorCore, glow);
-                color *= (plasma + streaks + 0.6) * glow * 1.4; // Balanced layering
+                color *= (plasma + streaks + 0.6) * glow * glowIntensity; // Balanced layering
                 
                 float alpha = 1.0;
                 gl_FragColor = vec4(color, alpha);
             }
         `
-    }), [p.bussardColor2, p.bussardColor3]);
+    }), [p.bussardColor3, p.bussardColor2]);
 
     useEffect(() => {
         shaderMaterial.uniforms.subtleVanes.value = p.bussardSubtleVanes ? 1.0 : 0.0;
         shaderMaterial.uniforms.colorCore.value.set(p.bussardColor3);
         shaderMaterial.uniforms.colorEdge.value.set(p.bussardColor2);
-    }, [shaderMaterial, p.bussardSubtleVanes, p.bussardColor3, p.bussardColor2]);
+        shaderMaterial.uniforms.glowIntensity.value = p.bussardGlowIntensity;
+    }, [shaderMaterial, p.bussardSubtleVanes, p.bussardColor3, p.bussardColor2, p.bussardGlowIntensity]);
 
     useFrame(({ clock }) => {
         shaderMaterial.uniforms.time.value = clock.getElapsedTime() * p.bussardAnimSpeed;
