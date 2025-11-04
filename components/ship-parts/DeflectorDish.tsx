@@ -1,4 +1,3 @@
-
 import '@react-three/fiber';
 import React, { useMemo, useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -321,22 +320,24 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
     const color2 = useMemo(() => new THREE.Color(params.engineering_dishColor2), [params.engineering_dishColor2]);
 
     useFrame(({ clock }) => {
+        // Pulse Logic for Pulse, Movie Refit, and Vortex styles
         if (params.engineering_dishType === 'Pulse') {
-            const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishAnimSpeed) + 1) / 2; // 0..1
+            const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishPulseSpeed) + 1) / 2; // 0..1
             deflectorMaterial.emissive.lerpColors(color1, color2, pulse);
             deflectorMaterial.emissiveIntensity = params.engineering_dishGlowIntensity;
         } else if (params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex') {
-             const pulseFactor = params.engineering_dishType === 'Vortex' ? 0.2 : 0.5;
-             const pulseBase = params.engineering_dishType === 'Vortex' ? 0.9 : 0.75;
-             const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishAnimSpeed) + 1) / 2 * pulseFactor + pulseBase;
-             deflectorMaterial.emissiveIntensity = params.engineering_dishGlowIntensity * pulse;
-    
+            const pulseFactor = params.engineering_dishType === 'Vortex' ? 0.2 : 0.5;
+            const pulseBase = params.engineering_dishType === 'Vortex' ? 0.9 : 0.75;
+            const pulse = (Math.sin(clock.getElapsedTime() * params.engineering_dishPulseSpeed) + 1) / 2 * pulseFactor + pulseBase;
+            deflectorMaterial.emissiveIntensity = params.engineering_dishGlowIntensity * pulse;
+        }
+
+        // Texture Animation Logic (for types that support it and aren't handled by a dedicated hook like TNG)
+        if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex') && deflectorMaterial.map) {
              const rotation = clock.getElapsedTime() * params.engineering_dishAnimSpeed * -0.1;
-             if (deflectorMaterial.map) {
-                deflectorMaterial.map.rotation = rotation;
-                deflectorMaterial.map.needsUpdate = true;
-             }
-             // Ensure emissive map rotates if it's a separate texture instance
+             deflectorMaterial.map.rotation = rotation;
+             deflectorMaterial.map.needsUpdate = true;
+             
              if (deflectorMaterial.emissiveMap && deflectorMaterial.emissiveMap !== deflectorMaterial.map) {
                 deflectorMaterial.emissiveMap.rotation = rotation;
                 deflectorMaterial.emissiveMap.needsUpdate = true;

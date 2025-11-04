@@ -176,6 +176,8 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             width: number,
             vertical_offset: number,
             rotation: number,
+            rounding: number,
+            skew: number,
         }
     ) => {
         const nacellePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
@@ -222,26 +224,56 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
             const grillFaces: number[] = [];
             const hullFaces: number[] = [];
 
-            const grillCenterV = 0.5 + grillParams.vertical_offset / length;
-            const grillLengthV = (length * 0.7 * grillParams.length) / length;
-            const grillStartV = grillCenterV - grillLengthV / 2;
-            const grillEndV = grillCenterV + grillLengthV / 2;
-
-            const grillWidthU = (0.25 * grillParams.width) / 2.0;
-            const grillCenterU_Port = 0.75;
-            const grillCenterU_Starboard = 0.25;
-            const rotationOffset = grillParams.rotation / (2.0 * Math.PI);
-
-            const isUInGrill = (u: number) => {
-                const rotatedU = THREE.MathUtils.euclideanModulo(u + rotationOffset, 1.0);
-                if (Math.abs(rotatedU - grillCenterU_Port) < grillWidthU) return true;
-                if (Math.abs(rotatedU - grillCenterU_Starboard) < grillWidthU) return true;
-                return false;
-            };
-
             const isVertexInGrill = (u: number, v: number) => {
-                if (v < grillStartV || v > grillEndV) return false;
-                return isUInGrill(u);
+                // Skew V based on U's horizontal position
+                const v_skewed = v + (u - 0.5) * grillParams.skew * -1;
+            
+                // Define grill V bounds
+                const grillCenterV = 0.5 + grillParams.vertical_offset / length;
+                const grillLengthV = (length * 0.7 * grillParams.length) / length;
+                const grillStartV = grillCenterV - grillLengthV / 2;
+                const grillEndV = grillCenterV + grillLengthV / 2;
+            
+                if (v_skewed < grillStartV || v_skewed > grillEndV) return false;
+            
+                // Define grill U bounds
+                const grillWidthU = (0.25 * grillParams.width) / 2.0;
+                const grillCenterU_Port = 0.75;
+                const grillCenterU_Starboard = 0.25;
+                const rotationOffset = grillParams.rotation / (2.0 * Math.PI);
+                
+                const rotatedU = THREE.MathUtils.euclideanModulo(u + rotationOffset, 1.0);
+            
+                const inPortBand = Math.abs(rotatedU - grillCenterU_Port) < grillWidthU;
+                const inStarboardBand = Math.abs(rotatedU - grillCenterU_Starboard) < grillWidthU;
+            
+                if (!inPortBand && !inStarboardBand) return false;
+            
+                // Handle rounding
+                const rounding = grillParams.rounding;
+                if (rounding > 0.01) {
+                    const roundingRadiusV = grillLengthV * 0.5 * rounding;
+                    if (roundingRadiusV > 0.001) {
+                        const uDist = inPortBand ? Math.abs(rotatedU - grillCenterU_Port) : Math.abs(rotatedU - grillCenterU_Starboard);
+                        
+                        // Check bottom rounded corner
+                        if (v_skewed < grillStartV + roundingRadiusV) {
+                            const vDist = (grillStartV + roundingRadiusV) - v_skewed;
+                            if (Math.sqrt(Math.pow(uDist / grillWidthU, 2) + Math.pow(vDist / roundingRadiusV, 2)) > 1) {
+                                return false;
+                            }
+                        } 
+                        // Check top rounded corner
+                        else if (v_skewed > grillEndV - roundingRadiusV) {
+                            const vDist = v_skewed - (grillEndV - roundingRadiusV);
+                             if (Math.sqrt(Math.pow(uDist / grillWidthU, 2) + Math.pow(vDist / roundingRadiusV, 2)) > 1) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                
+                return true;
             };
 
             for (let i = 0; i < indices.length; i += 3) {
@@ -288,12 +320,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 width: params.nacelle_grill_width,
                 vertical_offset: params.nacelle_grill_vertical_offset,
                 rotation: params.nacelle_grill_rotation,
+                rounding: params.nacelle_grill_rounding,
+                skew: params.nacelle_grill_skew,
             }
         );
     }, [
         params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, 
         params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
-        params.nacelle_grill_toggle, params.nacelle_grill_length, params.nacelle_grill_width, params.nacelle_grill_vertical_offset, params.nacelle_grill_rotation
+        params.nacelle_grill_toggle, params.nacelle_grill_length, params.nacelle_grill_width, params.nacelle_grill_vertical_offset, params.nacelle_grill_rotation,
+        params.nacelle_grill_rounding, params.nacelle_grill_skew
     ]);
 
     const lowerNacelleGeos = useMemo(() => {
@@ -309,12 +344,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 width: params.nacelleLower_grill_width,
                 vertical_offset: params.nacelleLower_grill_vertical_offset,
                 rotation: params.nacelleLower_grill_rotation,
+                rounding: params.nacelleLower_grill_rounding,
+                skew: params.nacelleLower_grill_skew,
             }
         );
     }, [
         params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, 
         params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
-        params.nacelleLower_grill_toggle, params.nacelleLower_grill_length, params.nacelleLower_grill_width, params.nacelleLower_grill_vertical_offset, params.nacelleLower_grill_rotation
+        params.nacelleLower_grill_toggle, params.nacelleLower_grill_length, params.nacelleLower_grill_width, params.nacelleLower_grill_vertical_offset, params.nacelleLower_grill_rotation,
+        params.nacelleLower_grill_rounding, params.nacelleLower_grill_skew
     ]);
 
     return (

@@ -378,7 +378,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col md:flex-row bg-space-dark relative">
+    <div className="w-full h-screen flex flex-col md:flex-row bg-space-dark relative">
       {isMultiviewOpen && (
         <Multiview 
             shipParams={params}

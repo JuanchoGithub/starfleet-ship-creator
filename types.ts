@@ -100,6 +100,8 @@ export interface ShipParameters {
   neck_primaryAftOffset: number;
   neck_engineeringForeOffset: number;
   neck_engineeringAftOffset: number;
+  neck_saucerVerticalOffset: number;
+  neck_engineeringVerticalOffset: number;
   neck_primaryThickness: number;
   neck_foretaper: number;
   neck_afttaper: number;
@@ -132,6 +134,7 @@ export interface ShipParameters {
   engineering_dishColor3: string;
   engineering_dishColor4: string;
   engineering_dishGlowIntensity: number;
+  engineering_dishPulseSpeed: number;
   engineering_dishAnimSpeed: number;
   engineering_dishTextureScaleX: number;
   engineering_dishTextureScaleY: number;
@@ -183,12 +186,14 @@ export interface ShipParameters {
   nacelle_grill_intensity: number;
   nacelle_grill_animSpeed: number;
   nacelle_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
-
+  nacelle_grill_rounding: number;
+  nacelle_grill_skew: number;
 
   // Upper Pylons
   pylon_toggle: boolean;
   pylon_nacelleForeOffset: number;
   pylon_nacelleAftOffset: number;
+  pylon_nacelleVerticalOffset: number;
   pylon_engineeringForeOffset: number;
   pylon_engineeringAftOffset: number;
   pylon_baseSpread: number;
@@ -244,7 +249,8 @@ export interface ShipParameters {
   nacelleLower_grill_intensity: number;
   nacelleLower_grill_animSpeed: number;
   nacelleLower_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
-
+  nacelleLower_grill_rounding: number;
+  nacelleLower_grill_skew: number;
 
   // Lower Boom
   boomLower_toggle: boolean;
@@ -253,6 +259,7 @@ export interface ShipParameters {
   pylonLower_toggle: boolean;
   pylonLower_nacelleForeOffset: number;
   pylonLower_nacelleAftOffset: number;
+  pylonLower_nacelleVerticalOffset: number;
   pylonLower_engineeringForeOffset: number;
   pylonLower_engineeringAftOffset: number;
   pylonLower_baseSpread: number;

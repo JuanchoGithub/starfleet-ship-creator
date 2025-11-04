@@ -179,7 +179,7 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         // Upper Pylons
         if (params.pylon_toggle) {
             [-1, 1].forEach(sign => {
-                const nacelleCenter = new THREE.Vector3(params.nacelle_x * sign, params.nacelle_z, params.nacelle_y);
+                const nacelleCenter = new THREE.Vector3(params.nacelle_x * sign, params.nacelle_z + params.pylon_nacelleVerticalOffset, params.nacelle_y);
                 const engineeringCenter = new THREE.Vector3(
                     (params.engineering_radius * params.engineering_widthRatio * params.pylon_baseSpread) * sign,
                     params.engineering_z + (params.pylon_engineeringZOffset * 0.8),
@@ -255,7 +255,7 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
             }
 
              [-1, 1].forEach(sign => {
-                const nacelleCenter = new THREE.Vector3(params.nacelleLower_x * sign, params.nacelleLower_z, params.nacelleLower_y);
+                const nacelleCenter = new THREE.Vector3(params.nacelleLower_x * sign, params.nacelleLower_z + params.pylonLower_nacelleVerticalOffset, params.nacelleLower_y);
                 const engineeringSpan = params.engineering_length * Math.abs(params.pylonLower_engineeringForeOffset - params.pylonLower_engineeringAftOffset);
                 
                 const pylonJunctionForSide = pylonJunctionBase.clone().add(new THREE.Vector3(params.pylonLower_baseSpread * sign, 0, 0));

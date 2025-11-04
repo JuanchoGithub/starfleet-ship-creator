@@ -19,7 +19,7 @@ export const Neck: React.FC<NeckProps> = ({ params, material }) => {
         // The four attachment offsets now directly define the fore/aft boundaries, removing the need for a separate depth/thickness parameter.
 
         // Saucer (Primary Hull) Attachment
-        const saucerAttachY = params.primary_z - params.primary_thickness / 2;
+        const saucerAttachY = params.primary_z - params.primary_thickness / 2 + (params.neck_saucerVerticalOffset ?? 0);
         const saucerZStart = params.primary_y - params.primary_radius;
         const saucerZSpan = params.primary_radius * 2;
         let saucerAttachZFore = saucerZStart + saucerZSpan * params.neck_primaryForeOffset;
@@ -29,14 +29,14 @@ export const Neck: React.FC<NeckProps> = ({ params, material }) => {
         if (saucerAttachZFore < saucerAttachZAft) [saucerAttachZFore, saucerAttachZAft] = [saucerAttachZAft, saucerAttachZFore];
         
         // Engineering Hull Attachment
-        const engAttachY = params.engineering_z + params.engineering_radius * 0.7;
+        const engAttachY = params.engineering_z + params.engineering_radius * 0.7 + (params.neck_engineeringVerticalOffset ?? 0);
         const engZStart = params.engineering_y - params.engineering_length / 2;
         const engZSpan = params.engineering_length;
         let engAttachZFore = engZStart + engZSpan * params.neck_engineeringForeOffset;
         let engAttachZAft = engZStart + engZSpan * params.neck_engineeringAftOffset;
 
         // Ensure Fore is always greater than Aft
-        if (engAttachZFore < engAttachZAft) [engAttachZFore, engAttachZAft] = [engAttachZAft, engAttachZFore];
+        if (engAttachZFore < engAttachZAft) [engAttachZFore, engAttachZAft] = [engAttachZAft, engAttachZAft];
 
         // --- Calculate Neck Dimensions ---
         const baseWidth = params.neck_primaryThickness / 2;
