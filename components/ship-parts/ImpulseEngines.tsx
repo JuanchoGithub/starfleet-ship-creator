@@ -1,4 +1,3 @@
-
 import '@react-three/fiber';
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -99,6 +98,8 @@ export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params, material
                         geometry={geos.left.grillGeo} 
                         material={impulseMaterial} 
                         position={[0, -params.sublight_length / 2 + params.sublight_grillInset, 0]} 
+                        castShadow
+                        receiveShadow
                     />
                 </group>
             </group>
@@ -110,6 +111,8 @@ export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params, material
                         geometry={geos.right.grillGeo} 
                         material={impulseMaterial} 
                         position={[0, -params.sublight_length / 2 + params.sublight_grillInset, 0]} 
+                        castShadow
+                        receiveShadow
                     />
                 </group>
             </group>

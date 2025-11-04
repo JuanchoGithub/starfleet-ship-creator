@@ -147,8 +147,8 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
     return (
         <group>
             <mesh name="Bussard_Rear_Casing" geometry={bussardRearGeo} material={material} castShadow receiveShadow />
-            <mesh name="Bussard_Outer_Shell" geometry={outerShellGeo} material={outerShellMaterial} />
-            <mesh name="Bussard_Inner_Core" geometry={innerCoreGeo} material={shaderMaterial} />
+            <mesh name="Bussard_Outer_Shell" geometry={outerShellGeo} material={outerShellMaterial} castShadow />
+            <mesh name="Bussard_Inner_Core" geometry={innerCoreGeo} material={shaderMaterial} castShadow />
         </group>
     );
 };
@@ -295,8 +295,8 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
     return (
         <group>
             <mesh name="Bussard_Rear_Casing" geometry={bussardRearGeo} material={material} castShadow receiveShadow />
-            <mesh name="Bussard_Outer_Shell" geometry={outerShellGeo} material={outerShellMaterial} />
-            <mesh name="Bussard_Inner_Core" geometry={innerCoreGeo} material={shaderMaterial} />
+            <mesh name="Bussard_Outer_Shell" geometry={outerShellGeo} material={outerShellMaterial} castShadow />
+            <mesh name="Bussard_Inner_Core" geometry={innerCoreGeo} material={shaderMaterial} castShadow />
         </group>
     );
 };
@@ -312,7 +312,7 @@ const BussardTNG: React.FC<{ p: any }> = ({ p }) => {
 
     return (
         <group position-y={p.length - p.radius * p.bussardRadius * 0.2}>
-            <RoundedBox name="Bussard_Casing" args={[p.radius * 2.2 * p.bussardWidthRatio, p.radius * 1.5 * p.bussardRadius, p.radius * 1.5 * p.bussardRadius ]} radius={p.radius * p.bussardRadius * 0.7} smoothness={4} >
+            <RoundedBox name="Bussard_Casing" args={[p.radius * 2.2 * p.bussardWidthRatio, p.radius * 1.5 * p.bussardRadius, p.radius * 1.5 * p.bussardRadius ]} radius={p.radius * p.bussardRadius * 0.7} smoothness={4} castShadow receiveShadow>
                 <meshStandardMaterial ref={materialRef} color={p.bussardColor1} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.1} />
             </RoundedBox>
         </group>
@@ -324,7 +324,7 @@ const BussardRadiator: React.FC<{ p: any }> = ({ p }) => {
     return (
         <group name="Radiator_Assembly" position-y={p.length + p.radius * p.bussardRadius * 0.8}>
             {fins.map((_, i) => (
-                <Box key={i} name={`Radiator_Fin_${i}`} args={[p.radius * 1.8 * p.widthRatio * p.bussardWidthRatio, 0.1, p.radius * 1.8 * p.bussardRadius]} position-y={-i * 0.2 * p.bussardRadius} >
+                <Box key={i} name={`Radiator_Fin_${i}`} args={[p.radius * 1.8 * p.widthRatio * p.bussardWidthRatio, 0.1, p.radius * 1.8 * p.bussardRadius]} position-y={-i * 0.2 * p.bussardRadius} castShadow receiveShadow>
                      <meshStandardMaterial color={p.bussardColor1} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.4}/>
                 </Box>
             ))}

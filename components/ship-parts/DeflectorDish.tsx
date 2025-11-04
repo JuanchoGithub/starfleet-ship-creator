@@ -327,6 +327,8 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
             name="DeflectorDish"
             geometry={deflectorGeo}
             material={deflectorMaterial}
+            castShadow
+            receiveShadow
         />
     )
 };

@@ -32,6 +32,10 @@ export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
           castShadow 
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
+          shadow-camera-left={-50}
+          shadow-camera-right={50}
+          shadow-camera-top={50}
+          shadow-camera-bottom={-50}
         />}
         
         {lightParams.env_enabled && <Environment preset={lightParams.env_preset} />}
