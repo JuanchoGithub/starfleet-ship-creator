@@ -36,6 +36,12 @@ export const INITIAL_LIGHT_PARAMS: LightParameters = {
     milkyway_width: 0.2,
     milkyway_color1: '#402810',
     milkyway_color2: '#d4b488',
+
+    bloom_enabled: true,
+    bloom_threshold: 0.55,
+    bloom_strength: 1.1,
+    bloom_radius: 0.3,
+    toneMapping_exposure: 1,
 };
 
 export const ENVIRONMENT_PRESETS: EnvironmentPreset[] = ['city', 'sunset', 'dawn', 'night', 'warehouse', 'forest', 'apartment', 'studio', 'lobby'];
@@ -96,7 +102,18 @@ export const LIGHT_PARAM_CONFIG: ParamConfigGroups = {
             milkyway_color1: { label: "Dust Color (Dark)", type: 'color' },
             milkyway_color2: { label: "Dust Color (Bright)", type: 'color' },
         }
-    }
+    },
+    "Bloom & Post-processing": {
+        "Bloom Effect": {
+            bloom_enabled: { label: "Enable", type: 'toggle' },
+            bloom_threshold: { label: "Threshold", min: 0, max: 1, step: 0.01, type: 'slider' },
+            bloom_strength: { label: "Strength", min: 0, max: 3, step: 0.01, type: 'slider' },
+            bloom_radius: { label: "Radius", min: 0, max: 1, step: 0.01, type: 'slider' },
+        },
+        "Tone Mapping": {
+            toneMapping_exposure: { label: "Exposure", min: 0.1, max: 2, step: 0.01, type: 'slider' },
+        }
+    },
 };
 
 export const PARAM_CONFIG: ParamConfigGroups = {

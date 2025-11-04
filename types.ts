@@ -323,6 +323,13 @@ export interface LightParameters {
     milkyway_width: number;
     milkyway_color1: string;
     milkyway_color2: string;
+
+    // Bloom & Post-processing
+    bloom_enabled: boolean;
+    bloom_threshold: number;
+    bloom_strength: number;
+    bloom_radius: number;
+    toneMapping_exposure: number;
 }
 
 export interface ParamConfig {

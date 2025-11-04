@@ -598,6 +598,10 @@ const App: React.FC = () => {
               <ControlGroup groupName="Milky Way Effect" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
             </Accordion>
             
+            <Accordion title="Post-processing" defaultOpen>
+              <ControlGroup groupName="Bloom & Post-processing" configs={LIGHT_PARAM_CONFIG["Bloom & Post-processing"]} params={lightParams} onParamChange={handleLightParamChange} />
+            </Accordion>
+
             <Accordion title="Textures">
               <div className="p-3 space-y-3">
                   <p className="text-sm text-mid-gray">Use the controls in the "Hull Texturing" panel below to customize the texture, then click here to apply it.</p>

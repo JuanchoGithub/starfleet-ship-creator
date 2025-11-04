@@ -1,13 +1,17 @@
 // By importing '@react-three/fiber', we extend JSX to include three.js elements.
 import '@react-three/fiber';
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useEffect, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Environment } from '@react-three/drei';
 import { Ship } from './Ship';
 import { ShipParameters, LightParameters } from '../types';
 import { Compass } from './Compass';
 import * as THREE from 'three';
 import { ProceduralNebulaBackground } from './ProceduralNebulaBackground';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 interface SceneProps {
   shipParams: ShipParameters;
@@ -17,11 +21,41 @@ interface SceneProps {
   lightParams: LightParameters;
 }
 
+const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) => {
+    const { scene, camera, gl, size } = useThree();
+
+    const composer = useMemo(() => {
+        const effectComposer = new EffectComposer(gl);
+        effectComposer.addPass(new RenderPass(scene, camera));
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(size.width, size.height), 1.5, 0.4, 0.85);
+        effectComposer.addPass(bloomPass);
+        const outputPass = new OutputPass();
+        effectComposer.addPass(outputPass);
+        return effectComposer;
+    }, [gl, scene, camera, size.width, size.height]);
+
+    useEffect(() => {
+        const bloomPass = composer.passes[1] as UnrealBloomPass;
+        bloomPass.threshold = lightParams.bloom_threshold;
+        bloomPass.strength = lightParams.bloom_strength;
+        bloomPass.radius = lightParams.bloom_radius;
+        gl.toneMappingExposure = Math.pow(lightParams.toneMapping_exposure, 4.0);
+    }, [composer, lightParams, gl]);
+
+    useFrame((_, delta) => {
+        composer.render(delta);
+    }, 1);
+
+    return null;
+}
+
+
 export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
   return (
     <Canvas 
       camera={{ position: [20, 20, 40], fov: 50 }}
       shadows
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
     >
       <Suspense fallback={null}>
         {lightParams.ambient_enabled && <ambientLight color={lightParams.ambient_color} intensity={lightParams.ambient_intensity} />}
@@ -57,6 +91,8 @@ export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
         />
         
         <Compass />
+
+        {lightParams.bloom_enabled && <Effects lightParams={lightParams} />}
       </Suspense>
     </Canvas>
   );

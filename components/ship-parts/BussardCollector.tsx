@@ -121,6 +121,12 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
               float glow = 1.0 - r;
               glow *= (sin(time * 1.0) * 0.1 + 0.9);
               vec3 color = mix(colorEdge, colorCore, glow);
+
+              // FIX: The original author noted yellow caused issues. High-intensity yellow
+              // combined with bloom can create green artifacts. This line clamps the
+              // green channel to enforce the intended red/orange visual style.
+              color.g *= 0.5;
+
               color *= vanes * glow * glowIntensity;
           
               // Opaque: Alpha always 1.0
