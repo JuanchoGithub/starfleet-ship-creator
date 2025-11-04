@@ -1,8 +1,9 @@
 # Procedural Starship Creator
 
-![Starship Creator Showcase](scrn4.png)
+![Starship creator](https://github.com/user-attachments/assets/6e50d286-1974-40d9-94d0-7ec32d0db0d9)
+<img width="987" height="512" alt="scrn4" src="https://github.com/user-attachments/assets/3ee40b0f-1e75-4c4d-bcd5-24ce67868b90" />
 
-A powerful 3D procedural starship creator built with React, Three.js, and the Google Gemini API. This tool allows you to design unique starships from the ground up by adjusting a vast array of parameters. Go beyond manual creation and leverage the power of AI to generate names, descriptions, and even complete ship designs from a simple text prompt.
+A powerful 3D procedural starship creator built with React and Three.js. This tool allows you to design unique starships from the ground up by adjusting a vast array of parameters.
 
 ## Features
 
@@ -11,7 +12,6 @@ A powerful 3D procedural starship creator built with React, Three.js, and the Go
 *   **Advanced Texturing:** Apply detailed, customizable procedural textures to your ship's hull, complete with panel lines and emissive windows.
 *   **Real-time 3D Viewport:** See your creation come to life in a dynamic 3D scene with adjustable lighting and environments.
 *   **Orthographic Views:** Utilize top, front, side, and bottom views for precise adjustments.
-*   **AI-Powered Design (Future):** Use text prompts to generate ship names, backstories, or even entire ship parameter sets with the Gemini API.
 *   **Save & Load:** Save your favorite designs locally in your browser to continue your work later.
 *   **Import & Export:** Share your designs with others by exporting them as JSON files, or export your 3D model as a GLB file for use in other applications.
 
@@ -32,5 +32,4 @@ A powerful 3D procedural starship creator built with React, Three.js, and the Go
 
 *   **Frontend:** React, TypeScript
 *   **3D Rendering:** Three.js, React Three Fiber, Drei
-*   **AI Integration:** Google Gemini API
 *   **UI:** Tailwind CSS for styling.
