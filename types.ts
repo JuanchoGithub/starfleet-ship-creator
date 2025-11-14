@@ -26,6 +26,9 @@ declare global {
       mesh: ThreeElements['mesh'];
       pointLight: ThreeElements['pointLight'];
       meshStandardMaterial: ThreeElements['meshStandardMaterial'];
+      // FIX: Add sphereGeometry and shaderMaterial to resolve type errors in ProceduralNebulaBackground.tsx.
+      sphereGeometry: ThreeElements['sphereGeometry'];
+      shaderMaterial: ThreeElements['shaderMaterial'];
       // FIX: Use `ConstructorParameters` to correctly type the `args` for `ArrowHelper`.
       // `typeof THREE.ArrowHelper` is a class constructor, not an array type for the arguments.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
@@ -43,6 +46,8 @@ declare global {
       h1: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       h2: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       h3: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
+      // FIX: Add missing h4 element type to resolve JSX error in App.tsx.
+      h4: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
       p: React.DetailedHTMLProps<React.HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>;
       hr: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHRElement>, HTMLHRElement>;
       textarea: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>;

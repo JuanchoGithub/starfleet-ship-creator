@@ -1,6 +1,6 @@
 // By importing '@react-three/fiber', we extend JSX to include three.js elements.
 import '@react-three/fiber';
-import React, { Suspense, useEffect, useMemo } from 'react';
+import React, { Suspense, useEffect, useMemo, useState, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Environment } from '@react-three/drei';
 import { Ship } from './Ship';
@@ -49,51 +49,143 @@ const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) =>
     return null;
 }
 
+const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
+    const { controls, gl, scene, camera } = useThree();
+    const [isInteracting, setIsInteracting] = useState(false);
+    const nebulaRef = useRef<THREE.Mesh>(null!);
+    const originalBackground = useRef(scene.background);
+    const capturedTextureRef = useRef<THREE.CubeTexture | null>(null);
 
-export const Scene: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
+    useEffect(() => {
+        const canvas = gl.domElement;
+        if (!canvas) return;
+
+        const handleStart = () => setIsInteracting(true);
+        const handleEnd = () => setIsInteracting(false);
+
+        // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error. The project's type setup
+        // is likely causing incorrect inference of event listener parameters as `never`.
+        (controls as THREE.EventDispatcher)?.addEventListener('start', handleStart);
+        // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error. The project's type setup
+        // is likely causing incorrect inference of event listener parameters as `never`.
+        (controls as THREE.EventDispatcher)?.addEventListener('end', handleEnd);
+        canvas.addEventListener('mousedown', handleStart);
+        window.addEventListener('mouseup', handleEnd);
+
+        return () => {
+            // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error.
+            (controls as THREE.EventDispatcher)?.removeEventListener('start', handleStart);
+            // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error.
+            (controls as THREE.EventDispatcher)?.removeEventListener('end', handleEnd);
+            canvas.removeEventListener('mousedown', handleStart);
+            window.removeEventListener('mouseup', handleEnd);
+        };
+    }, [controls, gl.domElement]);
+
+    useEffect(() => {
+        const ship = scene.getObjectByName("Starship");
+        const nebulaMesh = nebulaRef.current;
+    
+        const restoreLiveNebula = () => {
+            scene.background = originalBackground.current;
+            if (capturedTextureRef.current) {
+                capturedTextureRef.current.dispose();
+                capturedTextureRef.current = null;
+            }
+            if (nebulaMesh) {
+                nebulaMesh.visible = lightParams.nebula_enabled;
+            }
+        };
+    
+        if (isInteracting && lightParams.nebula_enabled && nebulaMesh) {
+            if (!capturedTextureRef.current) {
+                if (ship) ship.visible = false;
+                nebulaMesh.visible = true;
+    
+                const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512); // Capture at 512px for performance
+                const cubeCamera = new THREE.CubeCamera(1, 10000, cubeRenderTarget);
+                // Since the nebula now follows the main camera, we must also position
+                // the CubeCamera at the main camera's position to capture the environment correctly.
+                cubeCamera.position.copy(camera.position);
+                cubeCamera.update(gl, scene);
+                
+                capturedTextureRef.current = cubeRenderTarget.texture;
+                scene.background = capturedTextureRef.current;
+                nebulaMesh.visible = false;
+                
+                if (ship) ship.visible = true;
+            }
+        } else {
+            restoreLiveNebula();
+        }
+        
+        return () => {
+            if (isInteracting) {
+                restoreLiveNebula();
+            }
+        };
+    
+    }, [isInteracting, lightParams.nebula_enabled, scene, gl, camera]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (capturedTextureRef.current) {
+                capturedTextureRef.current.dispose();
+            }
+        }
+    }, []);
+
+    return (
+        <Suspense fallback={null}>
+            {lightParams.ambient_enabled && <ambientLight color={lightParams.ambient_color} intensity={lightParams.ambient_intensity} />}
+            {lightParams.directional_enabled && <directionalLight 
+            color={lightParams.directional_color}
+            position={[lightParams.directional_position_x, lightParams.directional_position_y, lightParams.directional_position_z]} 
+            intensity={lightParams.directional_intensity} 
+            castShadow 
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-left={-50}
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
+            />}
+            
+            {lightParams.env_enabled && <Environment preset={lightParams.env_preset} />}
+            
+            {lightParams.nebula_enabled ? (
+                <ProceduralNebulaBackground ref={nebulaRef} params={lightParams} isAnimationPaused={isInteracting} />
+            ) : (
+                <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
+            )}
+            
+            <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
+            
+            <OrbitControls 
+            enableDamping 
+            dampingFactor={0.1}
+            rotateSpeed={0.5}
+            minDistance={10}
+            maxDistance={200}
+            />
+            
+            <Compass />
+
+            {lightParams.bloom_enabled && <Effects lightParams={lightParams} />}
+        </Suspense>
+    )
+}
+
+
+export const Scene: React.FC<SceneProps> = (props) => {
   return (
     <Canvas 
       camera={{ position: [20, 20, 40], fov: 50 }}
       shadows
-      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, preserveDrawingBuffer: true }}
     >
-      <Suspense fallback={null}>
-        {lightParams.ambient_enabled && <ambientLight color={lightParams.ambient_color} intensity={lightParams.ambient_intensity} />}
-        {lightParams.directional_enabled && <directionalLight 
-          color={lightParams.directional_color}
-          position={[lightParams.directional_position_x, lightParams.directional_position_y, lightParams.directional_position_z]} 
-          intensity={lightParams.directional_intensity} 
-          castShadow 
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-          shadow-camera-left={-50}
-          shadow-camera-right={50}
-          shadow-camera-top={50}
-          shadow-camera-bottom={-50}
-        />}
-        
-        {lightParams.env_enabled && <Environment preset={lightParams.env_preset} />}
-        
-        {lightParams.nebula_enabled ? (
-          <ProceduralNebulaBackground params={lightParams} />
-        ) : (
-          <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
-        )}
-        
-        <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
-        
-        <OrbitControls 
-          enableDamping 
-          dampingFactor={0.1}
-          rotateSpeed={0.5}
-          minDistance={10}
-          maxDistance={200}
-        />
-        
-        <Compass />
-
-        {lightParams.bloom_enabled && <Effects lightParams={lightParams} />}
-      </Suspense>
+        <SceneContent {...props} />
     </Canvas>
   );
 };

@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, forwardRef } from 'react';
 import * as THREE from 'three';
 import { LightParameters } from '../types';
 
@@ -22,7 +22,6 @@ const fragmentShader = `
     uniform vec3 uColor3;
     uniform float uStarsIntensity;
     uniform float uStarsCount;
-    uniform float uAnimSpeed;
 
     uniform float uMilkyWayEnabled;
     uniform float uMilkyWayIntensity;
@@ -91,7 +90,7 @@ const fragmentShader = `
         if (n < threshold) return 0.0;
 
         float size = (1.0 - r / 0.45);
-        float blink = sin(uTime * uAnimSpeed * (0.5 + n * 2.0) + id.x) * 0.5 + 0.5;
+        float blink = sin(uTime * (0.5 + n * 2.0) + id.x) * 0.5 + 0.5;
         return pow(size, 10.0) * blink;
     }
 
@@ -114,7 +113,7 @@ const fragmentShader = `
 
     void main() {
         vec3 dir = normalize(vDirection);
-        float time = uTime * uAnimSpeed;
+        float time = uTime;
 
         // Base deep space color
         vec3 color = vec3(0.01, 0.01, 0.02);
@@ -184,10 +183,12 @@ const fragmentShader = `
 
 interface ProceduralNebulaBackgroundProps {
     params: LightParameters;
+    isAnimationPaused: boolean;
 }
 
-export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProps> = ({ params }) => {
+export const ProceduralNebulaBackground = forwardRef<THREE.Mesh, ProceduralNebulaBackgroundProps>(({ params, isAnimationPaused }, ref) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null!);
+    const animationTime = useRef(0.0);
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0.0 },
@@ -199,7 +200,6 @@ export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProp
         uColor3: { value: new THREE.Color(params.nebula_color3) },
         uStarsIntensity: { value: params.nebula_stars_intensity },
         uStarsCount: { value: params.nebula_stars_count },
-        uAnimSpeed: { value: params.nebula_animSpeed || 1.0 },
         uMilkyWayEnabled: { value: params.milkyway_enabled ? 1.0 : 0.0 },
         uMilkyWayIntensity: { value: params.milkyway_intensity },
         uMilkyWayDensity: { value: params.milkyway_density },
@@ -208,7 +208,7 @@ export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProp
         uMilkyWayColor2: { value: new THREE.Color(params.milkyway_color2) },
     }), []);
 
-    // Update uniforms when params change
+    // Update non-time uniforms when params change
     useEffect(() => {
         if(materialRef.current) {
             materialRef.current.uniforms.uSeed.value = params.nebula_seed;
@@ -219,7 +219,6 @@ export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProp
             materialRef.current.uniforms.uColor3.value.set(params.nebula_color3);
             materialRef.current.uniforms.uStarsIntensity.value = params.nebula_stars_intensity;
             materialRef.current.uniforms.uStarsCount.value = params.nebula_stars_count;
-            materialRef.current.uniforms.uAnimSpeed.value = params.nebula_animSpeed || 1.0;
             materialRef.current.uniforms.uMilkyWayEnabled.value = params.milkyway_enabled ? 1.0 : 0.0;
             materialRef.current.uniforms.uMilkyWayIntensity.value = params.milkyway_intensity;
             materialRef.current.uniforms.uMilkyWayDensity.value = params.milkyway_density;
@@ -229,18 +228,29 @@ export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProp
         }
     }, [params]);
 
-    useFrame(({ clock }) => {
+    useFrame(({ camera }, delta) => {
+        if (ref && 'current' in ref && ref.current) {
+            // Make the nebula sphere follow the camera to eliminate parallax,
+            // making it behave like a true skybox. This ensures a seamless
+            // transition when switching to the static background image during interaction.
+            ref.current.position.copy(camera.position);
+        }
+
         if (materialRef.current) {
-            materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
+            if (!isAnimationPaused) {
+                // Nullish coalescing operator `??` correctly handles 0 as a valid speed.
+                const speed = params.nebula_animSpeed ?? 1.0;
+                animationTime.current += delta * speed;
+            }
+            materialRef.current.uniforms.uTime.value = animationTime.current;
         }
     });
 
     return (
-        <mesh>
+        <mesh ref={ref} name="procedural_nebula">
             <sphereGeometry args={[500, 64, 32]} />
             <shaderMaterial
                 ref={materialRef}
-                key={Date.now()} // Force re-creation to ensure the new shader is used
                 uniforms={uniforms}
                 vertexShader={vertexShader}
                 fragmentShader={fragmentShader}
@@ -248,4 +258,4 @@ export const ProceduralNebulaBackground: React.FC<ProceduralNebulaBackgroundProp
             />
         </mesh>
     );
-};
+});

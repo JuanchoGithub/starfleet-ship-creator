@@ -9,6 +9,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
 import { generateTextures } from './components/TextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
+import { Archetype, generateShipParameters } from './randomizer';
 
 
 const ExportToggle: React.FC<{ label: string; checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean;}> = ({ label, checked, onChange, disabled }) => (
@@ -119,6 +120,7 @@ const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
   const [lightParams, setLightParams] = useState<LightParameters>(INITIAL_LIGHT_PARAMS);
   const [shipName, setShipName] = useState<string>('Stargazer Class');
+  const [randomizerArchetype, setRandomizerArchetype] = useState<Archetype>('Cruiser');
 
   const importInputRef = useRef<HTMLInputElement>(null);
   const shipRef = useRef<THREE.Group>(null);
@@ -271,30 +273,15 @@ const App: React.FC = () => {
     setLightParams(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  const handleRandomize = useCallback(() => {
-    const newParams = { ...params };
-    Object.entries(PARAM_CONFIG).forEach(([, groupConfigs]) => {
-        const processConfigs = (configs: any) => {
-            Object.entries(configs).forEach(([key, configOrSubgroup]) => {
-                if(typeof (configOrSubgroup as any).type !== 'undefined') {
-                    // It's a config
-                    const config = configOrSubgroup as ParamConfig;
-                    if (config.type === 'slider') {
-                        const min = config.min!;
-                        const max = config.max!;
-                        const randomValue = Math.random() * (max - min) + min;
-                        newParams[key as keyof ShipParameters] = randomValue as never;
-                    }
-                } else {
-                    // It's a subgroup, recurse
-                    processConfigs(configOrSubgroup);
-                }
-            });
-        };
-        processConfigs(groupConfigs);
-    });
-    setParams(newParams);
-    setShipName('Randomized Design');
+  const handleRandomize = useCallback((archetype: Archetype) => {
+      let finalArchetype = archetype;
+      if (archetype === 'Surprise Me!') {
+          const archetypes: Archetype[] = ['Cruiser', 'Explorer', 'Escort', 'Dreadnought'];
+          finalArchetype = archetypes[Math.floor(Math.random() * archetypes.length)];
+      }
+      const newParams = generateShipParameters(finalArchetype, params);
+      setParams(newParams);
+      setShipName(`Random ${finalArchetype}`);
   }, [params]);
 
   const handleExportJson = useCallback(() => {
@@ -523,9 +510,22 @@ const App: React.FC = () => {
                           <button onClick={() => setIsExportModalOpen(true)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <CubeIcon className='w-5 h-5' /> Export GLB
                           </button>
-                          <button onClick={handleRandomize} className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors">
-                              <ShuffleIcon className='w-5 h-5'/> Randomize
-                          </button>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleRandomize(randomizerArchetype)} className="flex-grow flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors">
+                                <ShuffleIcon className='w-5 h-5'/> Randomize
+                            </button>
+                            <select
+                                value={randomizerArchetype}
+                                onChange={(e) => setRandomizerArchetype(e.target.value as Archetype)}
+                                className="bg-space-dark border border-space-light rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-accent-blue"
+                            >
+                                <option value="Cruiser">Cruiser</option>
+                                <option value="Explorer">Explorer</option>
+                                <option value="Escort">Escort</option>
+                                <option value="Dreadnought">Dreadnought</option>
+                                <option value="Surprise Me!">Surprise Me!</option>
+                            </select>
+                          </div>
                           <button onClick={handleResetToDefault} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <ArrowUturnLeftIcon className='w-5 h-5'/> Reset to Default
                           </button>
