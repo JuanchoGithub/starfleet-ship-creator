@@ -50,37 +50,15 @@ const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) =>
 }
 
 const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
-    const { controls, gl, scene, camera } = useThree();
+    const { gl, scene, camera } = useThree();
     const [isInteracting, setIsInteracting] = useState(false);
     const nebulaRef = useRef<THREE.Mesh>(null!);
     const originalBackground = useRef(scene.background);
     const capturedTextureRef = useRef<THREE.CubeTexture | null>(null);
 
-    useEffect(() => {
-        const canvas = gl.domElement;
-        if (!canvas) return;
-
-        const handleStart = () => setIsInteracting(true);
-        const handleEnd = () => setIsInteracting(false);
-
-        // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error. The project's type setup
-        // is likely causing incorrect inference of event listener parameters as `never`.
-        (controls as THREE.EventDispatcher)?.addEventListener('start', handleStart);
-        // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error. The project's type setup
-        // is likely causing incorrect inference of event listener parameters as `never`.
-        (controls as THREE.EventDispatcher)?.addEventListener('end', handleEnd);
-        canvas.addEventListener('mousedown', handleStart);
-        window.addEventListener('mouseup', handleEnd);
-
-        return () => {
-            // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error.
-            (controls as THREE.EventDispatcher)?.removeEventListener('start', handleStart);
-            // FIX: Cast `controls` to `THREE.EventDispatcher` to resolve type error.
-            (controls as THREE.EventDispatcher)?.removeEventListener('end', handleEnd);
-            canvas.removeEventListener('mousedown', handleStart);
-            window.removeEventListener('mouseup', handleEnd);
-        };
-    }, [controls, gl.domElement]);
+    // FIX: Replaced manual event listeners with onStart/onEnd props on OrbitControls.
+    // This is a more idiomatic approach for react-three-fiber and avoids TypeScript errors
+    // with event listener parameter types that were occurring due to the project's setup.
 
     useEffect(() => {
         const ship = scene.getObjectByName("Starship");
@@ -163,6 +141,8 @@ const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
             <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
             
             <OrbitControls 
+            onStart={() => setIsInteracting(true)}
+            onEnd={() => setIsInteracting(false)}
             enableDamping 
             dampingFactor={0.1}
             rotateSpeed={0.5}
