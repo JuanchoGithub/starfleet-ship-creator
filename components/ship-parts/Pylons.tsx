@@ -1,3 +1,4 @@
+
 import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -210,7 +211,7 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         
         // Lower Pylons & Boom
         if (params.pylonLower_toggle) {
-            const boomBaseZ = params.engineering_y - params.engineering_length / 2 + params.engineering_length * ((params.pylonLower_engineeringForeOffset + params.pylonLower_engineeringAftOffset) / 2);
+            const boomBaseZ = params.engineering_y - params.engineering_length / 2 + params.engineering_length * ((params.pylonLower_engineeringForeOffset + params.pylonLower_engineeringAftOffset) / 2) + (params.pylonLower_boomForeAftOffset ?? 0);
 
             const boomTop = new THREE.Vector3(
                 0,
@@ -236,19 +237,22 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
                         geos.lowerBoom = boomGeo;
                     }
                 } else {
-                    // Original vertical boom
+                    // Original vertical boom - Refactored for stability
                     const diff = new THREE.Vector3().subVectors(pylonJunctionBase, boomTop);
                     const length = diff.length();
                     if (length > 0.01) {
                         const midpoint = new THREE.Vector3().addVectors(pylonJunctionBase, boomTop).multiplyScalar(0.5);
+                        
+                        // Create a cylinder with the correct length directly
+                        const boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, length, 16);
+                        
+                        // The cylinder is created along the Y axis. We need to align it with the `diff` vector.
                         const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff.clone().normalize());
+                        boomGeo.applyQuaternion(orientation);
                         
-                        let boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, 1, 16);
-                        const scaleMatrix = new THREE.Matrix4().makeScale(1, length, 1);
-                        const rotationMatrix = new THREE.Matrix4().makeRotationFromQuaternion(orientation);
-                        const translationMatrix = new THREE.Matrix4().makeTranslation(midpoint.x, midpoint.y, midpoint.z);
+                        // Then translate it to the midpoint.
+                        boomGeo.translate(midpoint.x, midpoint.y, midpoint.z);
                         
-                        boomGeo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(translationMatrix, new THREE.Matrix4().multiplyMatrices(rotationMatrix, scaleMatrix)));
                         geos.lowerBoom = boomGeo;
                     }
                 }

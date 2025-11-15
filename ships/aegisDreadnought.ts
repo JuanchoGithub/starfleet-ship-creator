@@ -196,6 +196,7 @@ export const aegisDreadnoughtShip: ShipParameters = {
   "pylonLower_engineeringAftOffset": 0.2,
   "pylonLower_baseSpread": 0.8,
   "pylonLower_engineeringZOffset": -0.5,
+  "pylonLower_boomForeAftOffset": 0,
   "pylonLower_midPointOffset": 0.5,
   "pylonLower_midPointOffsetX": 0,
   "pylonLower_midPointOffsetY": -5,

@@ -403,16 +403,12 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       pylonLower_subdivisions: { label: "Subdivisions", min: 0, max: 3, step: 1, type: 'slider' },
       pylonLower_thickness: { label: "Thickness", min: 0.1, max: 2, step: 0.01, type: 'slider' },
     },
-    "Nacelle Attachment": {
-      pylonLower_nacelleForeOffset: { label: "Fore/Aft (Fore)", min: -0.5, max: 1.5, step: 0.01, type: 'slider' },
-      pylonLower_nacelleAftOffset: { label: "Fore/Aft (Aft)", min: -0.5, max: 1.5, step: 0.01, type: 'slider' },
-      pylonLower_nacelleVerticalOffset: { label: "Vertical Offset", min: -10, max: 10, step: 0.1, type: 'slider' },
-    },
     "Boom Attachment": {
       pylonLower_engineeringForeOffset: { label: "Fore/Aft (Fore)", min: -0.5, max: 1.5, step: 0.01, type: 'slider' },
       pylonLower_engineeringAftOffset: { label: "Fore/Aft (Aft)", min: -0.5, max: 1.5, step: 0.01, type: 'slider' },
+      pylonLower_boomForeAftOffset: { label: "Boom Fore/Aft", min: -10, max: 10, step: 0.1, type: 'slider' },
+      pylonLower_engineeringZOffset: { label: "Boom Height", min: -10, max: 10, step: 0.01, type: 'slider' },
       pylonLower_baseSpread: { label: "Base Spread", min: 0, max: 10, step: 0.1, type: 'slider' },
-      pylonLower_engineeringZOffset: { label: "Boom Height", min: -5, max: 0, step: 0.01, type: 'slider' },
     },
     "Elbow": {
       pylonLower_midPointOffset: { label: "Position", min: 0.01, max: 0.99, step: 0.01, type: 'slider' },

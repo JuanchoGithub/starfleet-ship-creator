@@ -269,6 +269,7 @@ export interface ShipParameters {
   pylonLower_engineeringAftOffset: number;
   pylonLower_baseSpread: number;
   pylonLower_engineeringZOffset: number;
+  pylonLower_boomForeAftOffset: number;
   pylonLower_midPointOffset: number;
   pylonLower_midPointOffsetX: number;
   pylonLower_midPointOffsetY: number;

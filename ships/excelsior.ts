@@ -196,6 +196,7 @@ export const excelsiorClassShip: ShipParameters = {
   "pylonLower_engineeringAftOffset": 0.1,
   "pylonLower_baseSpread": 0,
   "pylonLower_engineeringZOffset": -2,
+  "pylonLower_boomForeAftOffset": 0,
   "pylonLower_midPointOffset": 0.5,
   "pylonLower_midPointOffsetX": 0,
   "pylonLower_midPointOffsetY": 0,

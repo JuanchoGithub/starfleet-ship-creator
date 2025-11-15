@@ -330,6 +330,9 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         p.sublight_skewVertical = rand(-0.2, 0.1);
     }
     
+    // Set a default for the new param
+    p.pylonLower_boomForeAftOffset = 0;
+
     // Set colors for the active archetype
     p.nacelle_bussardColor1 = palette.bussard[0];
     p.nacelle_bussardColor2 = palette.bussard[1];
