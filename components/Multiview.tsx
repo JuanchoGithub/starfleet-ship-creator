@@ -1,9 +1,8 @@
-
 // FIX: Add import for react-three-fiber to extend JSX namespace for R3F elements.
 import '@react-three/fiber';
-import React, { Suspense, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrthographicCamera } from '@react-three/drei';
+import { OrthographicCamera, Stars, Environment } from '@react-three/drei';
 import { Ship } from './Ship';
 import { ShipParameters } from '../types';
 import * as THREE from 'three';
@@ -18,25 +17,21 @@ interface ViewportProps {
   shipParams: ShipParameters;
   hullMaterial: THREE.Material;
   secondaryMaterial: THREE.Material;
-  overrideMaterial?: THREE.Material;
   children?: React.ReactNode;
-  orthoViewMode: 'Schematic' | 'Normal';
 }
 
-const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hullMaterial, secondaryMaterial, overrideMaterial, orthoViewMode, children }) => (
+const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hullMaterial, secondaryMaterial, children }) => (
   <div className="flex-1 relative border-b border-space-light last:border-b-0 overflow-hidden">
     <div className="absolute top-1 left-2 text-xs text-mid-gray bg-space-dark/50 px-1 rounded z-10 pointer-events-none">{label}</div>
-    <Canvas gl={{ alpha: false }}>
+    <Canvas>
       <Suspense fallback={null}>
-        <color attach="background" args={['#0D1117']} />
         <OrthographicCamera makeDefault {...cameraProps} />
-        {orthoViewMode === 'Normal' && (
-          <>
-            <ambientLight intensity={1.2} />
-            <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          </>
-        )}
-        <Ship shipParams={shipParams} material={hullMaterial} secondaryMaterial={secondaryMaterial} overrideMaterial={overrideMaterial} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 20, 5]} intensity={1} />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.2} />
+        <Environment preset="city" />
+        {/* FIX: Pass secondaryMaterial to Ship component to satisfy its props interface. */}
+        <Ship shipParams={shipParams} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
       </Suspense>
     </Canvas>
     {children}
@@ -49,13 +44,12 @@ interface MultiviewProps {
   setWidth: (width: number) => void;
   hullMaterial: THREE.Material;
   secondaryMaterial: THREE.Material;
-  orthoViewMode: 'Schematic' | 'Normal';
 }
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 800;
 
-export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth, hullMaterial, secondaryMaterial, orthoViewMode }) => {
+export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth, hullMaterial, secondaryMaterial }) => {
   const isResizing = useRef(false);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -92,12 +86,6 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
       }
   }, [handleMouseMove, handleMouseUp]);
 
-  const silhouetteMaterial = useMemo(() => new THREE.MeshBasicMaterial({ 
-    color: '#8B949E', // mid-gray
-    wireframe: true 
-  }), []);
-
-  const overrideMaterial = orthoViewMode === 'Schematic' ? silhouetteMaterial : undefined;
 
   const zoom = 4.5;
   return (
@@ -118,8 +106,6 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
         shipParams={shipParams}
         hullMaterial={hullMaterial}
         secondaryMaterial={secondaryMaterial}
-        overrideMaterial={overrideMaterial}
-        orthoViewMode={orthoViewMode}
       />
       <Viewport 
         label="TOP"
@@ -127,8 +113,6 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
         shipParams={shipParams}
         hullMaterial={hullMaterial}
         secondaryMaterial={secondaryMaterial}
-        overrideMaterial={overrideMaterial}
-        orthoViewMode={orthoViewMode}
       />
       <Viewport 
         label="SIDE (PORT)"
@@ -136,8 +120,6 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
         shipParams={shipParams}
         hullMaterial={hullMaterial}
         secondaryMaterial={secondaryMaterial}
-        overrideMaterial={overrideMaterial}
-        orthoViewMode={orthoViewMode}
       />
       <Viewport 
         label="BOTTOM"
@@ -145,8 +127,6 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
         shipParams={shipParams}
         hullMaterial={hullMaterial}
         secondaryMaterial={secondaryMaterial}
-        overrideMaterial={overrideMaterial}
-        orthoViewMode={orthoViewMode}
       >
       </Viewport>
     </div>

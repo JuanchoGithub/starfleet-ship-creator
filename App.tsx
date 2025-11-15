@@ -1,10 +1,9 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
 import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants';
 import { STOCK_SHIPS } from './ships';
-import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon, CodeBracketIcon, EyeIcon } from './components/icons';
+import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
@@ -130,7 +129,6 @@ const App: React.FC = () => {
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
   const [pastebinText, setPastebinText] = useState('');
   const [isMultiviewOpen, setIsMultiviewOpen] = useState(false);
-  const [orthoViewMode, setOrthoViewMode] = useState<'Schematic' | 'Normal'>('Schematic');
   const [sidebarWidth, setSidebarWidth] = useState(352); // Approx 10% wider than 320px (w-80)
 
 
@@ -475,7 +473,6 @@ const App: React.FC = () => {
             setWidth={setSidebarWidth}
             hullMaterial={hullMaterial}
             secondaryMaterial={secondaryMaterial}
-            orthoViewMode={orthoViewMode}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
@@ -510,27 +507,6 @@ const App: React.FC = () => {
                           <button onClick={() => setIsMultiviewOpen(!isMultiviewOpen)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <Squares2X2Icon className='w-5 h-5' /> {isMultiviewOpen ? 'Hide' : 'Show'} Ortho Views
                           </button>
-                          {isMultiviewOpen && (
-                              <div className='mt-2'>
-                                  <label className="text-sm text-mid-gray block mb-1">Ortho View Mode</label>
-                                  <div className="flex bg-space-dark rounded-md p-0.5">
-                                      <button
-                                          onClick={() => setOrthoViewMode('Schematic')}
-                                          className={`flex-1 flex items-center justify-center gap-2 text-sm py-1 px-2 rounded-md transition-colors ${orthoViewMode === 'Schematic' ? 'bg-accent-blue text-white' : 'hover:bg-space-light/50'}`}
-                                      >
-                                          <CodeBracketIcon className="w-4 h-4" />
-                                          Schematic
-                                      </button>
-                                      <button
-                                          onClick={() => setOrthoViewMode('Normal')}
-                                          className={`flex-1 flex items-center justify-center gap-2 text-sm py-1 px-2 rounded-md transition-colors ${orthoViewMode === 'Normal' ? 'bg-accent-blue text-white' : 'hover:bg-space-light/50'}`}
-                                      >
-                                          <EyeIcon className="w-4 h-4" />
-                                          Normal
-                                      </button>
-                                  </div>
-                              </div>
-                          )}
                           <button onClick={() => setIsExportModalOpen(true)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <CubeIcon className='w-5 h-5' /> Export GLB
                           </button>

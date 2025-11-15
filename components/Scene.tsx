@@ -50,15 +50,34 @@ const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) =>
 }
 
 const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
-    const { gl, scene, camera } = useThree();
+    const { controls, gl, scene, camera } = useThree();
     const [isInteracting, setIsInteracting] = useState(false);
     const nebulaRef = useRef<THREE.Mesh>(null!);
     const originalBackground = useRef(scene.background);
     const capturedTextureRef = useRef<THREE.CubeTexture | null>(null);
 
-    // FIX: Replaced manual event listeners with onStart/onEnd props on OrbitControls.
-    // This is a more idiomatic approach for react-three-fiber and avoids TypeScript errors
-    // with event listener parameter types that were occurring due to the project's setup.
+    useEffect(() => {
+        const canvas = gl.domElement;
+        if (!canvas) return;
+
+        const handleStart = () => setIsInteracting(true);
+        const handleEnd = () => setIsInteracting(false);
+
+        // FIX: The type of `controls` from `useThree` is being incorrectly inferred, causing
+        // TypeScript to believe no events can be listened to. Casting to `any`
+        // bypasses this check as a workaround.
+        (controls as any)?.addEventListener('start', handleStart);
+        (controls as any)?.addEventListener('end', handleEnd);
+        canvas.addEventListener('mousedown', handleStart);
+        window.addEventListener('mouseup', handleEnd);
+
+        return () => {
+            (controls as any)?.removeEventListener('start', handleStart);
+            (controls as any)?.removeEventListener('end', handleEnd);
+            canvas.removeEventListener('mousedown', handleStart);
+            window.removeEventListener('mouseup', handleEnd);
+        };
+    }, [controls, gl.domElement]);
 
     useEffect(() => {
         const ship = scene.getObjectByName("Starship");
@@ -141,8 +160,6 @@ const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
             <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
             
             <OrbitControls 
-            onStart={() => setIsInteracting(true)}
-            onEnd={() => setIsInteracting(false)}
             enableDamping 
             dampingFactor={0.1}
             rotateSpeed={0.5}
