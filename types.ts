@@ -1,27 +1,21 @@
-// FIX: Add import of R3F to ensure its types are available for augmentation.
-import '@react-three/fiber';
-// FIX: Add global JSX namespace augmentation for react-three-fiber elements
-// This is necessary because the automatic type extension via `import '@react-three/fiber'`
-// seems to be failing in this project's setup.
-// By simplifying the augmentation to only extend ThreeElements, we follow the standard
-// pattern used by @react-three/fiber itself, which should resolve conflicts and correctly
-// type all R3F components used in JSX.
-// FIX: Changed import to be a value import instead of a type-only import to ensure module augmentation is triggered.
+// The automatic JSX augmentation from `@react-three/fiber` appears to be failing in this project's setup.
+// This manual augmentation of the global JSX namespace ensures that TypeScript recognizes 
+// react-three-fiber's JSX elements (like <mesh>, <group>, etc.) throughout the application.
 import { ThreeElements } from '@react-three/fiber';
 import * as THREE from 'three';
-import * as React from 'react';
+import type { Ref } from 'react';
 
-// Custom Node type for manual extension if needed.
+// Custom Node type for manually defining props for extended R3F components.
 type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
     args?: P;
-    ref?: React.Ref<T>;
+    ref?: Ref<T>;
 };
 
 declare global {
   namespace JSX {
     interface IntrinsicElements extends ThreeElements {
-      // This explicit definition for arrowHelper is a fallback.
-      // The `extend` call in Compass.tsx should handle this automatically.
+      // The `extend` function from R3F should automatically type this, but since the core
+      // type augmentation is failing, we must define it manually as a fallback.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
     }
   }

@@ -55,11 +55,11 @@ interface SaucerTextureGenerationParams {
 function drawText(ctx: CanvasRenderingContext2D, text: string, centerX: number, centerY: number, radius: number, angleDegrees: number, curve: number, orientation: TextOrientation) {
     ctx.save();
     
-    const textWidth = ctx.measureText(text).width;
     const angleRad = angleDegrees * Math.PI / 180;
 
     // --- Straight Text ---
     if (curve < 0.01) {
+        const textWidth = ctx.measureText(text).width;
         ctx.translate(centerX + Math.cos(angleRad) * radius, centerY + Math.sin(angleRad) * radius);
         ctx.rotate(angleRad + Math.PI / 2);
         ctx.fillText(text, -textWidth / 2, 0);
@@ -68,13 +68,16 @@ function drawText(ctx: CanvasRenderingContext2D, text: string, centerX: number, 
     }
 
     // --- Curved Text ---
+    const textToRender = orientation === 'Outward' ? text.split('').reverse().join('') : text;
+    const textWidth = ctx.measureText(textToRender).width;
+
     const arcRadius = (ctx.canvas.width * 2.0) / curve;
     const arcCenterX = centerX - Math.cos(angleRad) * (arcRadius - radius);
     const arcCenterY = centerY - Math.sin(angleRad) * (arcRadius - radius);
 
     let accumulatedWidth = 0;
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
+    for (let i = 0; i < textToRender.length; i++) {
+        const char = textToRender[i];
         const charWidth = ctx.measureText(char).width;
         
         const xOffset = accumulatedWidth + charWidth / 2;
@@ -268,16 +271,28 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
         if (ringIsWindowBand[i]) {
             const radius = currentRadius + ringWidth / 2;
             const circumference = 2 * Math.PI * radius;
-            const windowWidth = 12;
-            const windowSpacing = 8;
-            const numWindows = Math.floor(circumference / (windowWidth + windowSpacing));
-            const windowHeight = 16;
+
+            const baseWindowWidth = 12;
+            const baseWindowSpacing = 8;
+            const numWindows = Math.floor(circumference / (baseWindowWidth + baseWindowSpacing));
+            const baseWindowHeight = 16;
             
             for (let j = 0; j < numWindows; j++) {
+                // Add a chance for a window to be missing, creating gaps in the band.
+                if (random() < 0.2) { // 20% chance of a gap
+                    continue;
+                }
+
                 const angle = (j / numWindows) * 2 * Math.PI;
                 const x = center.x + Math.cos(angle) * radius;
                 const y = center.y + Math.sin(angle) * radius;
                 
+                // Randomize window dimensions for a more organic look.
+                const widthVariation = baseWindowWidth * 0.25 * (random() * 2 - 1); // +/- 25%
+                const heightVariation = baseWindowHeight * 0.2 * (random() * 2 - 1); // +/- 20%
+                const windowWidth = baseWindowWidth + widthVariation;
+                const windowHeight = baseWindowHeight + heightVariation;
+
                 mapCtx.save();
                 mapCtx.translate(x, y);
                 mapCtx.rotate(angle + Math.PI / 2); // Align with radial lines
@@ -285,6 +300,7 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
                 mapCtx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
                 mapCtx.restore();
 
+                // Use the window_density parameter to determine if this existing window is lit.
                 if (random() < window_density) {
                     emissiveCtx.save();
                     emissiveCtx.translate(x, y);

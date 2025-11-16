@@ -131,6 +131,6 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         // Engineering
         p.engineering_toggle = true;
     }
-// FIX: Added a return statement to the function to ensure it returns the generated ship parameters as required by its type signature.
+    // FIX: Added a return statement to the function to ensure it returns the generated ship parameters as required by its type signature.
     return p;
 }
