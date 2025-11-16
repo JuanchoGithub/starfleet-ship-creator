@@ -1,17 +1,17 @@
+// FIX: Add import of R3F to ensure its types are available for augmentation.
+import '@react-three/fiber';
 // FIX: Add global JSX namespace augmentation for react-three-fiber elements
 // This is necessary because the automatic type extension via `import '@react-three/fiber'`
 // seems to be failing in this project's setup.
-// FIX: The type `Object3DNode` is no longer exported by @react-three/fiber. Reverting to `Node`.
-import {
-  ThreeElements,
-  // Node, // This is no longer exported. Defining a compatible type below.
-} from '@react-three/fiber';
+// By simplifying the augmentation to only extend ThreeElements, we follow the standard
+// pattern used by @react-three/fiber itself, which should resolve conflicts and correctly
+// type all R3F components used in JSX.
+// FIX: Changed import to be a value import instead of a type-only import to ensure module augmentation is triggered.
+import { ThreeElements } from '@react-three/fiber';
 import * as THREE from 'three';
-// FIX: Import React to use its types for augmenting JSX.IntrinsicElements.
 import * as React from 'react';
 
-// FIX: The 'Node' type (previously 'Object3DNode') is no longer exported from @react-three/fiber.
-// This is a compatible type definition to enable using extended elements in JSX.
+// Custom Node type for manual extension if needed.
 type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
     args?: P;
     ref?: React.Ref<T>;
@@ -19,47 +19,20 @@ type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
 
 declare global {
   namespace JSX {
-    interface IntrinsicElements {
-      ambientLight: ThreeElements['ambientLight'];
-      directionalLight: ThreeElements['directionalLight'];
-      group: ThreeElements['group'];
-      mesh: ThreeElements['mesh'];
-      pointLight: ThreeElements['pointLight'];
-      meshStandardMaterial: ThreeElements['meshStandardMaterial'];
-      // FIX: Add sphereGeometry and shaderMaterial to resolve type errors in ProceduralNebulaBackground.tsx.
-      sphereGeometry: ThreeElements['sphereGeometry'];
-      shaderMaterial: ThreeElements['shaderMaterial'];
-      // FIX: Use `ConstructorParameters` to correctly type the `args` for `ArrowHelper`.
-      // `typeof THREE.ArrowHelper` is a class constructor, not an array type for the arguments.
+    interface IntrinsicElements extends ThreeElements {
+      // This explicit definition for arrowHelper is a fallback.
+      // The `extend` call in Compass.tsx should handle this automatically.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
-
-      // FIX: Add missing HTML and SVG element types to resolve JSX errors.
-      // HTML Elements
-      div: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
-      button: React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>;
-      span: React.DetailedHTMLProps<React.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>;
-      label: React.DetailedHTMLProps<React.LabelHTMLAttributes<HTMLLabelElement>, HTMLLabelElement>;
-      input: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
-      select: React.DetailedHTMLProps<React.SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;
-      option: React.DetailedHTMLProps<React.OptionHTMLAttributes<HTMLOptionElement>, HTMLOptionElement>;
-      // FIX: Add missing h1 element type to resolve JSX error.
-      h1: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
-      h2: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
-      h3: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
-      // FIX: Add missing h4 element type to resolve JSX error in App.tsx.
-      h4: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHeadingElement>, HTMLHeadingElement>;
-      p: React.DetailedHTMLProps<React.HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>;
-      hr: React.DetailedHTMLProps<React.HTMLAttributes<HTMLHRElement>, HTMLHRElement>;
-      textarea: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>;
-
-      // SVG Elements
-      svg: React.SVGProps<SVGSVGElement>;
-      path: React.SVGProps<SVGPathElement>;
     }
   }
 }
 
+export type TextOrientation = 'Upright' | 'Inward' | 'Outward';
+
 export interface ShipParameters {
+  // Ship Identity
+  ship_registry: string;
+
   // Primary Hull
   primary_toggle: boolean;
   primary_y: number;
@@ -287,6 +260,35 @@ export interface ShipParameters {
   texture_window_color2: string;
   texture_window_density: number;
   texture_emissive_intensity: number;
+
+  // Saucer Texturing
+  saucer_texture_toggle: boolean;
+  saucer_texture_seed: number;
+  saucer_texture_panel_color_variation: number;
+  saucer_texture_window_density: number;
+  saucer_texture_window_bands: number;
+  saucer_texture_window_color1: string;
+  saucer_texture_window_color2: string;
+  saucer_texture_emissive_intensity: number;
+
+  saucer_texture_name_toggle: boolean;
+  saucer_texture_name_font_size: number;
+  saucer_texture_name_text_color: string;
+  saucer_texture_name_angle: number;
+  saucer_texture_name_curve: number;
+  saucer_texture_name_orientation: TextOrientation;
+  saucer_texture_name_distance: number;
+  
+  saucer_texture_registry_toggle: boolean;
+  saucer_texture_registry_font_size: number;
+  saucer_texture_registry_text_color: string;
+  saucer_texture_registry_angle: number;
+  saucer_texture_registry_curve: number;
+  saucer_texture_registry_orientation: TextOrientation;
+  saucer_texture_registry_distance: number;
+
+  saucer_texture_bridge_registry_toggle: boolean;
+  saucer_texture_bridge_registry_font_size: number;
 }
 
 export type EnvironmentPreset = 'city' | 'sunset' | 'dawn' | 'night' | 'warehouse' | 'forest' | 'apartment' | 'studio' | 'lobby';
@@ -343,7 +345,7 @@ export interface ParamConfig {
   min?: number;
   max?: number;
   step?: number;
-  type: 'slider' | 'toggle' | 'select' | 'color';
+  type: 'slider' | 'toggle' | 'select' | 'color' | 'text';
   options?: string[];
 }
 

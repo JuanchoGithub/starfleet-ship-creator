@@ -38,6 +38,25 @@ export const Bridge: React.FC<BridgeProps> = ({ params, material }) => {
         geo.scale(bridgeWidthRatio, 1, 1);
         // Replicating the user's reference code, which applies the saucer's width ratio as well
         geo.scale(widthRatio, 1, 1);
+
+        // --- Planar UV Mapping ---
+        // Project from the top (XZ plane) to correctly map the saucer texture.
+        geo.computeBoundingBox();
+        const bbox = geo.boundingBox!;
+        const sizeX = bbox.max.x - bbox.min.x;
+        const sizeZ = bbox.max.z - bbox.min.z;
+        if (sizeX > 1e-6 && sizeZ > 1e-6) {
+            const positions = geo.attributes.position;
+            const uvs = new Float32Array(positions.count * 2);
+            for (let i = 0; i < positions.count; i++) {
+                const x = positions.getX(i);
+                const z = positions.getZ(i);
+                uvs[i * 2] = (x - bbox.min.x) / sizeX;
+                uvs[i * 2 + 1] = 1.0 - ((z - bbox.min.z) / sizeZ); // Invert V
+            }
+            geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        }
+
         return geo;
     }, [params]);
 

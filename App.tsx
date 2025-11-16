@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
 import { generateTextures } from './components/TextureGenerator';
+import { generateSaucerTextures } from './components/SaucerTextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
 import { Archetype, generateShipParameters } from './randomizer';
 
@@ -72,6 +73,19 @@ const renderControl = (
                     onChange={(val) => onParamChange(paramKey, val as any)}
                 />
             );
+        // A simple text input for things like the registry
+        case 'text':
+            return (
+                 <div key={paramKey} className="flex justify-between items-center text-sm">
+                    <label className="text-mid-gray">{config.label}</label>
+                    <input
+                        type="text"
+                        value={value as string}
+                        onChange={(e) => onParamChange(paramKey, e.target.value)}
+                        className="w-1/2 bg-space-dark border border-space-light rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-accent-blue"
+                    />
+                </div>
+            )
         default:
             return null;
     }
@@ -146,7 +160,12 @@ const App: React.FC = () => {
     color: '#cccccc',
     metalness: 0.8,
     roughness: 0.4,
-    emissive: '#ffffff', // Use white emissive color to be modulated by emissive map
+  }));
+  const [saucerMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+    emissive: '#ffffff',
   }));
 
   const [secondaryMaterial] = useState(() => new THREE.MeshStandardMaterial({
@@ -156,10 +175,10 @@ const App: React.FC = () => {
   }));
 
   const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
+  const [isGeneratingSaucerTextures, setIsGeneratingSaucerTextures] = useState(false);
 
   const handleGenerateTextures = useCallback(() => {
     setIsGeneratingTextures(true);
-    // Use a timeout to allow the UI to update to the loading state
     setTimeout(() => {
         const { map, normalMap, emissiveMap } = generateTextures({
             seed: params.texture_seed,
@@ -170,7 +189,6 @@ const App: React.FC = () => {
             window_color2: params.texture_window_color2,
         });
 
-        // Dispose of old textures to free up GPU memory
         if (hullMaterial.map) hullMaterial.map.dispose();
         if (hullMaterial.normalMap) hullMaterial.normalMap.dispose();
         if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.dispose();
@@ -181,8 +199,7 @@ const App: React.FC = () => {
         hullMaterial.normalMap = normalMap;
         hullMaterial.emissiveMap = emissiveMap;
         hullMaterial.needsUpdate = true;
-
-        // Create new textures for the second material to avoid disposal conflicts
+        
         const secondaryMap = new THREE.CanvasTexture(map.image as HTMLCanvasElement);
         secondaryMap.wrapS = THREE.RepeatWrapping;
         secondaryMap.wrapT = THREE.RepeatWrapping;
@@ -192,42 +209,90 @@ const App: React.FC = () => {
 
         secondaryMaterial.map = secondaryMap;
         secondaryMaterial.normalMap = secondaryNormalMap;
-        secondaryMaterial.emissiveMap = null; // No windows
+        secondaryMaterial.emissiveMap = null;
         secondaryMaterial.needsUpdate = true;
         
         setIsGeneratingTextures(false);
     }, 50);
   }, [params.texture_seed, params.texture_density, params.texture_panel_color_variation, params.texture_window_density, params.texture_window_color1, params.texture_window_color2, hullMaterial, secondaryMaterial]);
 
-  // Effect to regenerate textures when generation parameters change (e.g., loading a new ship).
+  const handleGenerateSaucerTextures = useCallback(() => {
+    setIsGeneratingSaucerTextures(true);
+    setTimeout(() => {
+        const { map, normalMap, emissiveMap } = generateSaucerTextures({
+            seed: params.saucer_texture_seed,
+            panelColorVariation: params.saucer_texture_panel_color_variation,
+            window_density: params.saucer_texture_window_density,
+            window_color1: params.saucer_texture_window_color1,
+            window_color2: params.saucer_texture_window_color2,
+            window_bands: params.saucer_texture_window_bands,
+            shipName: shipName,
+            registry: params.ship_registry,
+            // Name
+            name_toggle: params.saucer_texture_name_toggle,
+            name_color: params.saucer_texture_name_text_color,
+            name_font_size: params.saucer_texture_name_font_size,
+            name_angle: params.saucer_texture_name_angle,
+            name_curve: params.saucer_texture_name_curve,
+            name_orientation: params.saucer_texture_name_orientation,
+            name_distance: params.saucer_texture_name_distance,
+            // Registry
+            registry_toggle: params.saucer_texture_registry_toggle,
+            registry_color: params.saucer_texture_registry_text_color,
+            registry_font_size: params.saucer_texture_registry_font_size,
+            registry_angle: params.saucer_texture_registry_angle,
+            registry_curve: params.saucer_texture_registry_curve,
+            registry_orientation: params.saucer_texture_registry_orientation,
+            registry_distance: params.saucer_texture_registry_distance,
+            // Bridge
+            bridge_registry_toggle: params.saucer_texture_bridge_registry_toggle,
+            bridge_registry_font_size: params.saucer_texture_bridge_registry_font_size,
+        });
+
+        if (saucerMaterial.map) saucerMaterial.map.dispose();
+        if (saucerMaterial.normalMap) saucerMaterial.normalMap.dispose();
+        if (saucerMaterial.emissiveMap) saucerMaterial.emissiveMap.dispose();
+
+        saucerMaterial.map = map;
+        saucerMaterial.normalMap = normalMap;
+        saucerMaterial.emissiveMap = emissiveMap;
+        saucerMaterial.needsUpdate = true;
+        
+        setIsGeneratingSaucerTextures(false);
+    }, 50);
+  }, [
+      params.saucer_texture_seed, params.saucer_texture_panel_color_variation, params.saucer_texture_window_density, 
+      params.saucer_texture_window_color1, params.saucer_texture_window_color2, params.saucer_texture_window_bands,
+      params.ship_registry, 
+      params.saucer_texture_name_toggle, params.saucer_texture_name_text_color, params.saucer_texture_name_font_size, params.saucer_texture_name_angle, params.saucer_texture_name_curve, params.saucer_texture_name_orientation, params.saucer_texture_name_distance,
+      params.saucer_texture_registry_toggle, params.saucer_texture_registry_text_color, params.saucer_texture_registry_font_size, params.saucer_texture_registry_angle, params.saucer_texture_registry_curve, params.saucer_texture_registry_orientation, params.saucer_texture_registry_distance,
+      params.saucer_texture_bridge_registry_toggle, params.saucer_texture_bridge_registry_font_size,
+      saucerMaterial, shipName
+  ]);
+
   useEffect(() => {
     if (params.texture_toggle) {
         handleGenerateTextures();
     }
   }, [params.texture_toggle, handleGenerateTextures]);
+  
+  useEffect(() => {
+    if (params.saucer_texture_toggle) {
+        handleGenerateSaucerTextures();
+    }
+  }, [params.saucer_texture_toggle, handleGenerateSaucerTextures]);
 
-  // Effect to update material properties like scale, intensity, and to toggle textures off.
   useEffect(() => {
     const textureScale = params.texture_scale || 8;
-    if (hullMaterial.map) {
-        hullMaterial.map.repeat.set(textureScale, textureScale);
-    }
-    if (hullMaterial.normalMap) {
-        hullMaterial.normalMap.repeat.set(textureScale, textureScale);
-    }
-    if (hullMaterial.emissiveMap) {
-        hullMaterial.emissiveMap.repeat.set(textureScale, textureScale);
-    }
-    if (secondaryMaterial.map) {
-        secondaryMaterial.map.repeat.set(textureScale, textureScale);
-    }
-    if (secondaryMaterial.normalMap) {
-        secondaryMaterial.normalMap.repeat.set(textureScale, textureScale);
-    }
+    if (hullMaterial.map) hullMaterial.map.repeat.set(textureScale, textureScale);
+    if (hullMaterial.normalMap) hullMaterial.normalMap.repeat.set(textureScale, textureScale);
+    if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.repeat.set(textureScale, textureScale);
+    if (secondaryMaterial.map) secondaryMaterial.map.repeat.set(textureScale, textureScale);
+    if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.repeat.set(textureScale, textureScale);
 
     hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
+    saucerMaterial.emissiveIntensity = params.saucer_texture_emissive_intensity;
     
-    // Toggle textures off. Toggling ON is handled by the regeneration effect above.
     if (!params.texture_toggle) {
         hullMaterial.map = null;
         hullMaterial.normalMap = null;
@@ -235,18 +300,26 @@ const App: React.FC = () => {
         secondaryMaterial.map = null;
         secondaryMaterial.normalMap = null;
     }
+    if (!params.saucer_texture_toggle) {
+        saucerMaterial.map = null;
+        saucerMaterial.normalMap = null;
+        saucerMaterial.emissiveMap = null;
+    }
 
     hullMaterial.needsUpdate = true;
+    saucerMaterial.needsUpdate = true;
     secondaryMaterial.needsUpdate = true;
 
-  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, hullMaterial, secondaryMaterial]);
+  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, params.saucer_texture_toggle, params.saucer_texture_emissive_intensity, hullMaterial, saucerMaterial, secondaryMaterial]);
 
   useEffect(() => {
     (hullMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     hullMaterial.needsUpdate = true;
+    (saucerMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    saucerMaterial.needsUpdate = true;
     (secondaryMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     secondaryMaterial.needsUpdate = true;
-  }, [lightParams.env_intensity, hullMaterial, secondaryMaterial]);
+  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial]);
 
   useEffect(() => {
     try {
@@ -473,12 +546,14 @@ const App: React.FC = () => {
             setWidth={setSidebarWidth}
             hullMaterial={hullMaterial}
             secondaryMaterial={secondaryMaterial}
+            saucerMaterial={saucerMaterial}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} secondaryMaterial={secondaryMaterial} lightParams={lightParams} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} lightParams={lightParams} />
         <div className="absolute bottom-4 right-4 text-right text-white p-2 bg-black/30 rounded-md pointer-events-none">
           <h1 className="text-2xl tracking-wider uppercase">{shipName.replace('*', '')}</h1>
+          {params.ship_registry && <h2 className="text-md tracking-wider">{params.ship_registry}</h2>}
           {shipName.endsWith('*') && <p className="text-sm text-accent-glow uppercase">Modified</p>}
         </div>
       </div>
@@ -603,18 +678,30 @@ const App: React.FC = () => {
             </Accordion>
 
             <Accordion title="Textures">
-              <div className="p-3 space-y-3">
-                  <p className="text-sm text-mid-gray">Use the controls in the "Hull Texturing" panel below to customize the texture, then click here to apply it.</p>
+              <div className="p-3 space-y-3 border-b border-space-light">
+                  <p className="text-sm text-mid-gray">Use the controls in the "Saucer Texturing" panel below to customize the saucer's detailed texture, then click here to apply it.</p>
+                  <button 
+                      onClick={handleGenerateSaucerTextures} 
+                      disabled={isGeneratingSaucerTextures}
+                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
+                  >
+                      <SparklesIcon className='w-5 h-5' />
+                      {isGeneratingSaucerTextures ? 'Generating...' : 'Generate Saucer Textures'}
+                  </button>
+              </div>
+              <ControlGroup groupName="Saucer Texturing" configs={PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+              <div className="p-3 space-y-3 border-t border-space-light">
+                  <p className="text-sm text-mid-gray">Use the controls in the "General Hull Texturing" panel below to customize the texture for other ship sections, then click here to apply it.</p>
                   <button 
                       onClick={handleGenerateTextures} 
                       disabled={isGeneratingTextures}
                       className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
                   >
                       <SparklesIcon className='w-5 h-5' />
-                      {isGeneratingTextures ? 'Generating...' : 'Generate Textures'}
+                      {isGeneratingTextures ? 'Generating...' : 'Generate General Textures'}
                   </button>
               </div>
-              <ControlGroup groupName="Hull Texturing" configs={PARAM_CONFIG["Hull Texturing"]} params={params} onParamChange={handleParamChange} />
+              <ControlGroup groupName="General Hull Texturing" configs={PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} />
             </Accordion>
             
             <Accordion title="Saucer Assembly">

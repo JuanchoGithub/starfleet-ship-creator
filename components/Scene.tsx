@@ -18,6 +18,7 @@ interface SceneProps {
   shipRef: React.RefObject<THREE.Group>;
   hullMaterial: THREE.Material;
   secondaryMaterial: THREE.Material;
+  saucerMaterial: THREE.Material;
   lightParams: LightParameters;
 }
 
@@ -49,7 +50,7 @@ const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) =>
     return null;
 }
 
-const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, lightParams }) => {
+const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, saucerMaterial, lightParams }) => {
     const { controls, gl, scene, camera } = useThree();
     const [isInteracting, setIsInteracting] = useState(false);
     const nebulaRef = useRef<THREE.Mesh>(null!);
@@ -157,7 +158,7 @@ const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
                 <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
             )}
             
-            <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} />
+            <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} saucerMaterial={saucerMaterial} />
             
             <OrbitControls 
             enableDamping 

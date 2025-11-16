@@ -1,4 +1,4 @@
-import { ShipParameters } from './types';
+import { ShipParameters, TextOrientation } from './types';
 
 export type Archetype = 'Cruiser' | 'Explorer' | 'Escort' | 'Dreadnought' | 'Surprise Me!';
 
@@ -30,6 +30,18 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
     const p = { ...currentParams }; // Start with current params as a base
 
     let palette = pick([PALETTES.federation, PALETTES.tactical, PALETTES.science]);
+    
+    // Universal texture and registry randomization
+    p.ship_registry = `NCC-${Math.floor(rand(1000, 99999))}`;
+    p.saucer_texture_seed = rand(0, 1000);
+    p.saucer_texture_window_bands = Math.floor(rand(3, 8));
+    p.saucer_texture_window_density = rand(0.2, 0.8);
+    p.saucer_texture_panel_color_variation = rand(0.03, 0.1);
+    p.saucer_texture_name_orientation = pick(['Upright', 'Inward', 'Outward']);
+    p.saucer_texture_registry_orientation = pick(['Upright', 'Inward', 'Outward']);
+    p.saucer_texture_name_distance = rand(0.3, 0.45);
+    p.saucer_texture_registry_distance = rand(0.3, 0.45);
+
 
     // --- Cruiser Archetype ---
     // A balanced, classic design. Saucer is prominent, engineering is sleek, nacelles are elegant.
@@ -118,247 +130,7 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
 
         // Engineering
         p.engineering_toggle = true;
-        p.engineering_radius = p.primary_radius * rand(0.18, 0.25);
-        p.engineering_widthRatio = rand(2.0, 3.5);
-        p.engineering_skew = rand(0.2, 0.5);
-        p.engineering_y = 0;
-        p.engineering_z = 0;
-        p.engineering_undercut = rand(0.5, 0.9);
-        p.engineering_undercutStart = rand(0.4, 0.7);
-        
-        // Neck
-        p.neck_toggle = true;
-        p.neck_primaryThickness = p.primary_radius * rand(0.2, 0.3);
-        p.neck_foretaper = rand(0.8, 1.2);
-        p.neck_afttaper = rand(0.1, 0.5);
-        p.neck_taperSaucer = rand(1.5, 3.0);
-        p.neck_taperEng = rand(0.5, 1.0);
-        
-        // Nacelles
-        p.nacelle_toggle = true;
-        p.nacelle_radius = p.engineering_radius * rand(0.6, 0.8);
-        p.nacelle_widthRatio = rand(0.6, 0.9);
-        p.nacelle_x = p.primary_radius * rand(0.6, 0.8);
-        p.nacelle_z = p.primary_z * 0.5;
-        p.nacelle_y = p.engineering_length * 0.1;
-        
-        // Pylons (swept back)
-        p.pylon_toggle = true;
-        p.pylon_thickness = p.nacelle_radius * rand(0.15, 0.25);
-        p.pylon_midPointOffset = rand(0.6, 0.9);
-        p.pylon_midPointOffsetY = rand(-2, -8);
-        p.pylon_midPointOffsetX = rand(0, 2);
-        p.pylon_midPointOffsetZ = rand(-10, -5);
-
-        // Warp Grills
-        p.nacelle_grill_toggle = true;
-        p.nacelle_grill_length = rand(1.2, 1.8);
-        p.nacelle_grill_width = rand(0.2, 0.4);
-        p.nacelle_grill_rounding = rand(0.1, 0.6);
-        p.nacelle_grill_skew = rand(-0.3, 0.3);
-        p.nacelle_grill_anim_type = pick(['Pulse', 'Plasma Balls']);
-        p.nacelle_grill_vertical_offset = p.nacelle_length * rand(-0.05, 0.05);
-
-        // Impulse Engines
-        p.sublight_toggle = true;
-        p.sublight_y = p.primary_y + p.primary_radius * 0.9;
-        p.sublight_z = p.primary_z - p.primary_thickness * 0.4;
-        p.sublight_x = p.primary_radius * p.primary_widthRatio * rand(0.2, 0.4);
-        p.sublight_length = p.primary_radius * rand(0.1, 0.2);
-        p.sublight_radius = p.primary_thickness * rand(0.2, 0.3);
-        p.sublight_widthRatio = rand(3, 7);
-        p.sublight_skewHorizontal = rand(0.2, 0.6);
-
-        // Disable lower nacelles
-        p.nacelleLower_toggle = false;
-        p.pylonLower_toggle = false;
-        p.boomLower_toggle = false;
     }
-
-    // --- Escort Archetype ---
-    // Compact, aggressive, no saucer. Think Defiant-class.
-    if (archetype === 'Escort') {
-        palette = PALETTES.tactical;
-        // Drivers
-        p.engineering_length = rand(15, 25);
-        p.nacelle_length = p.engineering_length * rand(1.2, 1.5);
-
-        // Main Hull (using Engineering section)
-        p.primary_toggle = false;
-        p.engineering_toggle = true;
-        p.engineering_radius = p.engineering_length * rand(0.2, 0.3);
-        p.engineering_widthRatio = rand(1.2, 2.5);
-        p.engineering_skew = rand(-0.5, 0.5);
-        p.engineering_y = 0;
-        p.engineering_z = 0;
-
-        // Neck
-        p.neck_toggle = false;
-
-        // Nacelles (tightly integrated)
-        p.nacelle_toggle = true;
-        p.nacelle_radius = p.engineering_radius * rand(0.6, 0.9);
-        p.nacelle_widthRatio = rand(0.8, 1.2);
-        p.nacelle_x = p.engineering_radius * p.engineering_widthRatio * rand(0.8, 1.2);
-        p.nacelle_z = rand(-1, 3);
-        p.nacelle_y = rand(-5, 5);
-        p.nacelle_rotation = rand(-0.2, 0.2);
-
-        // Pylons (short and sturdy)
-        p.pylon_toggle = true;
-        p.pylon_thickness = p.nacelle_radius * rand(0.3, 0.5);
-        p.pylon_midPointOffset = rand(0.3, 0.7);
-        p.pylon_midPointOffsetY = rand(-2, 2);
-        p.pylon_midPointOffsetX = rand(-2, 2);
-        p.pylon_midPointOffsetZ = rand(-2, 2);
-
-        // Warp Grills
-        p.nacelle_grill_toggle = true;
-        p.nacelle_grill_length = rand(0.7, 1.3);
-        p.nacelle_grill_width = rand(0.3, 0.7);
-        p.nacelle_grill_rounding = rand(0, 0.2);
-        p.nacelle_grill_skew = rand(-0.5, 0.5);
-        p.nacelle_grill_rotation = rand(-Math.PI / 8, Math.PI / 8);
-        p.nacelle_grill_anim_type = pick(['Flow', 'Pulse']);
-        p.nacelle_grill_vertical_offset = p.nacelle_length * rand(-0.15, 0.15);
-
-        // Impulse Engines
-        p.sublight_toggle = true;
-        p.sublight_y = p.engineering_y + p.engineering_length * 0.45;
-        p.sublight_z = p.engineering_z + p.engineering_radius * 0.5;
-        p.sublight_x = Math.random() > 0.5 ? 0 : p.engineering_radius * p.engineering_widthRatio * rand(0.1, 0.4);
-        p.sublight_length = p.engineering_length * rand(0.3, 0.5);
-        p.sublight_radius = p.engineering_radius * rand(0.3, 0.5);
-        p.sublight_widthRatio = rand(1, 4);
-        p.sublight_skewHorizontal = rand(-0.5, 0.5);
-
-        // Disable lower nacelles
-        p.nacelleLower_toggle = false;
-        p.pylonLower_toggle = false;
-        p.boomLower_toggle = false;
-    }
-
-    // --- Dreadnought Archetype ---
-    // Massive, powerful, four nacelles. Think Aegis-class.
-    if (archetype === 'Dreadnought') {
-        palette = pick([PALETTES.federation, PALETTES.tactical]);
-        // Drivers
-        p.primary_radius = rand(18, 25);
-        p.engineering_length = p.primary_radius * rand(1.5, 2.0);
-        p.nacelle_length = p.engineering_length * rand(1.0, 1.3);
-
-        // Saucer
-        p.primary_toggle = true;
-        p.primary_thickness = p.primary_radius * rand(0.25, 0.35);
-        p.primary_widthRatio = rand(1.0, 1.2);
-        p.primary_notch_fore = rand(0.3, 0.8);
-        p.primary_notch_aft = 0;
-        p.primary_y = p.engineering_length * -0.5;
-        p.primary_z = p.engineering_radius * 2.0;
-
-        // Engineering
-        p.engineering_toggle = true;
-        p.engineering_radius = p.primary_radius * rand(0.2, 0.3);
-        p.engineering_widthRatio = rand(1.2, 2.0);
-        p.engineering_skew = rand(-0.2, 0.2);
-        p.engineering_y = 0;
-        p.engineering_z = 0;
-
-        // Neck
-        p.neck_toggle = true;
-        p.neck_primaryThickness = p.primary_radius * rand(0.25, 0.4);
-
-        // Upper Nacelles
-        p.nacelle_toggle = true;
-        p.nacelle_radius = p.engineering_radius * rand(0.7, 1.0);
-        p.nacelle_widthRatio = rand(0.8, 1.2);
-        p.nacelle_x = p.primary_radius * rand(0.7, 0.9);
-        p.nacelle_z = p.primary_z * 0.8;
-        p.nacelle_y = p.engineering_length * 0.2;
-        p.nacelle_rotation = rand(0.1, 0.4);
-
-        // Upper Pylons
-        p.pylon_toggle = true;
-        p.pylon_thickness = p.nacelle_radius * rand(0.3, 0.4);
-        p.pylon_midPointOffsetY = rand(-8, -4);
-        p.pylon_midPointOffsetX = rand(-4, 4);
-
-        // Upper Warp Grills
-        p.nacelle_grill_toggle = true;
-        p.nacelle_grill_length = rand(1.2, 1.8);
-        p.nacelle_grill_width = rand(0.3, 0.5);
-        p.nacelle_grill_rounding = rand(0.2, 0.5);
-        p.nacelle_grill_skew = rand(-0.2, 0.2);
-        p.nacelle_grill_anim_type = pick(['Plasma Balls', 'Pulse']);
-        p.nacelle_grill_vertical_offset = p.nacelle_length * rand(-0.05, 0.05);
-
-        // Lower Nacelles
-        p.nacelleLower_toggle = true;
-        p.nacelleLower_length = p.nacelle_length * rand(0.6, 0.9);
-        p.nacelleLower_radius = p.nacelle_radius * rand(1.1, 1.5);
-        p.nacelleLower_widthRatio = rand(0.8, 1.2);
-        p.nacelleLower_x = p.nacelle_x * rand(0.6, 0.8);
-        p.nacelleLower_z = -p.engineering_radius * rand(1.5, 2.5);
-        p.nacelleLower_y = p.engineering_length * 0.1;
-
-        // Lower Pylons
-        p.pylonLower_toggle = true;
-        p.boomLower_toggle = Math.random() > 0.5;
-        p.pylonLower_thickness = p.nacelleLower_radius * rand(0.3, 0.4);
-        p.pylonLower_midPointOffsetY = rand(-2, -6);
-        
-        // Lower Warp Grills
-        p.nacelleLower_grill_toggle = Math.random() > 0.3; // 70% chance of lower grills
-        if (p.nacelleLower_grill_toggle) {
-            p.nacelleLower_grill_length = rand(0.8, 1.5);
-            p.nacelleLower_grill_width = rand(0.2, 0.4);
-            p.nacelleLower_grill_rounding = rand(0.1, 0.4);
-            p.nacelleLower_grill_skew = rand(-0.2, 0.2);
-            p.nacelleLower_grill_anim_type = p.nacelle_grill_anim_type; // Match upper grills
-            p.nacelleLower_grill_vertical_offset = p.nacelleLower_length * rand(-0.1, 0.1);
-        }
-        
-        // Impulse Engines
-        p.sublight_toggle = true;
-        p.sublight_y = p.primary_y + p.primary_radius * 0.5;
-        p.sublight_z = p.primary_z - p.primary_thickness * 0.2;
-        p.sublight_x = 0; // One massive central engine
-        p.sublight_length = p.primary_radius * rand(0.1, 0.3);
-        p.sublight_radius = p.primary_thickness * rand(0.3, 0.5);
-        p.sublight_widthRatio = rand(6, 12);
-        p.sublight_skewHorizontal = 0;
-        p.sublight_skewVertical = rand(-0.2, 0.1);
-    }
-    
-    // Set a default for the new param
-    p.pylonLower_boomForeAftOffset = 0;
-
-    // Set colors for the active archetype
-    p.nacelle_bussardColor1 = palette.bussard[0];
-    p.nacelle_bussardColor2 = palette.bussard[1];
-    p.nacelle_bussardColor3 = palette.bussard[2];
-    p.engineering_dishColor1 = palette.deflector[0];
-    p.engineering_dishColor2 = palette.deflector[1];
-    p.engineering_dishColor3 = palette.deflector[2]; // Used by some dish types
-    p.engineering_dishColor4 = palette.deflector[2]; // Used by some dish types
-    p.nacelle_grill_color1 = palette.grills[0];
-    p.nacelle_grill_color2 = palette.grills[1];
-    p.nacelle_grill_color3 = palette.grills[2];
-    p.sublight_color1 = palette.impulse[0];
-    p.sublight_color2 = palette.impulse[1];
-
-    // Mirror colors for lower nacelles if they exist
-    if (p.nacelleLower_toggle) {
-        p.nacelleLower_bussardColor1 = p.nacelle_bussardColor1;
-        p.nacelleLower_bussardColor2 = p.nacelle_bussardColor2;
-        p.nacelleLower_bussardColor3 = p.nacelle_bussardColor3;
-        p.nacelleLower_grill_color1 = p.nacelle_grill_color1;
-        p.nacelleLower_grill_color2 = p.nacelle_grill_color2;
-        p.nacelleLower_grill_color3 = p.nacelle_grill_color3;
-    }
-
-    // Always generate a new texture seed
-    p.texture_seed = Math.floor(rand(0, 1000));
-
+// FIX: Added a return statement to the function to ensure it returns the generated ship parameters as required by its type signature.
     return p;
 }

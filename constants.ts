@@ -21,18 +21,18 @@ export const INITIAL_LIGHT_PARAMS: LightParameters = {
 
     nebula_enabled: true,
     nebula_seed: 42,
-    nebula_density: 2,
-    nebula_falloff: 0.5,
+    nebula_density: 4,
+    nebula_falloff: 2,
     nebula_color1: '#4a2a69',
     nebula_color2: '#2a5d69',
     nebula_color3: '#692a4a',
     nebula_stars_count: 9000,
     nebula_stars_intensity: 2,
-    nebula_animSpeed: 1.0,
+    nebula_animSpeed: 0.3,
 
     milkyway_enabled: true,
-    milkyway_intensity: 1.5,
-    milkyway_density: 8.0,
+    milkyway_intensity: 0.3,
+    milkyway_density: 14.0,
     milkyway_width: 0.2,
     milkyway_color1: '#402810',
     milkyway_color2: '#d4b488',
@@ -417,7 +417,7 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       pylonLower_midPointOffsetZ: { label: "Offset Z (Fwd/Aft)", min: -20, max: 20, step: 0.1, type: 'slider' },
     }
   },
-  "Hull Texturing": {
+  "General Hull Texturing": {
     "General": {
       texture_toggle: { label: "Enable Textures", type: 'toggle' },
       texture_seed: { label: "Seed", min: 0, max: 1000, step: 1, type: 'slider' },
@@ -432,6 +432,47 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       texture_window_color2: { label: "Color 2", type: 'color' },
       texture_window_density: { label: "Density", min: 0, max: 1, step: 0.01, type: 'slider' },
       texture_emissive_intensity: { label: "Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
+    }
+  },
+  "Saucer Texturing": {
+    "General": {
+      saucer_texture_toggle: { label: "Enable Detailed Saucer", type: 'toggle' },
+      saucer_texture_seed: { label: "Seed", min: 0, max: 1000, step: 1, type: 'slider' },
+    },
+    "Panels": {
+      saucer_texture_panel_color_variation: { label: "Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
+    },
+    "Windows": {
+      saucer_texture_window_color1: { label: "Window Color 1", type: 'color' },
+      saucer_texture_window_color2: { label: "Window Color 2", type: 'color' },
+      saucer_texture_window_density: { label: "Window Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      saucer_texture_window_bands: { label: "Window Bands", min: 0, max: 10, step: 1, type: 'slider' },
+      saucer_texture_emissive_intensity: { label: "Window Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
+    },
+    "Saucer Markings": {
+        ship_registry: { label: "Registry No.", type: 'text' },
+    },
+    "Saucer Registry Details": {
+        saucer_texture_registry_toggle: { label: "Enable", type: 'toggle' },
+        saucer_texture_registry_font_size: { label: "Font Size", min: 20, max: 150, step: 1, type: 'slider' },
+        saucer_texture_registry_distance: { label: "Distance from Center", min: 0.1, max: 0.48, step: 0.01, type: 'slider' },
+        saucer_texture_registry_text_color: { label: "Text Color", type: 'color' },
+        saucer_texture_registry_angle: { label: "Angle", min: -180, max: 180, step: 1, type: 'slider' },
+        saucer_texture_registry_curve: { label: "Curve Amount", min: 0, max: 10, step: 0.1, type: 'slider' },
+        saucer_texture_registry_orientation: { label: "Orientation", type: 'select', options: ['Upright', 'Inward', 'Outward'] },
+    },
+    "Saucer Name Details": {
+        saucer_texture_name_toggle: { label: "Enable", type: 'toggle' },
+        saucer_texture_name_font_size: { label: "Font Size", min: 20, max: 150, step: 1, type: 'slider' },
+        saucer_texture_name_distance: { label: "Distance from Center", min: 0.1, max: 0.48, step: 0.01, type: 'slider' },
+        saucer_texture_name_text_color: { label: "Text Color", type: 'color' },
+        saucer_texture_name_angle: { label: "Angle", min: -180, max: 180, step: 1, type: 'slider' },
+        saucer_texture_name_curve: { label: "Curve Amount", min: 0, max: 10, step: 0.1, type: 'slider' },
+        saucer_texture_name_orientation: { label: "Orientation", type: 'select', options: ['Upright', 'Inward', 'Outward'] },
+    },
+    "Bridge Markings": {
+        saucer_texture_bridge_registry_toggle: { label: "Enable Registry", type: 'toggle' },
+        saucer_texture_bridge_registry_font_size: { label: "Font Size", min: 10, max: 80, step: 1, type: 'slider' },
     }
   },
 };

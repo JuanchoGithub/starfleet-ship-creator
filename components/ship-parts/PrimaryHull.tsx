@@ -125,12 +125,36 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                 geoLeft.scale(widthRatio, 1, 1);
                 geoRight.scale(widthRatio, 1, 1);
 
-                // --- Apply Pointiness Distortion (on Z-axis) ---
-                // To get the correct Z-length for normalization, we must consider both halves together.
+                // --- Planar UV Mapping ---
+                // We compute the bounding box of the combined, undistorted shape to create a unified UV space.
                 geoLeft.computeBoundingBox();
                 geoRight.computeBoundingBox();
-                const combinedBbox = geoLeft.boundingBox!.clone();
-                combinedBbox.union(geoRight.boundingBox!);
+                const combinedBbox = geoLeft.boundingBox!.clone().union(geoRight.boundingBox!);
+
+                const sizeX = combinedBbox.max.x - combinedBbox.min.x;
+                const sizeZ = combinedBbox.max.z - combinedBbox.min.z;
+                const minX = combinedBbox.min.x;
+                const minZ = combinedBbox.min.z;
+
+                const applyPlanarUVs = (geo: THREE.BufferGeometry) => {
+                    if (!geo.attributes.position || sizeX < 1e-6 || sizeZ < 1e-6) return;
+                    const positions = geo.attributes.position;
+                    const uvs = new Float32Array(positions.count * 2);
+                    for (let i = 0; i < positions.count; i++) {
+                        const x = positions.getX(i);
+                        const z = positions.getZ(i);
+                        // Normalize coordinates to [0, 1] range based on the bounding box
+                        uvs[i * 2] = (x - minX) / sizeX;
+                        uvs[i * 2 + 1] = 1.0 - ((z - minZ) / sizeZ); // Invert V for texture mapping
+                    }
+                    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                };
+
+                applyPlanarUVs(geoLeft);
+                applyPlanarUVs(geoRight);
+
+                // --- Apply Pointiness Distortion (on Z-axis) ---
+                // To get the correct Z-length for normalization, we must consider both halves together.
                 const lengthZ = combinedBbox.max.z - combinedBbox.min.z;
                 
                 if (lengthZ > 1e-6 && Math.abs(pointiness) !== 0) {
@@ -167,16 +191,16 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                     const rightRings = generateEndPlatesForGeometry(geoRight, profileDetail);
                     const cap1 = createCapGeometry(leftRings.startRing.reverse());
                     const cap2 = createCapGeometry(rightRings.endRing);
-                    if (cap1) geos.notchCaps.push(cap1);
-                    if (cap2) geos.notchCaps.push(cap2);
+                    if (cap1) { applyPlanarUVs(cap1); geos.notchCaps.push(cap1); }
+                    if (cap2) { applyPlanarUVs(cap2); geos.notchCaps.push(cap2); }
                 }
                 if (aftNotch > 0.01) {
                     const leftRings = generateEndPlatesForGeometry(geoLeft, profileDetail);
                     const rightRings = generateEndPlatesForGeometry(geoRight, profileDetail);
                     const cap3 = createCapGeometry(leftRings.endRing);
                     const cap4 = createCapGeometry(rightRings.startRing.reverse());
-                    if (cap3) geos.notchCaps.push(cap3);
-                    if (cap4) geos.notchCaps.push(cap4);
+                    if (cap3) { applyPlanarUVs(cap3); geos.notchCaps.push(cap3); }
+                    if (cap4) { applyPlanarUVs(cap4); geos.notchCaps.push(cap4); }
                 }
             }
         }

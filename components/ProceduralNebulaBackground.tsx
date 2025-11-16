@@ -1,3 +1,5 @@
+// FIX: Add a global import for '@react-three/fiber' to augment JSX types for this file.
+import '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import React, { useEffect, useMemo, useRef, forwardRef } from 'react';
 import * as THREE from 'three';
