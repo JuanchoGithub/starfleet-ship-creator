@@ -260,6 +260,7 @@ export interface ShipParameters {
   saucer_texture_seed: number;
   saucer_texture_panel_color_variation: number;
   saucer_texture_window_density: number;
+  saucer_texture_lit_window_fraction: number;
   saucer_texture_window_bands: number;
   saucer_texture_window_color1: string;
   saucer_texture_window_color2: string;

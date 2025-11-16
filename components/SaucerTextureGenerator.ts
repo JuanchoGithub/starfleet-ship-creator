@@ -14,6 +14,7 @@ interface SaucerTextureGenerationParams {
     seed: number;
     panelColorVariation: number;
     window_density: number;
+    lit_window_fraction: number;
     window_color1: string;
     window_color2: string;
     window_bands: number;
@@ -116,7 +117,7 @@ function drawText(ctx: CanvasRenderingContext2D, text: string, centerX: number, 
 export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
     const size = 2048; // Higher resolution for more detail
     const { 
-        seed, panelColorVariation, window_density, window_bands,
+        seed, panelColorVariation, window_density, lit_window_fraction, window_bands,
         shipName, registry, 
         name_toggle, name_color, name_font_size, name_angle, name_curve, name_orientation, name_distance,
         registry_toggle, registry_color, registry_font_size, registry_angle, registry_curve, registry_orientation, registry_distance,
@@ -167,7 +168,7 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
 
     // --- Designate Window Bands ---
     const bandCandidates: number[] = [];
-    for (let i = 3; i < ringCount - 2; i++) { // Avoid innermost and outermost rings
+    for (let i = 1; i < ringCount - 1; i++) { // Avoid only the innermost and outermost rings
         bandCandidates.push(i);
     }
     for (let i = 0; i < window_bands; i++) {
@@ -278,8 +279,8 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
             const baseWindowHeight = 16;
             
             for (let j = 0; j < numWindows; j++) {
-                // Add a chance for a window to be missing, creating gaps in the band.
-                if (random() < 0.2) { // 20% chance of a gap
+                // Use window_density to control the presence of a physical window (creating gaps).
+                if (random() > window_density) {
                     continue;
                 }
 
@@ -300,8 +301,8 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
                 mapCtx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
                 mapCtx.restore();
 
-                // Use the window_density parameter to determine if this existing window is lit.
-                if (random() < window_density) {
+                // Use the lit_window_fraction to determine if this existing window is lit.
+                if (random() < lit_window_fraction) {
                     emissiveCtx.save();
                     emissiveCtx.translate(x, y);
                     emissiveCtx.rotate(angle + Math.PI / 2); // Align with radial lines

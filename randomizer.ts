@@ -130,7 +130,58 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
 
         // Engineering
         p.engineering_toggle = true;
+        p.engineering_radius = p.primary_radius * rand(0.12, 0.18);
+        p.engineering_widthRatio = rand(1.5, 2.5);
+        p.engineering_skew = rand(0.3, 0.7);
+        p.engineering_y = 0;
+        p.engineering_z = 0;
+
+        // Neck
+        p.neck_toggle = true;
+        p.neck_primaryThickness = p.primary_radius * rand(0.25, 0.35);
+        p.neck_taperSaucer = rand(1.5, 3.0);
+        p.neck_foretaper = rand(0.5, 1.0);
+        p.neck_afttaper = rand(0.1, 0.5);
+        p.neck_undercut = rand(0.2, 0.5);
+
+        // Nacelles
+        p.nacelle_toggle = true;
+        p.nacelle_radius = p.engineering_radius * rand(0.9, 1.3);
+        p.nacelle_widthRatio = rand(0.8, 1.2);
+        p.nacelle_x = p.primary_radius * rand(0.6, 0.8);
+        p.nacelle_z = p.engineering_radius * rand(1.5, 2.5);
+        p.nacelle_y = p.engineering_length * rand(0.3, 0.5); // Position them back
+
+        // Pylons
+        p.pylon_toggle = true;
+        p.pylon_thickness = p.nacelle_radius * rand(0.15, 0.25);
+        p.pylon_midPointOffsetY = rand(-3, 3);
+        p.pylon_midPointOffsetX = rand(-3, 3);
+
+        // Warp Grills
+        p.nacelle_grill_toggle = true;
+        p.nacelle_grill_length = rand(1.0, 1.5);
+        p.nacelle_grill_width = rand(0.2, 0.4);
+        p.nacelle_grill_rounding = rand(0, 0.1);
+        p.nacelle_grill_skew = rand(-0.05, 0.05);
+        p.nacelle_grill_anim_type = pick(['Pulse', 'Plasma Balls']);
+        p.nacelle_grill_vertical_offset = p.nacelle_length * rand(-0.2, 0.2);
+
+        // Impulse Engines
+        p.sublight_toggle = true;
+        p.sublight_y = p.primary_y + p.primary_radius * 0.9;
+        p.sublight_z = p.primary_z - p.primary_thickness * 0.2;
+        p.sublight_x = p.primary_radius * rand(0.3, 0.5);
+        p.sublight_length = p.primary_radius * rand(0.1, 0.2);
+        p.sublight_radius = p.primary_thickness * rand(0.2, 0.3);
+        p.sublight_widthRatio = rand(1, 3);
+        p.sublight_skewHorizontal = rand(0.2, 0.6);
+
+        // Disable lower nacelles for explorer
+        p.nacelleLower_toggle = false;
+        p.pylonLower_toggle = false;
+        p.boomLower_toggle = false;
     }
-    // FIX: Added a return statement to the function to ensure it returns the generated ship parameters as required by its type signature.
+    // FIX: Completed the implementation for the 'Explorer' archetype and ensured the function returns the generated parameters.
     return p;
 }

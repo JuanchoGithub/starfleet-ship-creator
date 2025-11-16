@@ -223,6 +223,7 @@ const App: React.FC = () => {
             seed: params.saucer_texture_seed,
             panelColorVariation: params.saucer_texture_panel_color_variation,
             window_density: params.saucer_texture_window_density,
+            lit_window_fraction: params.saucer_texture_lit_window_fraction,
             window_color1: params.saucer_texture_window_color1,
             window_color2: params.saucer_texture_window_color2,
             window_bands: params.saucer_texture_window_bands,
@@ -262,6 +263,7 @@ const App: React.FC = () => {
     }, 50);
   }, [
       params.saucer_texture_seed, params.saucer_texture_panel_color_variation, params.saucer_texture_window_density, 
+      params.saucer_texture_lit_window_fraction,
       params.saucer_texture_window_color1, params.saucer_texture_window_color2, params.saucer_texture_window_bands,
       params.ship_registry, 
       params.saucer_texture_name_toggle, params.saucer_texture_name_text_color, params.saucer_texture_name_font_size, params.saucer_texture_name_angle, params.saucer_texture_name_curve, params.saucer_texture_name_orientation, params.saucer_texture_name_distance,
