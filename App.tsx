@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
-import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants';
+import { INITIAL_SHIP_PARAMS, PARAM_CONFIG } from './constants/shipConstants';
+import { TEXTURE_PARAM_CONFIG } from './constants/textureConstants';
+import { INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants/lightConstants';
 import { STOCK_SHIPS } from './ships';
 import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, ChevronDownIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
 import * as THREE from 'three';
@@ -691,7 +693,7 @@ const App: React.FC = () => {
                       {isGeneratingSaucerTextures ? 'Generating...' : 'Generate Saucer Textures'}
                   </button>
               </div>
-              <ControlGroup groupName="Saucer Texturing" configs={PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+              <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <div className="p-3 space-y-3 border-t border-space-light">
                   <p className="text-sm text-mid-gray">Use the controls in the "General Hull Texturing" panel below to customize the texture for other ship sections, then click here to apply it.</p>
                   <button 
@@ -703,7 +705,7 @@ const App: React.FC = () => {
                       {isGeneratingTextures ? 'Generating...' : 'Generate General Textures'}
                   </button>
               </div>
-              <ControlGroup groupName="General Hull Texturing" configs={PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} />
+              <ControlGroup groupName="General Hull Texturing" configs={TEXTURE_PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} />
             </Accordion>
             
             <Accordion title="Saucer Assembly">
