@@ -696,6 +696,65 @@ const App: React.FC = () => {
     });
   };
 
+  const renderBussardControls = (prefix: 'nacelle' | 'nacelleLower') => {
+    const bussardType = params[`${prefix}_bussardType`];
+    const bussardConfigGroup = PARAM_CONFIG[`Bussard Collectors (${prefix === 'nacelle' ? 'Upper' : 'Lower'})`] as SubParamGroup;
+    const allStyleConfigs = bussardConfigGroup['Style & Colors'];
+    const allShapeConfigs = bussardConfigGroup['Shape & Position'];
+  
+    return (
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3">Style & Colors</h4>
+        {renderControl(`${prefix}_bussardType`, allStyleConfigs[`${prefix}_bussardType`], params, handleParamChange)}
+  
+        {/* TNG / Radiator */}
+        {(bussardType === 'TNG' || bussardType === 'Radiator') && (
+          <>
+            {bussardType === 'TNG' ? (
+                renderControl(`${prefix}_bussardColor2`, { ...allStyleConfigs[`${prefix}_bussardColor2`], label: 'Color' }, params, handleParamChange)
+            ) : ( // Radiator
+                <>
+                    {renderControl(`${prefix}_bussardColor1`, { ...allStyleConfigs[`${prefix}_bussardColor1`], label: 'Fin Color' }, params, handleParamChange)}
+                    {renderControl(`${prefix}_bussardColor2`, { ...allStyleConfigs[`${prefix}_bussardColor2`], label: 'Glow Color' }, params, handleParamChange)}
+                </>
+            )}
+            {renderControl(`${prefix}_bussardGlowIntensity`, allStyleConfigs[`${prefix}_bussardGlowIntensity`], params, handleParamChange)}
+            {bussardType === 'TNG' && renderControl(`${prefix}_bussardAnimSpeed`, allStyleConfigs[`${prefix}_bussardAnimSpeed`], params, handleParamChange)}
+          </>
+        )}
+  
+        {/* TOS / TNG Swirl */}
+        {(bussardType === 'TOS' || bussardType === 'TNG Swirl') && (
+          <>
+            {renderControl(`${prefix}_bussardColor1`, { ...allStyleConfigs[`${prefix}_bussardColor1`], label: 'Shell Color'}, params, handleParamChange)}
+            {renderControl(`${prefix}_bussardColor2`, { ...allStyleConfigs[`${prefix}_bussardColor2`], label: 'Core Color'}, params, handleParamChange)}
+            {renderControl(`${prefix}_bussardColor3`, { ...allStyleConfigs[`${prefix}_bussardColor3`], label: 'Edge Color'}, params, handleParamChange)}
+            {renderControl(`${prefix}_bussardGlowIntensity`, allStyleConfigs[`${prefix}_bussardGlowIntensity`], params, handleParamChange)}
+            {renderControl(`${prefix}_bussardShellOpacity`, allStyleConfigs[`${prefix}_bussardShellOpacity`], params, handleParamChange)}
+            {renderControl(`${prefix}_bussardAnimSpeed`, allStyleConfigs[`${prefix}_bussardAnimSpeed`], params, handleParamChange)}
+            {renderControl(`${prefix}_bussardVaneCount`, allStyleConfigs[`${prefix}_bussardVaneCount`], params, handleParamChange)}
+            {renderControl(`${prefix}_bussardVaneLength`, allStyleConfigs[`${prefix}_bussardVaneLength`], params, handleParamChange)}
+            {bussardType === 'TNG Swirl' && renderControl(`${prefix}_bussardSubtleVanes`, allStyleConfigs[`${prefix}_bussardSubtleVanes`], params, handleParamChange)}
+          </>
+        )}
+        
+        <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Shape & Position</h4>
+        {renderControl(`${prefix}_bussardRadius`, allShapeConfigs[`${prefix}_bussardRadius`], params, handleParamChange)}
+        {renderControl(`${prefix}_bussardWidthRatio`, allShapeConfigs[`${prefix}_bussardWidthRatio`], params, handleParamChange)}
+  
+        {/* TOS / TNG Swirl */}
+        {(bussardType === 'TOS' || bussardType === 'TNG Swirl') && (
+            <>
+                {renderControl(`${prefix}_bussardCurvature`, allShapeConfigs[`${prefix}_bussardCurvature`], params, handleParamChange)}
+                {renderControl(`${prefix}_bussardYOffset`, allShapeConfigs[`${prefix}_bussardYOffset`], params, handleParamChange)}
+                {renderControl(`${prefix}_bussardZOffset`, allShapeConfigs[`${prefix}_bussardZOffset`], params, handleParamChange)}
+                {renderControl(`${prefix}_bussardSkewVertical`, allShapeConfigs[`${prefix}_bussardSkewVertical`], params, handleParamChange)}
+            </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full h-screen flex flex-col md:flex-row bg-space-dark relative">
       {isMultiviewOpen && (
@@ -891,14 +950,18 @@ const App: React.FC = () => {
 
             <Accordion title="Upper Nacelle Assembly" defaultOpen={false}>
                 <ControlGroup groupName="Nacelle Body (Upper)" configs={PARAM_CONFIG["Nacelle Body (Upper)"]} params={params} onParamChange={handleParamChange} />
-                <ControlGroup groupName="Bussard Collectors (Upper)" configs={PARAM_CONFIG["Bussard Collectors (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <Accordion title="Bussard Collectors (Upper)" defaultOpen={false}>
+                    {renderBussardControls('nacelle')}
+                </Accordion>
                 <ControlGroup groupName="Warp Grills (Upper)" configs={PARAM_CONFIG["Warp Grills (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Pylons (Upper)" configs={PARAM_CONFIG["Pylons (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
             
             <Accordion title="Lower Nacelle Assembly" defaultOpen={false}>
                 <ControlGroup groupName="Nacelle Body (Lower)" configs={PARAM_CONFIG["Nacelle Body (Lower)"]} params={params} onParamChange={handleParamChange} />
-                <ControlGroup groupName="Bussard Collectors (Lower)" configs={PARAM_CONFIG["Bussard Collectors (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                 <Accordion title="Bussard Collectors (Lower)" defaultOpen={false}>
+                    {renderBussardControls('nacelleLower')}
+                </Accordion>
                 <ControlGroup groupName="Warp Grills (Lower)" configs={PARAM_CONFIG["Warp Grills (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Lower Boom" configs={PARAM_CONFIG["Lower Boom"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Pylons (Lower)" configs={PARAM_CONFIG["Pylons (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />

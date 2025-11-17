@@ -14,10 +14,11 @@ type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
 
 declare global {
   namespace JSX {
-    // FIX: The previous augmentation was incorrect, replacing all standard JSX elements with only
-    // the ones from react-three-fiber. By extending React's own IntrinsicElements, we merge
-    // them, making both standard HTML/SVG elements and R3F elements available.
-    interface IntrinsicElements extends React.JSX.IntrinsicElements, ThreeElements {
+    // FIX: The previous augmentation was incorrect. By simply extending `ThreeElements`,
+    // TypeScript's declaration merging will combine these types with the standard
+    // HTML/SVG element types from React, making both available. Extending
+    // `React.JSX.IntrinsicElements` explicitly was likely causing a conflict.
+    interface IntrinsicElements extends ThreeElements {
       // The `extend` function from R3F should automatically type this, but since the core
       // type augmentation is failing, we must define it manually as a fallback.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;

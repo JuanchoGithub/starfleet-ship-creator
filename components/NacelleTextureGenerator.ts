@@ -215,74 +215,78 @@ export function generateNacelleTextures(params: NacelleTextureGenerationParams) 
         for (const baseSideU of baseSidesToDrawOn) {
             const sideU = (baseSideU + rotationOffset + 1.0) % 1.0;
 
-            const lineCount = Math.max(1, Math.floor(params.pennant_line_count));
-            const totalLineWidth = groupWidthPx * params.pennant_line_width;
-            const singleLineWidth = totalLineWidth / lineCount;
-            const lineSpacing = lineCount > 1 ? (groupWidthPx - totalLineWidth) / (lineCount - 1) : 0;
-            const startX = width * sideU - groupWidthPx / 2;
+            // Draw three times to handle texture wrapping at the seam.
+            // The canvas will clip parts outside its bounds, effectively creating a seamless pattern.
+            for (const xOffset of [0, -width, width]) {
+                const lineCount = Math.max(1, Math.floor(params.pennant_line_count));
+                const totalLineWidth = groupWidthPx * params.pennant_line_width;
+                const singleLineWidth = totalLineWidth / lineCount;
+                const lineSpacing = lineCount > 1 ? (groupWidthPx - totalLineWidth) / (lineCount - 1) : 0;
+                const startX = width * sideU - groupWidthPx / 2 + xOffset; // Apply offset
 
-            for (let i = 0; i < lineCount; i++) {
-                const lineXCenter = startX + i * (singleLineWidth + lineSpacing) + singleLineWidth / 2;
+                for (let i = 0; i < lineCount; i++) {
+                    const lineXCenter = startX + i * (singleLineWidth + lineSpacing) + singleLineWidth / 2;
 
-                const startWidth = singleLineWidth * params.pennant_taper_start;
-                const endWidth = singleLineWidth * params.pennant_taper_end;
-                
-                const path = new Path2D();
-                path.moveTo(lineXCenter - startWidth / 2, stripeY);
-                path.lineTo(lineXCenter + startWidth / 2, stripeY);
-                path.lineTo(lineXCenter + endWidth / 2, stripeY + stripeHeight);
-                path.lineTo(lineXCenter - endWidth / 2, stripeY + stripeHeight);
-                path.closePath();
-                
-                // Draw on color map
-                mapCtx.fillStyle = params.pennant_color;
-                mapCtx.fill(path);
-                
-                // Draw glow on emissive map
-                const pennantGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.pennant_glow_intensity);
-                emissiveCtx.fillStyle = pennantGlowColor.getStyle();
-                emissiveCtx.fill(path);
-
-                if (params.pennant_reflection > 0) {
-                    const grad = mapCtx.createLinearGradient(0, stripeY, 0, stripeY + stripeHeight);
-                    grad.addColorStop(0, `rgba(255,255,255,${0.4 * params.pennant_reflection})`);
-                    grad.addColorStop(0.4, 'rgba(255,255,255,0.0)');
-                    grad.addColorStop(0.6, 'rgba(0,0,0,0.0)');
-                    grad.addColorStop(1, `rgba(0,0,0,${0.3 * params.pennant_reflection})`);
-                    mapCtx.fillStyle = grad;
+                    const startWidth = singleLineWidth * params.pennant_taper_start;
+                    const endWidth = singleLineWidth * params.pennant_taper_end;
+                    
+                    const path = new Path2D();
+                    path.moveTo(lineXCenter - startWidth / 2, stripeY);
+                    path.lineTo(lineXCenter + startWidth / 2, stripeY);
+                    path.lineTo(lineXCenter + endWidth / 2, stripeY + stripeHeight);
+                    path.lineTo(lineXCenter - endWidth / 2, stripeY + stripeHeight);
+                    path.closePath();
+                    
+                    // Draw on color map
+                    mapCtx.fillStyle = params.pennant_color;
                     mapCtx.fill(path);
+                    
+                    // Draw glow on emissive map
+                    const pennantGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.pennant_glow_intensity);
+                    emissiveCtx.fillStyle = pennantGlowColor.getStyle();
+                    emissiveCtx.fill(path);
+
+                    if (params.pennant_reflection > 0) {
+                        const grad = mapCtx.createLinearGradient(0, stripeY, 0, stripeY + stripeHeight);
+                        grad.addColorStop(0, `rgba(255,255,255,${0.4 * params.pennant_reflection})`);
+                        grad.addColorStop(0.4, 'rgba(255,255,255,0.0)');
+                        grad.addColorStop(0.6, 'rgba(0,0,0,0.0)');
+                        grad.addColorStop(1, `rgba(0,0,0,${0.3 * params.pennant_reflection})`);
+                        mapCtx.fillStyle = grad;
+                        mapCtx.fill(path);
+                    }
+
+                    addBevelToPath(normalCtx, path);
                 }
 
-                addBevelToPath(normalCtx, path);
-            }
-
-            if (params.delta_toggle) {
-                const deltaHeight = groupWidthPx * 1.8;
-                const deltaY = stripeY + stripeHeight * params.delta_position;
-                const deltaX = width * sideU;
-                
-                const deltaPath = new Path2D();
-                drawDeltaPath(deltaPath, deltaX, deltaY, groupWidthPx * 0.8, deltaHeight, random);
-                
-                // Draw on color map (dark version of pennant color)
-                mapCtx.fillStyle = new THREE.Color(params.pennant_color).multiplyScalar(0.2).getStyle();
-                mapCtx.fill(deltaPath, 'evenodd');
-                
-                // Draw glow on emissive map
-                const deltaGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.delta_glow_intensity);
-                emissiveCtx.fillStyle = deltaGlowColor.getStyle();
-                emissiveCtx.fill(deltaPath, 'evenodd');
-
-                if (params.pennant_reflection > 0) {
-                    const grad = mapCtx.createLinearGradient(deltaX - groupWidthPx*0.4, deltaY - deltaHeight/2, deltaX + groupWidthPx*0.4, deltaY + deltaHeight/2);
-                    grad.addColorStop(0, `rgba(255,255,255,${0.3 * params.pennant_reflection})`);
-                    grad.addColorStop(0.5, 'rgba(255,255,255,0.0)');
-                    grad.addColorStop(1, `rgba(0,0,0,${0.2 * params.pennant_reflection})`);
-                    mapCtx.fillStyle = grad;
+                if (params.delta_toggle) {
+                    const deltaHeight = groupWidthPx * 1.8;
+                    const deltaY = stripeY + stripeHeight * params.delta_position;
+                    const deltaX = width * sideU + xOffset; // Apply offset
+                    
+                    const deltaPath = new Path2D();
+                    drawDeltaPath(deltaPath, deltaX, deltaY, groupWidthPx * 0.8, deltaHeight, random);
+                    
+                    // Draw on color map (dark version of pennant color)
+                    mapCtx.fillStyle = new THREE.Color(params.pennant_color).multiplyScalar(0.2).getStyle();
                     mapCtx.fill(deltaPath, 'evenodd');
-                }
+                    
+                    // Draw glow on emissive map
+                    const deltaGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.delta_glow_intensity);
+                    emissiveCtx.fillStyle = deltaGlowColor.getStyle();
+                    emissiveCtx.fill(deltaPath, 'evenodd');
 
-                addBevelToPath(normalCtx, deltaPath);
+                    if (params.pennant_reflection > 0) {
+                        const grad = mapCtx.createLinearGradient(deltaX - groupWidthPx*0.4, deltaY - deltaHeight/2, deltaX + groupWidthPx*0.4, deltaY + deltaHeight/2);
+                        grad.addColorStop(0, `rgba(255,255,255,${0.3 * params.pennant_reflection})`);
+                        grad.addColorStop(0.5, 'rgba(255,255,255,0.0)');
+                        grad.addColorStop(1, `rgba(0,0,0,${0.2 * params.pennant_reflection})`);
+                        mapCtx.fillStyle = grad;
+                        mapCtx.fill(deltaPath, 'evenodd');
+                    }
+
+                    addBevelToPath(normalCtx, deltaPath);
+                }
             }
         }
     }

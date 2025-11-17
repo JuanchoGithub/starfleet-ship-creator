@@ -349,7 +349,7 @@ const BussardTNG: React.FC<{ p: any }> = ({ p }) => {
     return (
         <group position-y={p.length - p.radius * p.bussardRadius * 0.2}>
             <RoundedBox name="Bussard_Casing" args={[p.radius * 2.2 * p.bussardWidthRatio, p.radius * 1.5 * p.bussardRadius, p.radius * 1.5 * p.bussardRadius ]} radius={p.radius * p.bussardRadius * 0.7} smoothness={4} castShadow receiveShadow>
-                <meshStandardMaterial ref={materialRef} color={p.bussardColor1} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.1} />
+                <meshStandardMaterial ref={materialRef} color={p.bussardColor2} emissive={p.bussardColor2} emissiveIntensity={p.bussardGlowIntensity} roughness={0.1} />
             </RoundedBox>
         </group>
     );

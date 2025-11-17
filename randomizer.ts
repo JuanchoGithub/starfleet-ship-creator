@@ -183,7 +183,102 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         p.boomLower_toggle = false;
     }
 
-    if (archetype === 'Cruiser' || archetype === 'Explorer') {
+    // --- Escort Archetype ---
+    if (archetype === 'Escort') {
+        palette = pick([PALETTES.tactical, PALETTES.federation]);
+        // Drivers
+        p.primary_radius = rand(10, 16);
+        p.engineering_length = p.primary_radius * rand(1.8, 2.5);
+        p.nacelle_length = p.engineering_length * rand(0.9, 1.1);
+
+        // Saucer
+        p.primary_toggle = true;
+        p.primary_thickness = p.primary_radius * rand(0.15, 0.22);
+        p.primary_widthRatio = rand(0.7, 0.9);
+        p.primary_pointiness = rand(0.5, 1.5);
+        p.primary_notch_aft = 0;
+        p.primary_notch_fore = 0;
+        
+        // Engineering
+        p.engineering_toggle = true;
+        p.engineering_radius = p.primary_radius * rand(0.18, 0.25);
+        p.engineering_widthRatio = rand(0.8, 1.2);
+        p.engineering_skew = rand(-0.3, 0.3);
+
+        // Neck
+        p.neck_toggle = Math.random() > 0.3; // Escorts might not have a neck
+        p.neck_primaryThickness = p.primary_radius * rand(0.15, 0.2);
+
+        // Nacelles
+        p.nacelle_toggle = true;
+        p.nacelle_radius = p.engineering_radius * rand(1.0, 1.4);
+        p.nacelle_widthRatio = rand(0.8, 1.1);
+        p.nacelle_x = p.primary_radius * rand(0.3, 0.5);
+        p.nacelle_z = p.primary_thickness * rand(0.5, 1.5);
+        p.nacelle_y = p.engineering_y * 1.2;
+        
+        // Pylons
+        p.pylon_toggle = true;
+        p.pylon_thickness = p.nacelle_radius * rand(0.25, 0.4);
+        p.pylon_midPointOffsetY = rand(2, 6); // Swept up wings
+        p.pylon_midPointOffsetX = rand(-4, 4);
+
+        // Disable lower nacelles
+        p.nacelleLower_toggle = false;
+        p.pylonLower_toggle = false;
+        p.boomLower_toggle = false;
+    }
+
+    // --- Dreadnought Archetype ---
+    if (archetype === 'Dreadnought') {
+        palette = PALETTES.tactical;
+        // Drivers
+        p.primary_radius = rand(12, 18);
+        p.engineering_length = p.primary_radius * rand(2.0, 3.0);
+        p.nacelle_length = p.engineering_length * rand(1.0, 1.3);
+
+        // Saucer
+        p.primary_toggle = true;
+        p.primary_thickness = p.primary_radius * rand(0.18, 0.25);
+        p.primary_widthRatio = rand(0.9, 1.1);
+        p.primary_pointiness = rand(-0.5, 0.5);
+        
+        // Engineering
+        p.engineering_toggle = true;
+        p.engineering_radius = p.primary_radius * rand(0.2, 0.3);
+        p.engineering_widthRatio = rand(1.2, 2.0);
+
+        // Neck
+        p.neck_toggle = true;
+        p.neck_primaryThickness = p.primary_radius * rand(0.3, 0.4);
+
+        // Nacelles (Upper)
+        p.nacelle_toggle = true;
+        p.nacelle_radius = p.engineering_radius * rand(0.8, 1.1);
+        p.nacelle_x = p.primary_radius * rand(0.7, 1.0);
+        p.nacelle_z = p.primary_thickness * 1.5;
+        p.nacelle_y = p.engineering_y * 1.3;
+        
+        // Pylons (Upper)
+        p.pylon_toggle = true;
+        p.pylon_thickness = p.nacelle_radius * rand(0.3, 0.4);
+
+        // Nacelles (Lower) - Dreadnoughts often have 4
+        p.nacelleLower_toggle = true;
+        p.nacelleLower_length = p.nacelle_length * rand(0.8, 1.0);
+        p.nacelleLower_radius = p.nacelle_radius * rand(0.9, 1.1);
+        p.nacelleLower_x = p.nacelle_x * rand(0.6, 0.9);
+        p.nacelleLower_z = -p.engineering_radius * rand(2, 4);
+        p.nacelleLower_y = p.nacelle_y * rand(0.7, 0.9);
+
+        // Pylons (Lower)
+        p.pylonLower_toggle = true;
+        p.pylonLower_thickness = p.pylon_thickness * rand(0.9, 1.1);
+        p.boomLower_toggle = Math.random() > 0.5;
+    }
+
+
+    if (archetype === 'Cruiser' || archetype === 'Explorer' || archetype === 'Escort' || archetype === 'Dreadnought') {
         // Nacelle Texturing
         p.nacelle_texture_toggle = Math.random() > 0.3;
         p.nacelle_texture_seed = rand(0, 1000);
@@ -206,6 +301,6 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         p.nacelle_texture_pennant_taper_end = rand(0.5, 1.5);
     }
 
-    // FIX: Completed the implementation for the 'Explorer' archetype and ensured the function returns the generated parameters.
+    // FIX: Completed the implementation for all archetypes and ensured the function returns the generated parameters.
     return p;
 }

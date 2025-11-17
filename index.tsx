@@ -1,5 +1,4 @@
 // FIX: Add a global import for '@react-three/fiber' to augment JSX types for the entire application.
-import '@react-three/fiber';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
