@@ -779,13 +779,18 @@ const App: React.FC = () => {
             {Object.entries(shapeConfigs).map(([key, config]) => renderControl(key, config, params, handleParamChange))}
             <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Animation & Glow</h4>
             {renderControl(`${prefix}_grill_anim_type`, animConfigs[`${prefix}_grill_anim_type`], params, handleParamChange)}
+            
+            {animType === 'Linear Bands' && (
+                renderControl(`${prefix}_grill_orientation`, animConfigs[`${prefix}_grill_orientation`], params, handleParamChange)
+            )}
+
             {renderControl(`${prefix}_grill_color1`, animConfigs[`${prefix}_grill_color1`], params, handleParamChange)}
             {renderControl(`${prefix}_grill_color2`, animConfigs[`${prefix}_grill_color2`], params, handleParamChange)}
             {renderControl(`${prefix}_grill_color3`, animConfigs[`${prefix}_grill_color3`], params, handleParamChange)}
             {renderControl(`${prefix}_grill_intensity`, animConfigs[`${prefix}_grill_intensity`], params, handleParamChange)}
             {renderControl(`${prefix}_grill_animSpeed`, animConfigs[`${prefix}_grill_animSpeed`], params, handleParamChange)}
 
-            {animType === 'Flow' && (
+            {(animType === 'Flow' || animType === 'Linear Bands') && (
                 <>
                     {renderControl(`${prefix}_grill_softness`, animConfigs[`${prefix}_grill_softness`], params, handleParamChange)}
                     {renderControl(`${prefix}_grill_base_glow`, animConfigs[`${prefix}_grill_base_glow`], params, handleParamChange)}

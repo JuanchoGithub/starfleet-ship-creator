@@ -130,7 +130,7 @@ export const PARAM_CONFIG: ParamConfigGroups = {
   "Nacelle Body (Upper)": {
     "General": {
       nacelle_toggle: { label: "Enable", type: 'toggle' },
-      nacelle_segments: { label: "Segments", min: 8, max: 64, step: 1, type: 'slider' },
+      nacelle_segments: { label: "Segments", min: 3, max: 512, step: 1, type: 'slider' },
     },
     "Position & Sizing": {
       nacelle_y: { label: "Fore/Aft Position", min: -40, max: 60, step: 0.01, type: 'slider' },
@@ -205,7 +205,8 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelle_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.005, type: 'slider' },
     },
     "Animation & Glow": {
-      nacelle_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls'] },
+      nacelle_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls', 'Linear Bands'] },
+      nacelle_grill_orientation: { label: 'Orientation', type: 'select', options: ['Horizontal', 'Vertical'] },
       nacelle_grill_color1: { label: 'Glow Color 1', type: 'color' },
       nacelle_grill_color2: { label: 'Glow Color 2', type: 'color' },
       nacelle_grill_color3: { label: 'Base Color', type: 'color' },
@@ -243,7 +244,7 @@ export const PARAM_CONFIG: ParamConfigGroups = {
   "Nacelle Body (Lower)": {
     "General": {
       nacelleLower_toggle: { label: "Enable", type: 'toggle' },
-      nacelleLower_segments: { label: "Segments", min: 8, max: 64, step: 1, type: 'slider' },
+      nacelleLower_segments: { label: "Segments", min: 3, max: 512, step: 1, type: 'slider' },
     },
     "Position & Sizing": {
       nacelleLower_y: { label: "Fore/Aft Position", min: -30, max: 30, step: 0.01, type: 'slider' },
@@ -318,7 +319,8 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelleLower_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.005, type: 'slider' },
     },
     "Animation & Glow": {
-      nacelleLower_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls'] },
+      nacelleLower_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls', 'Linear Bands'] },
+      nacelleLower_grill_orientation: { label: 'Orientation', type: 'select', options: ['Horizontal', 'Vertical'] },
       nacelleLower_grill_color1: { label: 'Glow Color 1', type: 'color' },
       nacelleLower_grill_color2: { label: 'Glow Color 2', type: 'color' },
       nacelleLower_grill_color3: { label: 'Base Color', type: 'color' },

@@ -175,7 +175,9 @@ export interface ShipParameters {
   nacelle_grill_color3: string;
   nacelle_grill_intensity: number;
   nacelle_grill_animSpeed: number;
-  nacelle_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
+  // FIX: Added 'Linear Bands' to the animation type union to match the available options.
+  nacelle_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls' | 'Linear Bands';
+  nacelle_grill_orientation: 'Horizontal' | 'Vertical';
   nacelle_grill_rounding: number;
   nacelle_grill_skew: number;
   nacelle_grill_softness: number;
@@ -254,7 +256,9 @@ export interface ShipParameters {
   nacelleLower_grill_color3: string;
   nacelleLower_grill_intensity: number;
   nacelleLower_grill_animSpeed: number;
-  nacelleLower_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
+  // FIX: Added 'Linear Bands' to the animation type union to match the available options.
+  nacelleLower_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls' | 'Linear Bands';
+  nacelleLower_grill_orientation: 'Horizontal' | 'Vertical';
   nacelleLower_grill_rounding: number;
   nacelleLower_grill_skew: number;
   nacelleLower_grill_softness: number;

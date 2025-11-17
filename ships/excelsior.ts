@@ -167,6 +167,8 @@ export const excelsiorClassShip: ShipParameters = {
   "nacelle_grill_intensity": 2.7,
   "nacelle_grill_animSpeed": 0.3,
   "nacelle_grill_anim_type": "Flow",
+  // FIX: Added missing nacelle_grill_orientation property.
+  "nacelle_grill_orientation": "Horizontal",
   "nacelle_grill_rounding": 0.18,
   "nacelle_grill_skew": 0,
   "nacelle_grill_softness": 0.1,
@@ -240,6 +242,8 @@ export const excelsiorClassShip: ShipParameters = {
   "nacelleLower_grill_intensity": 3,
   "nacelleLower_grill_animSpeed": 1.5,
   "nacelleLower_grill_anim_type": "Flow",
+  // FIX: Added missing nacelleLower_grill_orientation property.
+  "nacelleLower_grill_orientation": "Horizontal",
   "nacelleLower_grill_rounding": 0,
   "nacelleLower_grill_skew": 0,
   "nacelleLower_grill_softness": 0.1,

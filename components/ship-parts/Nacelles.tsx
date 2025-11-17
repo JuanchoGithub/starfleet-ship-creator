@@ -28,6 +28,7 @@ const fragmentShader = `
     uniform float uSoftness;
     uniform float uBaseGlow;
     uniform float uLineCount;
+    uniform float uOrientation; // 0.0 for Horizontal, 1.0 for Vertical
 
     varying vec2 vUv;
 
@@ -87,6 +88,35 @@ const fragmentShader = `
             totalGlow = clamp(totalGlow, 0.0, 1.0);
             vec3 color = mix(uColor1, uColor2, totalGlow);
             finalColor = mix(baseColor, color, totalGlow * uIntensity);
+        } else if (uAnimType == 3.0) { // Linear Bands
+            vec2 coord = vUv;
+            if (uOrientation == 1.0) {
+                coord = vec2(vUv.y, vUv.x);
+            }
+            
+            // Create a repeating ramp for each band
+            float ramp = fract(coord.x * uLineCount);
+            
+            // Define the width of the bright part of the band (e.g., 60% of the space)
+            float band_width = 0.6;
+            
+            // Use smoothstep to create the bands with soft edges.
+            // This creates a "box" pulse instead of a sine wave.
+            float softness = 0.05 + uSoftness * 0.1;
+            float lines = smoothstep(0.0, softness, ramp) - smoothstep(band_width, band_width + softness, ramp);
+            
+            // Add a subtle, fast-moving shimmer within the bands
+            float shimmer = (sin(coord.y * 300.0 + uTime * uAnimSpeed * 20.0) * 0.5 + 0.5) * 0.15 + 0.85; // Varies brightness from 85% to 100%
+            
+            // The final glow is the band shape, modulated by the shimmer and master intensity
+            float glow = lines * shimmer * uIntensity;
+            
+            vec3 bandColor = uColor1;
+            // Start with a dark base color, possibly with a faint ambient glow
+            vec3 ambient = baseColor * (uBaseGlow * 0.2); 
+            
+            // Additively blend the bright band color
+            finalColor = ambient + bandColor * glow;
         }
         
         gl_FragColor = vec4(finalColor, 1.0);
@@ -97,6 +127,7 @@ const ANIM_TYPE_MAP = {
     'Flow': 0.0,
     'Pulse': 1.0,
     'Plasma Balls': 2.0,
+    'Linear Bands': 3.0,
 };
 
 interface NacelleAssemblyProps {
@@ -118,6 +149,7 @@ const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored,
             grillMaterial.uniforms.uColor3.value.set(assemblyParams.grill_color3);
             grillMaterial.uniforms.uIntensity.value = assemblyParams.grill_intensity;
             grillMaterial.uniforms.uAnimType.value = ANIM_TYPE_MAP[assemblyParams.grill_anim_type as keyof typeof ANIM_TYPE_MAP] || 0.0;
+            grillMaterial.uniforms.uOrientation.value = assemblyParams.grill_orientation === 'Vertical' ? 1.0 : 0.0;
             grillMaterial.uniforms.uSoftness.value = assemblyParams.grill_softness;
             grillMaterial.uniforms.uBaseGlow.value = assemblyParams.grill_base_glow;
             grillMaterial.uniforms.uLineCount.value = assemblyParams.grill_line_count;
@@ -167,6 +199,7 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
             uIntensity: { value: params.grill_intensity },
             uAnimSpeed: { value: params.grill_animSpeed },
             uAnimType: { value: 0.0 },
+            uOrientation: { value: 0.0 },
             uSoftness: { value: params.grill_softness },
             uBaseGlow: { value: params.grill_base_glow },
             uLineCount: { value: params.grill_line_count },
@@ -486,6 +519,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     grill_color3: params.nacelle_grill_color3,
                     grill_intensity: params.nacelle_grill_intensity,
                     grill_anim_type: params.nacelle_grill_anim_type,
+                    grill_orientation: params.nacelle_grill_orientation,
                     grill_softness: params.nacelle_grill_softness,
                     grill_base_glow: params.nacelle_grill_base_glow,
                     grill_line_count: params.nacelle_grill_line_count,
@@ -529,6 +563,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     grill_color3: params.nacelleLower_grill_color3,
                     grill_intensity: params.nacelleLower_grill_intensity,
                     grill_anim_type: params.nacelleLower_grill_anim_type,
+                    grill_orientation: params.nacelleLower_grill_orientation,
                     grill_softness: params.nacelleLower_grill_softness,
                     grill_base_glow: params.nacelleLower_grill_base_glow,
                     grill_line_count: params.nacelleLower_grill_line_count,
