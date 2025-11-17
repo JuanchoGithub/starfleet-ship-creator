@@ -189,7 +189,10 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelle_grill_color2: { label: 'Glow Color 2', type: 'color' },
       nacelle_grill_color3: { label: 'Base Color', type: 'color' },
       nacelle_grill_intensity: { label: 'Glow Intensity', min: 0, max: 10, step: 0.1, type: 'slider' },
-      nacelle_grill_animSpeed: { label: 'Animation Speed', min: -5, max: 5, step: 0.1, type: 'slider' },
+      nacelle_grill_animSpeed: { label: 'Animation Speed', min: -20, max: 20, step: 0.1, type: 'slider' },
+      nacelle_grill_softness: { label: "Flow Softness", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_grill_base_glow: { label: "Flow Base Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
+      nacelle_grill_line_count: { label: "Flow Line Count", min: 10, max: 200, step: 1, type: 'slider' },
     }
   },
   "Pylons (Upper)": {
@@ -278,7 +281,10 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelleLower_grill_color2: { label: 'Glow Color 2', type: 'color' },
       nacelleLower_grill_color3: { label: 'Base Color', type: 'color' },
       nacelleLower_grill_intensity: { label: 'Glow Intensity', min: 0, max: 10, step: 0.1, type: 'slider' },
-      nacelleLower_grill_animSpeed: { label: 'Animation Speed', min: -5, max: 5, step: 0.1, type: 'slider' },
+      nacelleLower_grill_animSpeed: { label: 'Animation Speed', min: -20, max: 20, step: 0.1, type: 'slider' },
+      nacelleLower_grill_softness: { label: "Flow Softness", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_grill_base_glow: { label: "Flow Base Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
+      nacelleLower_grill_line_count: { label: "Flow Line Count", min: 10, max: 200, step: 1, type: 'slider' },
     }
   },
   "Lower Boom": {

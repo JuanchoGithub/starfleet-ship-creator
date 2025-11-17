@@ -13,11 +13,11 @@ type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
 };
 
 declare global {
-  namespace JSX {
-    // FIX: The previous augmentation was incorrect. By simply extending `ThreeElements`,
-    // TypeScript's declaration merging will combine these types with the standard
-    // HTML/SVG element types from React, making both available. Extending
-    // `React.JSX.IntrinsicElements` explicitly was likely causing a conflict.
+  // FIX: The JSX namespace augmentation was replacing React's built-in definitions for HTML/SVG elements.
+  // This was happening because `declare namespace JSX` can overwrite existing definitions.
+  // By switching to augment `React.JSX.IntrinsicElements`, we add react-three-fiber and custom
+  // types without removing the standard ones, fixing JSX errors across the application.
+  namespace React.JSX {
     interface IntrinsicElements extends ThreeElements {
       // The `extend` function from R3F should automatically type this, but since the core
       // type augmentation is failing, we must define it manually as a fallback.
@@ -165,6 +165,9 @@ export interface ShipParameters {
   nacelle_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
   nacelle_grill_rounding: number;
   nacelle_grill_skew: number;
+  nacelle_grill_softness: number;
+  nacelle_grill_base_glow: number;
+  nacelle_grill_line_count: number;
 
   // Upper Pylons
   pylon_toggle: boolean;
@@ -228,6 +231,9 @@ export interface ShipParameters {
   nacelleLower_grill_anim_type: 'Flow' | 'Pulse' | 'Plasma Balls';
   nacelleLower_grill_rounding: number;
   nacelleLower_grill_skew: number;
+  nacelleLower_grill_softness: number;
+  nacelleLower_grill_base_glow: number;
+  nacelleLower_grill_line_count: number;
 
   // Lower Boom
   boomLower_toggle: boolean;

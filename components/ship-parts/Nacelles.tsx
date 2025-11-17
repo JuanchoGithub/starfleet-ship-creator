@@ -1,6 +1,7 @@
 
 
 
+
 import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -24,6 +25,9 @@ const fragmentShader = `
     uniform float uIntensity;
     uniform float uAnimSpeed;
     uniform float uAnimType; // 0: Flow, 1: Pulse, 2: Plasma
+    uniform float uSoftness;
+    uniform float uBaseGlow;
+    uniform float uLineCount;
 
     varying vec2 vUv;
 
@@ -39,19 +43,21 @@ const fragmentShader = `
         vec3 finalColor = baseColor;
 
         if (uAnimType == 0.0) { // Flow
-            float len = uv.y;
             float pulse = (sin(uTime * 2.0) * 0.5 + 0.5) * 0.5 + 0.5; // 0.5 to 1
             
-            float lineCount = 80.0;
             float lineSpeed = -10.0 * uAnimSpeed;
             
-            float linePattern = sin(len * lineCount + uTime * lineSpeed);
+            float linePattern = sin(uv.y * uLineCount + uTime * lineSpeed);
+
+            float edge0 = 0.8;
+            float edge1 = edge0 + (uSoftness * 0.18) + 0.02; // Range from 0.02 (sharp) to 0.2 (soft)
             
-            float lines = smoothstep(0.8, 0.85, linePattern);
+            float lines = smoothstep(edge0, edge1, linePattern);
             float glow = lines * uIntensity * pulse;
             
-            vec3 color = mix(uColor1, uColor2, fract(len * 5.0 + uTime * uAnimSpeed));
-            finalColor = mix(baseColor, color, glow);
+            vec3 color = mix(uColor1, uColor2, fract(uv.y * 5.0 + uTime * uAnimSpeed));
+            vec3 glowingBase = baseColor * (1.0 + uBaseGlow);
+            finalColor = mix(glowingBase, color, glow);
         } else if (uAnimType == 1.0) { // Pulse
             float pulse = (sin(uv.y * 20.0 - uTime * 5.0 * uAnimSpeed) * 0.5 + 0.5);
             float overallPulse = (sin(uTime * 3.0 * uAnimSpeed) * 0.5 + 0.5);
@@ -112,6 +118,9 @@ const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored,
             grillMaterial.uniforms.uColor3.value.set(assemblyParams.grill_color3);
             grillMaterial.uniforms.uIntensity.value = assemblyParams.grill_intensity;
             grillMaterial.uniforms.uAnimType.value = ANIM_TYPE_MAP[assemblyParams.grill_anim_type as keyof typeof ANIM_TYPE_MAP] || 0.0;
+            grillMaterial.uniforms.uSoftness.value = assemblyParams.grill_softness;
+            grillMaterial.uniforms.uBaseGlow.value = assemblyParams.grill_base_glow;
+            grillMaterial.uniforms.uLineCount.value = assemblyParams.grill_line_count;
         }
     });
 
@@ -151,7 +160,10 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
             uColor3: { value: new THREE.Color(params.grill_color3) },
             uIntensity: { value: params.grill_intensity },
             uAnimSpeed: { value: params.grill_animSpeed },
-            uAnimType: { value: 0.0 }
+            uAnimType: { value: 0.0 },
+            uSoftness: { value: params.grill_softness },
+            uBaseGlow: { value: params.grill_base_glow },
+            uLineCount: { value: params.grill_line_count },
         },
         vertexShader,
         fragmentShader,
@@ -417,6 +429,9 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     grill_color3: params.nacelle_grill_color3,
                     grill_intensity: params.nacelle_grill_intensity,
                     grill_anim_type: params.nacelle_grill_anim_type,
+                    grill_softness: params.nacelle_grill_softness,
+                    grill_base_glow: params.nacelle_grill_base_glow,
+                    grill_line_count: params.nacelle_grill_line_count,
                 }}
             />}
             {lowerNacelleGeos && <NacellePair 
@@ -457,6 +472,9 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                     grill_color3: params.nacelleLower_grill_color3,
                     grill_intensity: params.nacelleLower_grill_intensity,
                     grill_anim_type: params.nacelleLower_grill_anim_type,
+                    grill_softness: params.nacelleLower_grill_softness,
+                    grill_base_glow: params.nacelleLower_grill_base_glow,
+                    grill_line_count: params.nacelleLower_grill_line_count,
                 }}
             />}
         </>

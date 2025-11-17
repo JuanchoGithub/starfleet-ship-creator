@@ -301,6 +301,15 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         p.nacelle_texture_pennant_taper_end = rand(0.5, 1.5);
     }
 
+    // Randomize new grill params for all archetypes if grills happen to be on
+    p.nacelle_grill_softness = rand(0, 1);
+    p.nacelle_grill_base_glow = Math.random() > 0.7 ? rand(0, 2) : 0; // only sometimes
+    p.nacelle_grill_line_count = Math.floor(rand(20, 150));
+
+    p.nacelleLower_grill_softness = rand(0, 1);
+    p.nacelleLower_grill_base_glow = Math.random() > 0.7 ? rand(0, 2) : 0;
+    p.nacelleLower_grill_line_count = Math.floor(rand(20, 150));
+
     // FIX: Completed the implementation for all archetypes and ensured the function returns the generated parameters.
     return p;
 }
