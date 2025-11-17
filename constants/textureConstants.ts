@@ -18,6 +18,32 @@ export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
       texture_emissive_intensity: { label: "Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
     }
   },
+  "Engineering Hull Texturing": {
+    "General": {
+      engineering_texture_toggle: { label: "Enable", type: 'toggle' },
+      engineering_texture_seed: { label: "Seed", min: 1, max: 1000, step: 1, type: 'slider' },
+      engineering_texture_scale: { label: "Scale", min: 2, max: 20, step: 0.1, type: 'slider' },
+    },
+    "Panels": {
+      engineering_texture_panel_color_variation: { label: "Panel Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
+    },
+    "Windows": {
+      engineering_texture_window_density: { label: "Window Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      engineering_texture_lit_window_fraction: { label: "Lit Window Fraction", min: 0, max: 1, step: 0.01, type: 'slider' },
+      engineering_texture_window_bands: { label: "Window Bands", min: 0, max: 20, step: 1, type: 'slider' },
+      engineering_texture_window_color1: { label: "Window Color A", type: 'color' },
+      engineering_texture_window_color2: { label: "Window Color B", type: 'color' },
+      engineering_texture_emissive_intensity: { label: "Window Glow", min: 0, max: 10, step: 0.01, type: 'slider' },
+    },
+    "Registry Text": {
+        engineering_texture_registry_toggle: { label: "Enable", type: 'toggle' },
+        engineering_texture_registry_font_size: { label: "Font Size", min: 10, max: 150, step: 1, type: 'slider' },
+        engineering_texture_registry_text_color: { label: "Color", type: 'color' },
+        engineering_texture_registry_position_x: { label: "Position X", min: 0, max: 1, step: 0.01, type: 'slider' },
+        engineering_texture_registry_position_y: { label: "Position Y", min: 0, max: 1, step: 0.01, type: 'slider' },
+        engineering_texture_registry_rotation: { label: "Rotation", min: -180, max: 180, step: 1, type: 'slider' },
+    }
+  },
   "Saucer Texturing": {
     "General": {
       saucer_texture_toggle: { label: "Enable", type: 'toggle' },

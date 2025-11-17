@@ -296,6 +296,24 @@ export interface ShipParameters {
   texture_window_density: number;
   texture_emissive_intensity: number;
 
+  // Engineering Texturing
+  engineering_texture_toggle: boolean;
+  engineering_texture_seed: number;
+  engineering_texture_scale: number;
+  engineering_texture_panel_color_variation: number;
+  engineering_texture_window_density: number;
+  engineering_texture_lit_window_fraction: number;
+  engineering_texture_window_bands: number;
+  engineering_texture_window_color1: string;
+  engineering_texture_window_color2: string;
+  engineering_texture_emissive_intensity: number;
+  engineering_texture_registry_toggle: boolean;
+  engineering_texture_registry_font_size: number;
+  engineering_texture_registry_text_color: string;
+  engineering_texture_registry_position_x: number;
+  engineering_texture_registry_position_y: number;
+  engineering_texture_registry_rotation: number;
+
   // Saucer Texturing
   saucer_texture_toggle: boolean;
   saucer_texture_seed: number;

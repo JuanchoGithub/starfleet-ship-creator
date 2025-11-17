@@ -44,22 +44,26 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             engineeringPoints[engineeringPoints.length - 1].x *= dishRadius;
 
             // --- Create Geometries ---
-            const engGeo = new THREE.LatheGeometry(engineeringPoints, segments);
+            // We set phiStart to -PI/2 to place the texture seam (u=0) at the bottom centerline.
+            // This results in a more intuitive UV map: u=0.25 (starboard), u=0.5 (top), u=0.75 (port).
+            const engGeo = new THREE.LatheGeometry(engineeringPoints, segments, -Math.PI / 2);
             
-            // --- Apply Transformations in order: Scale -> Undercut -> Skew ---
+            // --- Apply Transformations ---
+            // The default UVs will be retained and will not be deformed by these operations.
             
-            // Scale (Width Ratio)
+            // 1. Scale (Width Ratio)
             engGeo.scale(widthRatio, 1.0, 1.0);
-
-            // "Undercut" (Bottom and Top Compression from aft)
+            
+            // 2. "Undercut" (Bottom and Top Compression from aft)
             if (undercut > 0 || topcut > 0) {
-                const positions = engGeo.attributes.position.array;
-                 for (let i = 0; i < positions.length; i += 3) {
-                    const y = positions[i + 1]; // Length axis
-                    const z = positions[i + 2]; // Vertical axis
+                const positionsArray = engGeo.attributes.position.array;
+                 for (let i = 0; i < positionsArray.length; i += 3) {
+                    const y = positionsArray[i + 1]; // Length axis
+                    const z = positionsArray[i + 2]; // Vertical axis
                     
                     if (length > 0 && width > 0) {
                       const yNormalized = y / length;
+                      // Normalize Z based on the original profile radius ('width'), not the scaled X-axis width.
                       const zNormalized = z / width;
 
                       // Bottom Undercut
@@ -67,7 +71,7 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
                           let progress = 1.0 + (yNormalized - (1.0 - undercutStart)) / (1.0 - undercutStart);
                           const compressionAmount = Math.pow(progress, undercutCurve) + (1.0 - undercut);
                           const compression = Math.min(1.0, compressionAmount);
-                          positions[i + 2] *= compression;
+                          positionsArray[i + 2] *= compression;
                       }
 
                       // Top Undercut
@@ -75,14 +79,14 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
                         let progress = 1.0 + (yNormalized - (1.0 - topcutStart)) / (1.0 - topcutStart);
                         const compressionAmount = Math.pow(progress, topcutCurve) + (1.0 - topcut);
                         const compression = Math.min(1.0, compressionAmount);
-                        positions[i + 2] *= compression;
+                        positionsArray[i + 2] *= compression;
                       }
                     }
                 }
                 engGeo.attributes.position.needsUpdate = true;
             }
 
-            // Skew
+            // 3. Skew
             const matrix = new THREE.Matrix4();
             // This is a shear of Y (length) by Z (vertical), creating a vertical sweep
             matrix.set(
@@ -93,6 +97,7 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             );
             engGeo.applyMatrix4(matrix);
             
+            // 4. Finalize
             engGeo.computeVertexNormals();
             geo = engGeo;
         }

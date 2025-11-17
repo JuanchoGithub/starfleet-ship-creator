@@ -12,6 +12,7 @@ import { Multiview } from './components/Multiview';
 import { generateTextures } from './components/TextureGenerator';
 import { generateSaucerTextures } from './components/SaucerTextureGenerator';
 import { generateNacelleTextures } from './components/NacelleTextureGenerator';
+import { generateEngineeringTextures } from './components/EngineeringTextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
 import { Archetype, generateShipParameters } from './randomizer';
 
@@ -175,6 +176,12 @@ const App: React.FC = () => {
     emissive: '#ffffff',
   }));
 
+  const [engineeringMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+  }));
+
   const [secondaryMaterial] = useState(() => new THREE.MeshStandardMaterial({
     color: '#cccccc',
     metalness: 0.8,
@@ -190,6 +197,7 @@ const App: React.FC = () => {
   const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
   const [isGeneratingSaucerTextures, setIsGeneratingSaucerTextures] = useState(false);
   const [isGeneratingNacelleTextures, setIsGeneratingNacelleTextures] = useState(false);
+  const [isGeneratingEngineeringTextures, setIsGeneratingEngineeringTextures] = useState(false);
 
   const handleGenerateTextures = useCallback(() => {
     setIsGeneratingTextures(true);
@@ -284,6 +292,49 @@ const App: React.FC = () => {
       params.saucer_texture_registry_toggle, params.saucer_texture_registry_text_color, params.saucer_texture_registry_font_size, params.saucer_texture_registry_angle, params.saucer_texture_registry_curve, params.saucer_texture_registry_orientation, params.saucer_texture_registry_distance,
       params.saucer_texture_bridge_registry_toggle, params.saucer_texture_bridge_registry_font_size,
       saucerMaterial, shipName
+  ]);
+
+  const handleGenerateEngineeringTextures = useCallback(() => {
+    setIsGeneratingEngineeringTextures(true);
+    setTimeout(() => {
+        const { map, normalMap, emissiveMap } = generateEngineeringTextures({
+            seed: params.engineering_texture_seed,
+            panelColorVariation: params.engineering_texture_panel_color_variation,
+            window_density: params.engineering_texture_window_density,
+            lit_window_fraction: params.engineering_texture_lit_window_fraction,
+            window_bands: params.engineering_texture_window_bands,
+            window_color1: params.engineering_texture_window_color1,
+            window_color2: params.engineering_texture_window_color2,
+            registry: params.ship_registry,
+            registry_toggle: params.engineering_texture_registry_toggle,
+            registry_color: params.engineering_texture_registry_text_color,
+            registry_font_size: params.engineering_texture_registry_font_size,
+            registry_position_x: params.engineering_texture_registry_position_x,
+            registry_position_y: params.engineering_texture_registry_position_y,
+            registry_rotation: params.engineering_texture_registry_rotation,
+        });
+
+        if (engineeringMaterial.map) engineeringMaterial.map.dispose();
+        if (engineeringMaterial.normalMap) engineeringMaterial.normalMap.dispose();
+        if (engineeringMaterial.emissiveMap) engineeringMaterial.emissiveMap.dispose();
+
+        engineeringMaterial.map = map;
+        engineeringMaterial.normalMap = normalMap;
+        engineeringMaterial.emissiveMap = emissiveMap;
+        engineeringMaterial.needsUpdate = true;
+        
+        setIsGeneratingEngineeringTextures(false);
+    }, 50);
+  }, [
+      params.engineering_texture_seed, params.engineering_texture_panel_color_variation,
+      params.engineering_texture_window_density, params.engineering_texture_lit_window_fraction,
+      params.engineering_texture_window_bands,
+      params.engineering_texture_window_color1, params.engineering_texture_window_color2,
+      params.ship_registry, params.engineering_texture_registry_toggle,
+      params.engineering_texture_registry_text_color, params.engineering_texture_registry_font_size,
+      params.engineering_texture_registry_position_x, params.engineering_texture_registry_position_y,
+      params.engineering_texture_registry_rotation,
+      engineeringMaterial
   ]);
 
   const handleGenerateNacelleTextures = useCallback(() => {
@@ -422,12 +473,51 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
+    if (params.engineering_texture_toggle) {
+        handleGenerateEngineeringTextures();
+    }
+  }, [
+    params.engineering_texture_toggle,
+    params.engineering_texture_seed,
+    params.engineering_texture_panel_color_variation,
+    params.engineering_texture_window_density,
+    params.engineering_texture_lit_window_fraction,
+    params.engineering_texture_window_bands,
+    params.engineering_texture_window_color1,
+    params.engineering_texture_window_color2,
+    params.ship_registry,
+    params.engineering_texture_registry_toggle,
+    params.engineering_texture_registry_text_color,
+    params.engineering_texture_registry_font_size,
+    params.engineering_texture_registry_position_x,
+    params.engineering_texture_registry_position_y,
+    params.engineering_texture_registry_rotation,
+    handleGenerateEngineeringTextures
+  ]);
+
+  useEffect(() => {
     const textureScale = params.texture_scale || 8;
     if (hullMaterial.map) hullMaterial.map.repeat.set(textureScale, textureScale);
     if (hullMaterial.normalMap) hullMaterial.normalMap.repeat.set(textureScale, textureScale);
     if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.repeat.set(textureScale, textureScale);
     if (secondaryMaterial.map) secondaryMaterial.map.repeat.set(textureScale, textureScale);
     if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.repeat.set(textureScale, textureScale);
+
+    const engTextureScale = params.engineering_texture_scale || 8;
+    const engTextureAspect = 2.0; // Height is 2x width
+    
+    if (engineeringMaterial.map) {
+        engineeringMaterial.map.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
+        engineeringMaterial.map.offset.set(0, 0);
+    }
+    if (engineeringMaterial.normalMap) {
+        engineeringMaterial.normalMap.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
+        engineeringMaterial.normalMap.offset.set(0, 0);
+    }
+    if (engineeringMaterial.emissiveMap) {
+        engineeringMaterial.emissiveMap.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
+        engineeringMaterial.emissiveMap.offset.set(0, 0);
+    }
 
     const nacelleTextureScale = params.nacelle_texture_scale || 8;
     const nacelleTextureAspect = 2.0; // Height is 2x width
@@ -437,10 +527,12 @@ const App: React.FC = () => {
 
     hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
     saucerMaterial.emissiveIntensity = params.saucer_texture_emissive_intensity;
+    engineeringMaterial.emissiveIntensity = params.engineering_texture_emissive_intensity;
     nacelleMaterial.emissiveIntensity = params.nacelle_texture_glow_intensity;
     
     // For emissive maps to work, the material's emissive color must be non-black.
     // We set it to white so the map's colors are used directly.
+    engineeringMaterial.emissive = new THREE.Color('#ffffff');
     nacelleMaterial.emissive = new THREE.Color('#ffffff');
 
     if (!params.texture_toggle) {
@@ -460,17 +552,24 @@ const App: React.FC = () => {
         nacelleMaterial.normalMap = null;
         nacelleMaterial.emissiveMap = null;
     }
+    if (!params.engineering_texture_toggle) {
+        engineeringMaterial.map = null;
+        engineeringMaterial.normalMap = null;
+        engineeringMaterial.emissiveMap = null;
+    }
 
     hullMaterial.needsUpdate = true;
     saucerMaterial.needsUpdate = true;
     secondaryMaterial.needsUpdate = true;
     nacelleMaterial.needsUpdate = true;
+    engineeringMaterial.needsUpdate = true;
 
   }, [
       params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, 
       params.saucer_texture_toggle, params.saucer_texture_emissive_intensity,
       params.nacelle_texture_toggle, params.nacelle_texture_scale, params.nacelle_texture_glow_intensity,
-      hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial
+      params.engineering_texture_toggle, params.engineering_texture_scale, params.engineering_texture_emissive_intensity,
+      hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial
   ]);
 
   useEffect(() => {
@@ -482,7 +581,9 @@ const App: React.FC = () => {
     secondaryMaterial.needsUpdate = true;
     (nacelleMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     nacelleMaterial.needsUpdate = true;
-  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial]);
+    (engineeringMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    engineeringMaterial.needsUpdate = true;
+  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial]);
 
   useEffect(() => {
     try {
@@ -812,10 +913,11 @@ const App: React.FC = () => {
             secondaryMaterial={secondaryMaterial}
             saucerMaterial={saucerMaterial}
             nacelleMaterial={nacelleMaterial}
+            engineeringMaterial={engineeringMaterial}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} lightParams={lightParams} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} engineeringMaterial={engineeringMaterial} lightParams={lightParams} />
         <div className="absolute bottom-4 right-4 text-right text-white p-2 bg-black/30 rounded-md pointer-events-none">
           <h1 className="text-2xl tracking-wider uppercase">{shipName.replace('*', '')}</h1>
           {params.ship_registry && <h2 className="text-md tracking-wider">{params.ship_registry}</h2>}
@@ -955,6 +1057,19 @@ const App: React.FC = () => {
                   </button>
               </div>
               <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+
+              <div className="p-3 space-y-3 border-t border-space-light">
+                  <p className="text-sm text-mid-gray">Customize the procedural texture for the engineering hull.</p>
+                  <button 
+                      onClick={handleGenerateEngineeringTextures} 
+                      disabled={isGeneratingEngineeringTextures}
+                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
+                  >
+                      <SparklesIcon className='w-5 h-5' />
+                      {isGeneratingEngineeringTextures ? 'Generating...' : 'Generate Engineering Textures'}
+                  </button>
+              </div>
+              <ControlGroup groupName="Engineering Hull Texturing" configs={TEXTURE_PARAM_CONFIG["Engineering Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
 
               <div className="p-3 space-y-3 border-t border-space-light">
                   <p className="text-sm text-mid-gray">Customize the procedural texture for the warp nacelles.</p>

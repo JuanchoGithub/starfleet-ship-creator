@@ -20,6 +20,7 @@ interface SceneProps {
   secondaryMaterial: THREE.Material;
   nacelleMaterial: THREE.Material;
   saucerMaterial: THREE.Material;
+  engineeringMaterial: THREE.Material;
   lightParams: LightParameters;
 }
 
@@ -51,7 +52,7 @@ const Effects: React.FC<{ lightParams: LightParameters }> = ({ lightParams }) =>
     return null;
 }
 
-const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, saucerMaterial, nacelleMaterial, lightParams }) => {
+const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial, secondaryMaterial, saucerMaterial, engineeringMaterial, nacelleMaterial, lightParams }) => {
     const { controls, gl, scene, camera } = useThree();
     const [isInteracting, setIsInteracting] = useState(false);
     const nebulaRef = useRef<THREE.Mesh>(null!);
@@ -159,7 +160,7 @@ const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
                 <Stars radius={200} depth={50} count={10000} factor={6} saturation={0} fade speed={1} />
             )}
             
-            <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} saucerMaterial={saucerMaterial} />
+            <Ship shipParams={shipParams} ref={shipRef} material={hullMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} saucerMaterial={saucerMaterial} engineeringMaterial={engineeringMaterial} />
             
             <OrbitControls 
             enableDamping 
