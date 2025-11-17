@@ -140,13 +140,34 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelle_radius: { label: "Radius", min: 0.5, max: 4, step: 0.01, type: 'slider' },
       nacelle_widthRatio: { label: "Width Ratio", min: 0.1, max: 2, step: 0.01, type: 'slider' },
     },
-      "Shape": {
-      nacelle_foreTaper: { label: "Taper (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
-      nacelle_aftTaper: { label: "Taper (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+    "Shape": {
+      nacelle_foreTaper: { label: "Taper (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelle_aftTaper: { label: "Taper (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelle_foreCurve: { label: "Curve (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelle_aftCurve: { label: "Curve (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
       nacelle_rotation: { label: "Rotation", min: -Math.PI / 2, max: Math.PI / 2, step: 0.01, type: 'slider' },
-      nacelle_skew: { label: "Skew", min: -5, max: 5, step: 0.01, type: 'slider' },
-      nacelle_undercut: { label: "Undercut", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelle_undercutStart: { label: "Undercut Start", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_skew: { label: "Vertical Skew", min: -5, max: 5, step: 0.01, type: 'slider' },
+      nacelle_slant: { label: "Horizontal Slant", min: -1, max: 1, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Top)": {
+      nacelle_undercut_top: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_top_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_top_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Bottom)": {
+      nacelle_undercut_bottom: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_bottom_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_bottom_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Inward)": {
+      nacelle_undercut_inward: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_inward_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_inward_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Outward)": {
+      nacelle_undercut_outward: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_outward_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelle_undercut_outward_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
     }
   },
   "Bussard Collectors (Upper)": {
@@ -176,12 +197,12 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelle_grill_toggle: { label: "Enable", type: 'toggle' },
     },
     "Shape": {
-      nacelle_grill_length: { label: "Length", min: 0, max: 2, step: 0.01, type: 'slider' },
-      nacelle_grill_width: { label: "Width", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelle_grill_vertical_offset: { label: "Vertical Offset", min: -10, max: 10, step: 0.1, type: 'slider' },
+      nacelle_grill_length: { label: "Length", min: 0, max: 2, step: 0.005, type: 'slider' },
+      nacelle_grill_width: { label: "Width", min: 0, max: 1, step: 0.005, type: 'slider' },
+      nacelle_grill_vertical_offset: { label: "Vertical Offset", min: -10, max: 10, step: 0.05, type: 'slider' },
       nacelle_grill_rotation: { label: "Rotation", min: -Math.PI, max: Math.PI, step: 0.01, type: 'slider' },
-      nacelle_grill_rounding: { label: "Rounding", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelle_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.01, type: 'slider' },
+      nacelle_grill_rounding: { label: "Rounding", min: 0, max: 1, step: 0.005, type: 'slider' },
+      nacelle_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.005, type: 'slider' },
     },
     "Animation & Glow": {
       nacelle_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls'] },
@@ -233,12 +254,33 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelleLower_widthRatio: { label: "Width Ratio", min: 0.5, max: 2, step: 0.01, type: 'slider' },
     },
     "Shape": {
-      nacelleLower_foreTaper: { label: "Taper (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
-      nacelleLower_aftTaper: { label: "Taper (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelleLower_foreTaper: { label: "Taper (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelleLower_aftTaper: { label: "Taper (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelleLower_foreCurve: { label: "Curve (Fore)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
+      nacelleLower_aftCurve: { label: "Curve (Aft)", min: 0.1, max: 3, step: 0.01, type: 'slider' },
       nacelleLower_rotation: { label: "Rotation", min: -Math.PI / 2, max: Math.PI / 2, step: 0.01, type: 'slider' },
-      nacelleLower_skew: { label: "Skew", min: -5, max: 5, step: 0.01, type: 'slider' },
-      nacelleLower_undercut: { label: "Undercut", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelleLower_undercutStart: { label: "Undercut Start", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_skew: { label: "Vertical Skew", min: -5, max: 5, step: 0.01, type: 'slider' },
+      nacelleLower_slant: { label: "Horizontal Slant", min: -1, max: 1, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Top)": {
+      nacelleLower_undercut_top: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_top_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_top_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Bottom)": {
+      nacelleLower_undercut_bottom: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_bottom_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_bottom_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Inward)": {
+      nacelleLower_undercut_inward: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_inward_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_inward_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
+    },
+    "Undercut (Outward)": {
+      nacelleLower_undercut_outward: { label: "Amount", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_outward_start: { label: "Start Position", min: 0, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_undercut_outward_curve: { label: "Curve", min: 0.1, max: 8, step: 0.01, type: 'slider' },
     }
   },
   "Bussard Collectors (Lower)": {
@@ -268,12 +310,12 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       nacelleLower_grill_toggle: { label: "Enable", type: 'toggle' },
     },
     "Shape": {
-      nacelleLower_grill_length: { label: "Length", min: 0, max: 2, step: 0.01, type: 'slider' },
-      nacelleLower_grill_width: { label: "Width", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelleLower_grill_vertical_offset: { label: "Vertical Offset", min: -10, max: 10, step: 0.1, type: 'slider' },
+      nacelleLower_grill_length: { label: "Length", min: 0, max: 2, step: 0.005, type: 'slider' },
+      nacelleLower_grill_width: { label: "Width", min: 0, max: 1, step: 0.005, type: 'slider' },
+      nacelleLower_grill_vertical_offset: { label: "Vertical Offset", min: -10, max: 10, step: 0.05, type: 'slider' },
       nacelleLower_grill_rotation: { label: "Rotation", min: -Math.PI, max: Math.PI, step: 0.01, type: 'slider' },
-      nacelleLower_grill_rounding: { label: "Rounding", min: 0, max: 1, step: 0.01, type: 'slider' },
-      nacelleLower_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.01, type: 'slider' },
+      nacelleLower_grill_rounding: { label: "Rounding", min: 0, max: 1, step: 0.005, type: 'slider' },
+      nacelleLower_grill_skew: { label: "Skew", min: -1, max: 1, step: 0.005, type: 'slider' },
     },
     "Animation & Glow": {
       nacelleLower_grill_anim_type: { label: 'Animation', type: 'select', options: ['Flow', 'Pulse', 'Plasma Balls'] },

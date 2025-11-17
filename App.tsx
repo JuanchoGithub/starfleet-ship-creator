@@ -32,6 +32,10 @@ const renderControl = (
     params: ShipParameters | LightParameters, 
     onParamChange: (key: any, value: any) => void
 ) => {
+    if (!config) {
+        console.warn(`Configuration for parameter "${key}" is missing.`);
+        return null;
+    }
     const paramKey = key as keyof (ShipParameters & LightParameters);
     const value = params[paramKey];
 
@@ -755,6 +759,43 @@ const App: React.FC = () => {
     );
   };
 
+  const renderGrillControls = (prefix: 'nacelle' | 'nacelleLower') => {
+    const animType = params[`${prefix}_grill_anim_type`];
+    const grillConfigGroup = PARAM_CONFIG[`Warp Grills (${prefix === 'nacelle' ? 'Upper' : 'Lower'})`] as SubParamGroup;
+    
+    if (!grillConfigGroup) return null;
+    
+    const generalConfigs = grillConfigGroup['General'];
+    const shapeConfigs = grillConfigGroup['Shape'];
+    const animConfigs = grillConfigGroup['Animation & Glow'];
+
+    if (!generalConfigs || !shapeConfigs || !animConfigs) return null;
+
+    return (
+        <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3">General</h4>
+            {renderControl(`${prefix}_grill_toggle`, generalConfigs[`${prefix}_grill_toggle`], params, handleParamChange)}
+            <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Shape</h4>
+            {Object.entries(shapeConfigs).map(([key, config]) => renderControl(key, config, params, handleParamChange))}
+            <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Animation & Glow</h4>
+            {renderControl(`${prefix}_grill_anim_type`, animConfigs[`${prefix}_grill_anim_type`], params, handleParamChange)}
+            {renderControl(`${prefix}_grill_color1`, animConfigs[`${prefix}_grill_color1`], params, handleParamChange)}
+            {renderControl(`${prefix}_grill_color2`, animConfigs[`${prefix}_grill_color2`], params, handleParamChange)}
+            {renderControl(`${prefix}_grill_color3`, animConfigs[`${prefix}_grill_color3`], params, handleParamChange)}
+            {renderControl(`${prefix}_grill_intensity`, animConfigs[`${prefix}_grill_intensity`], params, handleParamChange)}
+            {renderControl(`${prefix}_grill_animSpeed`, animConfigs[`${prefix}_grill_animSpeed`], params, handleParamChange)}
+
+            {animType === 'Flow' && (
+                <>
+                    {renderControl(`${prefix}_grill_softness`, animConfigs[`${prefix}_grill_softness`], params, handleParamChange)}
+                    {renderControl(`${prefix}_grill_base_glow`, animConfigs[`${prefix}_grill_base_glow`], params, handleParamChange)}
+                    {renderControl(`${prefix}_grill_line_count`, animConfigs[`${prefix}_grill_line_count`], params, handleParamChange)}
+                </>
+            )}
+        </div>
+    );
+  }
+
   return (
     <div className="w-full h-screen flex flex-col md:flex-row bg-space-dark relative">
       {isMultiviewOpen && (
@@ -953,7 +994,9 @@ const App: React.FC = () => {
                 <Accordion title="Bussard Collectors (Upper)" defaultOpen={false}>
                     {renderBussardControls('nacelle')}
                 </Accordion>
-                <ControlGroup groupName="Warp Grills (Upper)" configs={PARAM_CONFIG["Warp Grills (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <Accordion title="Warp Grills (Upper)" defaultOpen={false}>
+                    {renderGrillControls('nacelle')}
+                </Accordion>
                 <ControlGroup groupName="Pylons (Upper)" configs={PARAM_CONFIG["Pylons (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
             
@@ -962,7 +1005,9 @@ const App: React.FC = () => {
                  <Accordion title="Bussard Collectors (Lower)" defaultOpen={false}>
                     {renderBussardControls('nacelleLower')}
                 </Accordion>
-                <ControlGroup groupName="Warp Grills (Lower)" configs={PARAM_CONFIG["Warp Grills (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <Accordion title="Warp Grills (Lower)" defaultOpen={false}>
+                    {renderGrillControls('nacelleLower')}
+                </Accordion>
                 <ControlGroup groupName="Lower Boom" configs={PARAM_CONFIG["Lower Boom"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Pylons (Lower)" configs={PARAM_CONFIG["Pylons (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>

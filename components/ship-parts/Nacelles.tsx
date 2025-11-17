@@ -110,7 +110,7 @@ interface NacelleAssemblyProps {
 const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored, assemblyParams, material, grillMaterial }) => {
     
     useFrame(({ clock }) => {
-        if (grillMaterial?.uniforms) {
+        if (assemblyParams.grill_toggle && grillMaterial?.uniforms) {
             grillMaterial.uniforms.uTime.value = clock.getElapsedTime();
             grillMaterial.uniforms.uAnimSpeed.value = assemblyParams.grill_animSpeed * (mirrored ? -1 : 1);
             grillMaterial.uniforms.uColor1.value.set(assemblyParams.grill_color1);
@@ -126,7 +126,13 @@ const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored,
 
     return (
         <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
-            <mesh name="Nacelle_Body" geometry={nacelleGeo} material={[material, grillMaterial]} castShadow receiveShadow />
+            <mesh 
+                name="Nacelle_Body" 
+                geometry={nacelleGeo} 
+                material={assemblyParams.grill_toggle ? [material, grillMaterial] : material} 
+                castShadow 
+                receiveShadow 
+            />
             <group name="Bussard_Collector" position={[0, assemblyParams.bussardYOffset, assemblyParams.bussardZOffset]}>
                 <BussardCollector params={assemblyParams} material={material} mirrored={mirrored} />
             </group>
@@ -185,24 +191,27 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
 export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Material }> = ({ params, material }) => {
 
     const generateNacelleGeometries = (
-        length: number, radius: number, widthRatio: number, foreTaper: number, aftTaper: number, segments: number, skew: number, undercut: number, undercutStart: number,
-        grillParams: {
-            toggle: boolean,
-            length: number,
-            width: number,
-            vertical_offset: number,
-            rotation: number,
-            rounding: number,
-            skew: number,
-        }
+        nacelleParams: any, grillParams: any
     ) => {
+        const {
+            length, radius, widthRatio, foreTaper, aftTaper, foreCurve, aftCurve,
+            segments, skew, slant,
+            undercut_top, undercut_top_start, undercut_top_curve,
+            undercut_bottom, undercut_bottom_start, undercut_bottom_curve,
+            undercut_inward, undercut_inward_start, undercut_inward_curve,
+            undercut_outward, undercut_outward_start, undercut_outward_curve,
+        } = nacelleParams;
+
         const nacellePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
         const pointCount = 40;
         for (let i = 0; i <= pointCount; i++) {
             const p = i / pointCount;
             const taper = THREE.MathUtils.lerp(foreTaper, aftTaper, p);
+            const shapePower = THREE.MathUtils.lerp(aftCurve, foreCurve, p);
+            const shape = Math.pow(Math.sin(p * Math.PI / 2), shapePower) * 0.5 + 0.5;
+
             nacellePoints.push(new THREE.Vector2(
-                (Math.sin(p * Math.PI / 2) * 0.5 + 0.5) * radius * taper, 
+                shape * radius * taper, 
                 p * length
             ));
         }
@@ -212,26 +221,54 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
         
         nacelleGeo.scale(widthRatio, 1, 1);
 
-        const applySharedDeformations = (geo: THREE.BufferGeometry) => {
-            const vertices = geo.attributes.position.array;
-            for (let i = 0; i < vertices.length; i += 3) {
-                const absoluteY = vertices[i + 1];
-                const z = vertices[i + 2];
-                
-                vertices[i + 2] += absoluteY * skew;
-                const startPos = length * undercutStart;
-                if (z < -0.01 && absoluteY <= startPos && undercut > 0 && startPos > 0.01) {
-                    const progress = (startPos - absoluteY) / startPos;
-                    const curveFactor = Math.sin(progress * Math.PI / 2);
-                    const undercutEffect = undercut * curveFactor;
-                    vertices[i + 2] *= (1.0 - undercutEffect);
-                }
+        // --- Apply Deformations ---
+        const positions = nacelleGeo.attributes.position.array;
+        for (let i = 0; i < positions.length / 3; i++) {
+            const x_orig = positions[i * 3];
+            const y_orig = positions[i * 3 + 1]; // Length axis
+            const z_orig = positions[i * 3 + 2];
+            
+            let newX = x_orig;
+            let newZ = z_orig;
+    
+            // Vertical Skew
+            newZ += y_orig * skew;
+            // Horizontal Slant
+            newX += y_orig * slant;
+    
+            const progress = y_orig / length;
+    
+            // Undercuts
+            // Top (+Z in local space)
+            if (z_orig > 0 && undercut_top > 0 && progress >= undercut_top_start) {
+                const p = (progress - undercut_top_start) / (1 - undercut_top_start);
+                const scale = 1.0 - (Math.pow(p, undercut_top_curve) * undercut_top);
+                newZ *= scale;
             }
-            geo.attributes.position.needsUpdate = true;
-            geo.computeVertexNormals();
+            // Bottom (-Z)
+            if (z_orig < 0 && undercut_bottom > 0 && progress >= undercut_bottom_start) {
+                 const p = (progress - undercut_bottom_start) / (1 - undercut_bottom_start);
+                const scale = 1.0 - (Math.pow(p, undercut_bottom_curve) * undercut_bottom);
+                newZ *= scale;
+            }
+            // Inward (-X, for starboard nacelle)
+            if (x_orig < 0 && undercut_inward > 0 && progress >= undercut_inward_start) {
+                 const p = (progress - undercut_inward_start) / (1 - undercut_inward_start);
+                const scale = 1.0 - (Math.pow(p, undercut_inward_curve) * undercut_inward);
+                newX *= scale;
+            }
+            // Outward (+X)
+             if (x_orig > 0 && undercut_outward > 0 && progress >= undercut_outward_start) {
+                 const p = (progress - undercut_outward_start) / (1 - undercut_outward_start);
+                const scale = 1.0 - (Math.pow(p, undercut_outward_curve) * undercut_outward);
+                newX *= scale;
+            }
+    
+            positions[i * 3] = newX;
+            positions[i * 3 + 2] = newZ;
         }
-
-        applySharedDeformations(nacelleGeo);
+        nacelleGeo.attributes.position.needsUpdate = true;
+        nacelleGeo.computeVertexNormals();
 
         if (grillParams.toggle) {
             nacelleGeo.clearGroups();
@@ -326,10 +363,16 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
     const upperNacelleGeos = useMemo(() => {
         if (!params.nacelle_toggle) return null;
         const { nacelleGeo: starboardGeo } = generateNacelleGeometries(
-            params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio,
-            params.nacelle_foreTaper, params.nacelle_aftTaper,
-            params.nacelle_segments,
-            params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
+            {
+                length: params.nacelle_length, radius: params.nacelle_radius, widthRatio: params.nacelle_widthRatio,
+                foreTaper: params.nacelle_foreTaper, aftTaper: params.nacelle_aftTaper,
+                foreCurve: params.nacelle_foreCurve, aftCurve: params.nacelle_aftCurve,
+                segments: params.nacelle_segments, skew: params.nacelle_skew, slant: params.nacelle_slant,
+                undercut_top: params.nacelle_undercut_top, undercut_top_start: params.nacelle_undercut_top_start, undercut_top_curve: params.nacelle_undercut_top_curve,
+                undercut_bottom: params.nacelle_undercut_bottom, undercut_bottom_start: params.nacelle_undercut_bottom_start, undercut_bottom_curve: params.nacelle_undercut_bottom_curve,
+                undercut_inward: params.nacelle_undercut_inward, undercut_inward_start: params.nacelle_undercut_inward_start, undercut_inward_curve: params.nacelle_undercut_inward_curve,
+                undercut_outward: params.nacelle_undercut_outward, undercut_outward_start: params.nacelle_undercut_outward_start, undercut_outward_curve: params.nacelle_undercut_outward_curve,
+            },
             {
                 toggle: params.nacelle_grill_toggle,
                 length: params.nacelle_grill_length,
@@ -351,7 +394,11 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
         return { portGeo, starboardGeo };
     }, [
         params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, 
-        params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
+        params.nacelle_foreCurve, params.nacelle_aftCurve, params.nacelle_segments, params.nacelle_skew, params.nacelle_slant,
+        params.nacelle_undercut_top, params.nacelle_undercut_top_start, params.nacelle_undercut_top_curve,
+        params.nacelle_undercut_bottom, params.nacelle_undercut_bottom_start, params.nacelle_undercut_bottom_curve,
+        params.nacelle_undercut_inward, params.nacelle_undercut_inward_start, params.nacelle_undercut_inward_curve,
+        params.nacelle_undercut_outward, params.nacelle_undercut_outward_start, params.nacelle_undercut_outward_curve,
         params.nacelle_grill_toggle, params.nacelle_grill_length, params.nacelle_grill_width, params.nacelle_grill_vertical_offset, params.nacelle_grill_rotation,
         params.nacelle_grill_rounding, params.nacelle_grill_skew
     ]);
@@ -359,10 +406,16 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
     const lowerNacelleGeos = useMemo(() => {
         if (!params.nacelleLower_toggle) return null;
         const { nacelleGeo: starboardGeo } = generateNacelleGeometries(
-            params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio,
-            params.nacelleLower_foreTaper, params.nacelleLower_aftTaper,
-            params.nacelleLower_segments,
-            params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
+            {
+                length: params.nacelleLower_length, radius: params.nacelleLower_radius, widthRatio: params.nacelleLower_widthRatio,
+                foreTaper: params.nacelleLower_foreTaper, aftTaper: params.nacelleLower_aftTaper,
+                foreCurve: params.nacelleLower_foreCurve, aftCurve: params.nacelleLower_aftCurve,
+                segments: params.nacelleLower_segments, skew: params.nacelleLower_skew, slant: params.nacelleLower_slant,
+                undercut_top: params.nacelleLower_undercut_top, undercut_top_start: params.nacelleLower_undercut_top_start, undercut_top_curve: params.nacelleLower_undercut_top_curve,
+                undercut_bottom: params.nacelleLower_undercut_bottom, undercut_bottom_start: params.nacelleLower_undercut_bottom_start, undercut_bottom_curve: params.nacelleLower_undercut_bottom_curve,
+                undercut_inward: params.nacelleLower_undercut_inward, undercut_inward_start: params.nacelleLower_undercut_inward_start, undercut_inward_curve: params.nacelleLower_undercut_inward_curve,
+                undercut_outward: params.nacelleLower_undercut_outward, undercut_outward_start: params.nacelleLower_undercut_outward_start, undercut_outward_curve: params.nacelleLower_undercut_outward_curve,
+            },
             {
                 toggle: params.nacelleLower_grill_toggle,
                 length: params.nacelleLower_grill_length,
@@ -384,7 +437,11 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
         return { portGeo, starboardGeo };
     }, [
         params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, 
-        params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
+        params.nacelleLower_aftTaper, params.nacelleLower_foreCurve, params.nacelleLower_aftCurve, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_slant,
+        params.nacelleLower_undercut_top, params.nacelleLower_undercut_top_start, params.nacelleLower_undercut_top_curve,
+        params.nacelleLower_undercut_bottom, params.nacelleLower_undercut_bottom_start, params.nacelleLower_undercut_bottom_curve,
+        params.nacelleLower_undercut_inward, params.nacelleLower_undercut_inward_start, params.nacelleLower_undercut_inward_curve,
+        params.nacelleLower_undercut_outward, params.nacelleLower_undercut_outward_start, params.nacelleLower_undercut_outward_curve,
         params.nacelleLower_grill_toggle, params.nacelleLower_grill_length, params.nacelleLower_grill_width, params.nacelleLower_grill_vertical_offset, params.nacelleLower_grill_rotation,
         params.nacelleLower_grill_rounding, params.nacelleLower_grill_skew
     ]);
