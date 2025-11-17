@@ -300,6 +300,7 @@ export interface ShipParameters {
   engineering_texture_toggle: boolean;
   engineering_texture_seed: number;
   engineering_texture_scale: number;
+  engineering_texture_rotation_offset: number;
   engineering_texture_panel_color_variation: number;
   engineering_texture_window_density: number;
   engineering_texture_lit_window_fraction: number;

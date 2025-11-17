@@ -549,15 +549,15 @@ const App: React.FC = () => {
     
     if (engineeringMaterial.map) {
         engineeringMaterial.map.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
-        engineeringMaterial.map.offset.set(0, 0);
+        engineeringMaterial.map.offset.set(params.engineering_texture_rotation_offset || 0, 0);
     }
     if (engineeringMaterial.normalMap) {
         engineeringMaterial.normalMap.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
-        engineeringMaterial.normalMap.offset.set(0, 0);
+        engineeringMaterial.normalMap.offset.set(params.engineering_texture_rotation_offset || 0, 0);
     }
     if (engineeringMaterial.emissiveMap) {
         engineeringMaterial.emissiveMap.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
-        engineeringMaterial.emissiveMap.offset.set(0, 0);
+        engineeringMaterial.emissiveMap.offset.set(params.engineering_texture_rotation_offset || 0, 0);
     }
 
     const nacelleTextureScale = params.nacelle_texture_scale || 8;
@@ -610,6 +610,7 @@ const App: React.FC = () => {
       params.saucer_texture_toggle, params.saucer_texture_emissive_intensity,
       params.nacelle_texture_toggle, params.nacelle_texture_scale, params.nacelle_texture_glow_intensity,
       params.engineering_texture_toggle, params.engineering_texture_scale, params.engineering_texture_emissive_intensity,
+      params.engineering_texture_rotation_offset,
       hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial
   ]);
 

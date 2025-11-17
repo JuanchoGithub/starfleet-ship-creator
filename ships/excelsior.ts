@@ -14,6 +14,7 @@ export const excelsiorClassShip: ShipParameters = {
   "engineering_texture_toggle": true,
   "engineering_texture_seed": 101,
   "engineering_texture_scale": 1,
+  "engineering_texture_rotation_offset": 0,
   "engineering_texture_panel_color_variation": 0.05,
   "engineering_texture_window_density": 0.5,
   "engineering_texture_lit_window_fraction": 0.2,

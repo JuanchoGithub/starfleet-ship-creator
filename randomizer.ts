@@ -282,6 +282,7 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         // Texture Scales
         p.texture_scale = rand(0.5, 8);
         p.engineering_texture_scale = rand(0.5, 8);
+        p.engineering_texture_rotation_offset = rand(0, 1);
 
         // Nacelle Texturing
         p.nacelle_texture_toggle = Math.random() > 0.3;
