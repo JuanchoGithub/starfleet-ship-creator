@@ -310,9 +310,27 @@ export interface ShipParameters {
   engineering_texture_registry_toggle: boolean;
   engineering_texture_registry_font_size: number;
   engineering_texture_registry_text_color: string;
-  engineering_texture_registry_position_x: number;
+  engineering_texture_registry_sides: 'Outward' | 'Inward' | 'Both';
   engineering_texture_registry_position_y: number;
   engineering_texture_registry_rotation: number;
+
+  // Engineering Pennant & Delta
+  engineering_texture_pennant_toggle: boolean;
+  engineering_texture_pennant_color: string;
+  engineering_texture_pennant_length: number;
+  engineering_texture_pennant_group_width: number;
+  engineering_texture_pennant_line_width: number;
+  engineering_texture_pennant_line_count: number;
+  engineering_texture_pennant_taper_start: number;
+  engineering_texture_pennant_taper_end: number;
+  engineering_texture_pennant_sides: 'Outward' | 'Inward' | 'Both';
+  engineering_texture_pennant_position: number;
+  engineering_texture_pennant_rotation: number;
+  engineering_texture_pennant_glow_intensity: number;
+  engineering_texture_delta_toggle: boolean;
+  engineering_texture_delta_position: number;
+  engineering_texture_delta_glow_intensity: number;
+  engineering_texture_pennant_reflection: number;
 
   // Saucer Texturing
   saucer_texture_toggle: boolean;

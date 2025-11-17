@@ -309,9 +309,25 @@ const App: React.FC = () => {
             registry_toggle: params.engineering_texture_registry_toggle,
             registry_color: params.engineering_texture_registry_text_color,
             registry_font_size: params.engineering_texture_registry_font_size,
-            registry_position_x: params.engineering_texture_registry_position_x,
+            registry_sides: params.engineering_texture_registry_sides,
             registry_position_y: params.engineering_texture_registry_position_y,
             registry_rotation: params.engineering_texture_registry_rotation,
+            pennant_toggle: params.engineering_texture_pennant_toggle,
+            pennant_color: params.engineering_texture_pennant_color,
+            pennant_length: params.engineering_texture_pennant_length,
+            pennant_group_width: params.engineering_texture_pennant_group_width,
+            pennant_line_width: params.engineering_texture_pennant_line_width,
+            pennant_line_count: params.engineering_texture_pennant_line_count,
+            pennant_taper_start: params.engineering_texture_pennant_taper_start,
+            pennant_taper_end: params.engineering_texture_pennant_taper_end,
+            pennant_sides: params.engineering_texture_pennant_sides,
+            pennant_position: params.engineering_texture_pennant_position,
+            pennant_rotation: params.engineering_texture_pennant_rotation,
+            pennant_glow_intensity: params.engineering_texture_pennant_glow_intensity,
+            delta_toggle: params.engineering_texture_delta_toggle,
+            delta_position: params.engineering_texture_delta_position,
+            delta_glow_intensity: params.engineering_texture_delta_glow_intensity,
+            pennant_reflection: params.engineering_texture_pennant_reflection,
         });
 
         if (engineeringMaterial.map) engineeringMaterial.map.dispose();
@@ -332,8 +348,17 @@ const App: React.FC = () => {
       params.engineering_texture_window_color1, params.engineering_texture_window_color2,
       params.ship_registry, params.engineering_texture_registry_toggle,
       params.engineering_texture_registry_text_color, params.engineering_texture_registry_font_size,
-      params.engineering_texture_registry_position_x, params.engineering_texture_registry_position_y,
+      params.engineering_texture_registry_sides, params.engineering_texture_registry_position_y,
       params.engineering_texture_registry_rotation,
+      params.engineering_texture_pennant_toggle, params.engineering_texture_pennant_color,
+      params.engineering_texture_pennant_length, params.engineering_texture_pennant_group_width,
+      params.engineering_texture_pennant_line_width, params.engineering_texture_pennant_line_count,
+      params.engineering_texture_pennant_taper_start, params.engineering_texture_pennant_taper_end,
+      params.engineering_texture_pennant_sides, params.engineering_texture_pennant_position,
+      params.engineering_texture_pennant_rotation, params.engineering_texture_pennant_glow_intensity,
+      params.engineering_texture_delta_toggle, params.engineering_texture_delta_position, 
+      params.engineering_texture_delta_glow_intensity,
+      params.engineering_texture_pennant_reflection,
       engineeringMaterial
   ]);
 
@@ -489,9 +514,25 @@ const App: React.FC = () => {
     params.engineering_texture_registry_toggle,
     params.engineering_texture_registry_text_color,
     params.engineering_texture_registry_font_size,
-    params.engineering_texture_registry_position_x,
+    params.engineering_texture_registry_sides,
     params.engineering_texture_registry_position_y,
     params.engineering_texture_registry_rotation,
+    params.engineering_texture_pennant_toggle,
+    params.engineering_texture_pennant_color,
+    params.engineering_texture_pennant_length,
+    params.engineering_texture_pennant_group_width,
+    params.engineering_texture_pennant_line_width,
+    params.engineering_texture_pennant_line_count,
+    params.engineering_texture_pennant_taper_start,
+    params.engineering_texture_pennant_taper_end,
+    params.engineering_texture_pennant_sides,
+    params.engineering_texture_pennant_position,
+    params.engineering_texture_pennant_rotation,
+    params.engineering_texture_pennant_glow_intensity,
+    params.engineering_texture_delta_toggle,
+    params.engineering_texture_delta_position,
+    params.engineering_texture_delta_glow_intensity,
+    params.engineering_texture_pennant_reflection,
     handleGenerateEngineeringTextures
   ]);
 
@@ -1045,56 +1086,9 @@ const App: React.FC = () => {
             </Accordion>
 
             <Accordion title="Textures">
-              <div className="p-3 space-y-3 border-b border-space-light">
-                  <p className="text-sm text-mid-gray">Use the controls in the "Saucer Texturing" panel below to customize the saucer's detailed texture, then click here to apply it.</p>
-                  <button 
-                      onClick={handleGenerateSaucerTextures} 
-                      disabled={isGeneratingSaucerTextures}
-                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
-                  >
-                      <SparklesIcon className='w-5 h-5' />
-                      {isGeneratingSaucerTextures ? 'Generating...' : 'Generate Saucer Textures'}
-                  </button>
-              </div>
               <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
-
-              <div className="p-3 space-y-3 border-t border-space-light">
-                  <p className="text-sm text-mid-gray">Customize the procedural texture for the engineering hull.</p>
-                  <button 
-                      onClick={handleGenerateEngineeringTextures} 
-                      disabled={isGeneratingEngineeringTextures}
-                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
-                  >
-                      <SparklesIcon className='w-5 h-5' />
-                      {isGeneratingEngineeringTextures ? 'Generating...' : 'Generate Engineering Textures'}
-                  </button>
-              </div>
               <ControlGroup groupName="Engineering Hull Texturing" configs={TEXTURE_PARAM_CONFIG["Engineering Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
-
-              <div className="p-3 space-y-3 border-t border-space-light">
-                  <p className="text-sm text-mid-gray">Customize the procedural texture for the warp nacelles.</p>
-                  <button 
-                      onClick={handleGenerateNacelleTextures} 
-                      disabled={isGeneratingNacelleTextures}
-                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
-                  >
-                      <SparklesIcon className='w-5 h-5' />
-                      {isGeneratingNacelleTextures ? 'Generating...' : 'Generate Nacelle Textures'}
-                  </button>
-              </div>
               <ControlGroup groupName="Nacelle Texturing" configs={TEXTURE_PARAM_CONFIG["Nacelle Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
-
-              <div className="p-3 space-y-3 border-t border-space-light">
-                  <p className="text-sm text-mid-gray">Use the controls in the "General Hull Texturing" panel below to customize the texture for other ship sections, then click here to apply it.</p>
-                  <button 
-                      onClick={handleGenerateTextures} 
-                      disabled={isGeneratingTextures}
-                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
-                  >
-                      <SparklesIcon className='w-5 h-5' />
-                      {isGeneratingTextures ? 'Generating...' : 'Generate General Textures'}
-                  </button>
-              </div>
               <ControlGroup groupName="General Hull Texturing" configs={TEXTURE_PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} />
             </Accordion>
             

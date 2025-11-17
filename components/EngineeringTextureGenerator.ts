@@ -21,9 +21,63 @@ interface EngineeringTextureGenerationParams {
     registry_toggle: boolean;
     registry_color: string;
     registry_font_size: number;
-    registry_position_x: number;
+    // FIX: Replaced `registry_position_x` with `registry_sides` to match the expected props from App.tsx.
+    registry_sides: 'Outward' | 'Inward' | 'Both';
     registry_position_y: number;
     registry_rotation: number;
+    pennant_toggle: boolean;
+    pennant_color: string;
+    pennant_length: number;
+    pennant_group_width: number;
+    pennant_line_width: number;
+    pennant_line_count: number;
+    pennant_taper_start: number;
+    pennant_taper_end: number;
+    pennant_sides: 'Outward' | 'Inward' | 'Both';
+    pennant_position: number;
+    pennant_rotation: number;
+    pennant_glow_intensity: number;
+    delta_toggle: boolean;
+    delta_position: number;
+    delta_glow_intensity: number;
+    pennant_reflection: number;
+}
+
+/**
+ * Draws the Starfleet delta symbol path with seed-based variations.
+ * @param path The Path2D object to draw into.
+ * @param cx The center x-coordinate of the symbol.
+ * @param cy The center y-coordinate of the symbol.
+ * @param width The total width of the symbol.
+ * @param height The total height of the symbol.
+ * @param random A seeded random function.
+ */
+function drawDeltaPath(path: Path2D, cx: number, cy: number, width: number, height: number, random: () => number) {
+    const w = width;
+    const h = height;
+
+    // Use random function to vary control points for unique shapes
+    const topCpX = cx + w * (0.6 + random() * 0.2);
+    const topCpY = cy - h * (0.4 + random() * 0.2);
+    const bottomCpX = cx + w * (0.4 + random() * 0.2);
+    const bottomCpY = cy + h * (0.4 + random() * 0.2);
+
+    // Outer shape
+    path.moveTo(cx, cy - h / 2); // Top point
+    path.bezierCurveTo(topCpX, topCpY, bottomCpX, bottomCpY, cx, cy + h / 2); // Right side
+    path.bezierCurveTo(cx - (bottomCpX - cx), bottomCpY, cx - (topCpX - cx), topCpY, cx, cy - h / 2); // Left side (mirrored)
+    path.closePath();
+
+    // Inner "swoosh" cutout
+    const swooshWidth = w * 0.15;
+    const swooshYOffset = h * 0.1;
+    const swooshCpX = swooshWidth * (1.0 + random());
+    const swooshCpY = -swooshYOffset * (1.2 + random());
+
+    path.moveTo(cx - w * 0.1, cy + h / 2); // Bottom left
+    path.bezierCurveTo(cx - swooshCpX, cy + swooshCpY, cx + swooshCpX, cy + swooshCpY, cx + w * 0.1, cy + h / 2); // Curve up
+    path.bezierCurveTo(cx + swooshCpX * 0.8, cy + swooshCpY * 0.5, cx - swooshCpX * 0.8, cy + swooshCpY * 0.5, cx - w * 0.1, cy + h / 2); // Curve down
+    path.closePath();
 }
 
 
@@ -33,7 +87,7 @@ export function generateEngineeringTextures(params: EngineeringTextureGeneration
     const { 
         seed, panelColorVariation, window_density, lit_window_fraction, window_bands,
         registry, registry_toggle, registry_color, registry_font_size,
-        registry_position_x, registry_position_y, registry_rotation
+        registry_sides, registry_position_y, registry_rotation
     } = params;
     const random = createPRNG(seed);
 
@@ -179,7 +233,7 @@ export function generateEngineeringTextures(params: EngineeringTextureGeneration
         mapCtx.strokeStyle = `rgb(${lineGray-20}, ${lineGray-20}, ${lineGray-20})`;
         mapCtx.stroke();
     }
-    
+
     // --- Mirror Texture for Symmetry ---
     // Even if the model only uses the left half, we mirror it so the texture is complete.
     const mirrorCanvasHalf = (ctx: CanvasRenderingContext2D) => {
@@ -219,18 +273,157 @@ export function generateEngineeringTextures(params: EngineeringTextureGeneration
         }
     }
     normalCtx.putImageData(rightHalfData, width / 2, 0);
+    
+    // --- Draw Pennant Stripe & Delta ---
+    if (params.pennant_toggle) {
+        const baseSidesToDrawOn: number[] = [];
+        if (params.pennant_sides === 'Outward') baseSidesToDrawOn.push(0.25);
+        if (params.pennant_sides === 'Inward') baseSidesToDrawOn.push(0.75);
+        if (params.pennant_sides === 'Both') {
+            baseSidesToDrawOn.push(0.25);
+            baseSidesToDrawOn.push(0.75);
+        }
+    
+        const stripeHeight = height * params.pennant_length;
+        const stripeY = params.pennant_position * (height - stripeHeight);
+        const groupWidthPx = width * params.pennant_group_width;
+
+        const addBevelToPath = (ctx: CanvasRenderingContext2D, path: Path2D) => {
+            const decalNormalStrength = 20;
+            ctx.save();
+            ctx.clip(path, 'evenodd');
+            ctx.fillStyle = 'rgba(128, 128, 255, 1)';
+            ctx.shadowColor = `rgb(${128 + decalNormalStrength}, ${128 + decalNormalStrength}, 255)`; // Raised highlight
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = -2;
+            ctx.shadowOffsetY = -2;
+            ctx.fill(path, 'evenodd');
+            ctx.shadowColor = `rgb(${128 - decalNormalStrength}, ${128 - decalNormalStrength}, 255)`; // Depressed shadow
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fill(path, 'evenodd');
+            ctx.restore();
+        };
+        
+        const rotationOffset = params.pennant_rotation / 360;
+
+        for (const baseSideU of baseSidesToDrawOn) {
+            const sideU = (baseSideU + rotationOffset + 1.0) % 1.0;
+            
+            // Draw three times to handle texture wrapping at the seam.
+            for (const xOffset of [0, -width, width]) {
+                const lineCount = Math.max(1, Math.floor(params.pennant_line_count));
+                const totalLineWidth = groupWidthPx * params.pennant_line_width;
+                const singleLineWidth = totalLineWidth / lineCount;
+                const lineSpacing = lineCount > 1 ? (groupWidthPx - totalLineWidth) / (lineCount - 1) : 0;
+                const startX = width * sideU - groupWidthPx / 2 + xOffset;
+
+                for (let i = 0; i < lineCount; i++) {
+                    const lineXCenter = startX + i * (singleLineWidth + lineSpacing) + singleLineWidth / 2;
+
+                    const startWidth = singleLineWidth * params.pennant_taper_start;
+                    const endWidth = singleLineWidth * params.pennant_taper_end;
+                    
+                    const path = new Path2D();
+                    path.moveTo(lineXCenter - startWidth / 2, stripeY);
+                    path.lineTo(lineXCenter + startWidth / 2, stripeY);
+                    path.lineTo(lineXCenter + endWidth / 2, stripeY + stripeHeight);
+                    path.lineTo(lineXCenter - endWidth / 2, stripeY + stripeHeight);
+                    path.closePath();
+                    
+                    mapCtx.fillStyle = params.pennant_color;
+                    mapCtx.fill(path);
+                    
+                    const pennantGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.pennant_glow_intensity);
+                    emissiveCtx.fillStyle = pennantGlowColor.getStyle();
+                    emissiveCtx.fill(path);
+
+                    if (params.pennant_reflection > 0) {
+                        const grad = mapCtx.createLinearGradient(0, stripeY, 0, stripeY + stripeHeight);
+                        grad.addColorStop(0, `rgba(255,255,255,${0.4 * params.pennant_reflection})`);
+                        grad.addColorStop(0.4, 'rgba(255,255,255,0.0)');
+                        grad.addColorStop(0.6, 'rgba(0,0,0,0.0)');
+                        grad.addColorStop(1, `rgba(0,0,0,${0.3 * params.pennant_reflection})`);
+                        mapCtx.fillStyle = grad;
+                        mapCtx.fill(path);
+                    }
+
+                    addBevelToPath(normalCtx, path);
+                }
+
+                if (params.delta_toggle) {
+                    const deltaHeight = groupWidthPx * 1.8;
+                    const deltaY = stripeY + stripeHeight * params.delta_position;
+                    const deltaX = width * sideU + xOffset;
+                    
+                    const deltaPath = new Path2D();
+                    drawDeltaPath(deltaPath, deltaX, deltaY, groupWidthPx * 0.8, deltaHeight, random);
+                    
+                    mapCtx.fillStyle = new THREE.Color(params.pennant_color).multiplyScalar(0.2).getStyle();
+                    mapCtx.fill(deltaPath, 'evenodd');
+                    
+                    const deltaGlowColor = new THREE.Color(params.pennant_color).multiplyScalar(params.delta_glow_intensity);
+                    emissiveCtx.fillStyle = deltaGlowColor.getStyle();
+                    emissiveCtx.fill(deltaPath, 'evenodd');
+
+                    if (params.pennant_reflection > 0) {
+                        const grad = mapCtx.createLinearGradient(deltaX - groupWidthPx*0.4, deltaY - deltaHeight/2, deltaX + groupWidthPx*0.4, deltaY + deltaHeight/2);
+                        grad.addColorStop(0, `rgba(255,255,255,${0.3 * params.pennant_reflection})`);
+                        grad.addColorStop(0.5, 'rgba(255,255,255,0.0)');
+                        grad.addColorStop(1, `rgba(0,0,0,${0.2 * params.pennant_reflection})`);
+                        mapCtx.fillStyle = grad;
+                        mapCtx.fill(deltaPath, 'evenodd');
+                    }
+
+                    addBevelToPath(normalCtx, deltaPath);
+                }
+            }
+        }
+    }
+
 
     // --- Draw Registry (after mirroring to prevent duplication) ---
     if (registry_toggle && registry) {
-        mapCtx.save();
-        mapCtx.translate(width * registry_position_x, height * registry_position_y);
-        mapCtx.rotate((registry_rotation - 90) * Math.PI / 180);
-        mapCtx.fillStyle = registry_color;
-        mapCtx.font = `bold ${registry_font_size}px Orbitron, sans-serif`;
-        mapCtx.textAlign = 'center';
-        mapCtx.textBaseline = 'middle';
-        mapCtx.fillText(registry.toUpperCase(), 0, 0);
-        mapCtx.restore();
+        const drawInstance = (pixelX: number, flip: boolean) => {
+            mapCtx.save();
+            mapCtx.translate(pixelX, height * registry_position_y);
+            // The base -90 degrees orients the text along the hull's length (V axis).
+            // For the flipped side, we add 180 degrees to make it appear upright on the model.
+            const rotation = -Math.PI / 2 + (flip ? Math.PI : 0);
+            mapCtx.rotate(rotation);
+            mapCtx.fillStyle = registry_color;
+            mapCtx.font = `bold ${registry_font_size}px Orbitron, sans-serif`;
+            mapCtx.textAlign = 'center';
+            mapCtx.textBaseline = 'middle';
+            mapCtx.fillText(registry.toUpperCase(), 0, 0);
+            mapCtx.restore();
+        };
+
+        const sidesToDraw: {u: number, flip: boolean}[] = [];
+        // U=0.25 is Starboard, U=0.75 is Port.
+        // We assume 'Outward' refers to Starboard and 'Inward' to Port.
+        // The Port side text needs to be flipped to appear correct on the model.
+        if (registry_sides === 'Outward') {
+            sidesToDraw.push({ u: 0.25, flip: false });
+        } else if (registry_sides === 'Inward') {
+            sidesToDraw.push({ u: 0.75, flip: true });
+        } else if (registry_sides === 'Both') {
+            sidesToDraw.push({ u: 0.25, flip: false });
+            sidesToDraw.push({ u: 0.75, flip: true });
+        }
+        
+        const rotationOffset = registry_rotation / 360.0;
+
+        for (const side of sidesToDraw) {
+            const finalU = (side.u + rotationOffset + 1.0) % 1.0;
+            
+            // Draw three times to handle texture wrapping at the seam.
+            const finalX = finalU * width;
+            drawInstance(finalX, side.flip);
+            drawInstance(finalX - width, side.flip);
+            drawInstance(finalX + width, side.flip);
+        }
     }
 
 

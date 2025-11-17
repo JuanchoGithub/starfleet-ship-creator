@@ -279,10 +279,14 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
 
 
     if (archetype === 'Cruiser' || archetype === 'Explorer' || archetype === 'Escort' || archetype === 'Dreadnought') {
+        // Texture Scales
+        p.texture_scale = rand(0.5, 8);
+        p.engineering_texture_scale = rand(0.5, 8);
+
         // Nacelle Texturing
         p.nacelle_texture_toggle = Math.random() > 0.3;
         p.nacelle_texture_seed = rand(0, 1000);
-        p.nacelle_texture_scale = rand(4, 12);
+        p.nacelle_texture_scale = rand(0.5, 8);
         p.nacelle_texture_panel_color_variation = rand(0.02, 0.1);
         p.nacelle_texture_pennant_toggle = Math.random() > 0.2;
         p.nacelle_texture_pennant_length = rand(0.4, 0.8);
