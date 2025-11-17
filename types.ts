@@ -3,17 +3,21 @@
 // react-three-fiber's JSX elements (like <mesh>, <group>, etc.) throughout the application.
 import { ThreeElements } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { Ref } from 'react';
+// FIX: Import the full 'React' module as a namespace to access its JSX types for augmentation.
+import * as React from 'react';
 
 // Custom Node type for manually defining props for extended R3F components.
 type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
     args?: P;
-    ref?: Ref<T>;
+    ref?: React.Ref<T>;
 };
 
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends ThreeElements {
+    // FIX: The previous augmentation was incorrect, replacing all standard JSX elements with only
+    // the ones from react-three-fiber. By extending React's own IntrinsicElements, we merge
+    // them, making both standard HTML/SVG elements and R3F elements available.
+    interface IntrinsicElements extends React.JSX.IntrinsicElements, ThreeElements {
       // The `extend` function from R3F should automatically type this, but since the core
       // type augmentation is failing, we must define it manually as a fallback.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
@@ -284,6 +288,33 @@ export interface ShipParameters {
 
   saucer_texture_bridge_registry_toggle: boolean;
   saucer_texture_bridge_registry_font_size: number;
+
+  // Nacelle Texturing
+  nacelle_texture_toggle: boolean;
+  nacelle_texture_seed: number;
+  nacelle_texture_scale: number;
+  nacelle_texture_panel_color_variation: number;
+  nacelle_texture_window_density: number;
+  nacelle_texture_lit_window_fraction: number;
+  nacelle_texture_window_color1: string;
+  nacelle_texture_window_color2: string;
+  nacelle_texture_glow_intensity: number;
+  nacelle_texture_pennant_toggle: boolean;
+  nacelle_texture_pennant_color: string;
+  nacelle_texture_pennant_length: number;
+  nacelle_texture_pennant_group_width: number;
+  nacelle_texture_pennant_line_width: number;
+  nacelle_texture_pennant_line_count: number;
+  nacelle_texture_pennant_taper_start: number;
+  nacelle_texture_pennant_taper_end: number;
+  nacelle_texture_pennant_sides: 'Outward' | 'Inward' | 'Both';
+  nacelle_texture_pennant_position: number;
+  nacelle_texture_pennant_rotation: number;
+  nacelle_texture_pennant_glow_intensity: number;
+  nacelle_texture_delta_toggle: boolean;
+  nacelle_texture_delta_position: number;
+  nacelle_texture_delta_glow_intensity: number;
+  nacelle_texture_pennant_reflection: number;
 }
 
 export type EnvironmentPreset = 'city' | 'sunset' | 'dawn' | 'night' | 'warehouse' | 'forest' | 'apartment' | 'studio' | 'lobby';

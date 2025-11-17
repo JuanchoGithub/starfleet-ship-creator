@@ -19,11 +19,12 @@ interface ViewportProps {
   hullMaterial: THREE.Material;
   secondaryMaterial: THREE.Material;
   saucerMaterial: THREE.Material;
+  nacelleMaterial: THREE.Material;
   renderType: 'shaded' | 'wireframe' | 'blueprint';
   children?: React.ReactNode;
 }
 
-const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hullMaterial, secondaryMaterial, saucerMaterial, renderType, children }) => {
+const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hullMaterial, secondaryMaterial, saucerMaterial, nacelleMaterial, renderType, children }) => {
     const shipRef = useRef<THREE.Group>(null!);
     return (
         <div className="flex-1 relative border-b border-space-light last:border-b-0 overflow-hidden">
@@ -35,7 +36,7 @@ const Viewport: React.FC<ViewportProps> = ({ label, cameraProps, shipParams, hul
                 <directionalLight position={[10, 20, 5]} intensity={1} />
                 <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.2} />
                 <Environment preset="city" />
-                <Ship ref={shipRef} shipParams={shipParams} material={hullMaterial} secondaryMaterial={secondaryMaterial} saucerMaterial={saucerMaterial} />
+                <Ship ref={shipRef} shipParams={shipParams} material={hullMaterial} secondaryMaterial={secondaryMaterial} saucerMaterial={saucerMaterial} nacelleMaterial={nacelleMaterial} />
                 {renderType === 'blueprint' && <ShipOutlines shipRef={shipRef} shipParams={shipParams} />}
             </Suspense>
             </Canvas>
@@ -51,12 +52,13 @@ interface MultiviewProps {
   hullMaterial: THREE.Material;
   secondaryMaterial: THREE.Material;
   saucerMaterial: THREE.Material;
+  nacelleMaterial: THREE.Material;
 }
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 800;
 
-export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth, hullMaterial, secondaryMaterial, saucerMaterial }) => {
+export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidth, hullMaterial, secondaryMaterial, saucerMaterial, nacelleMaterial }) => {
   const isResizing = useRef(false);
   const [renderType, setRenderType] = useState<'shaded' | 'wireframe' | 'blueprint'>('shaded');
 
@@ -99,14 +101,14 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
 
   const materials = useMemo(() => {
       if (renderType === 'wireframe') {
-          return { hull: wireframeMaterial, secondary: wireframeMaterial, saucer: wireframeMaterial };
+          return { hull: wireframeMaterial, secondary: wireframeMaterial, saucer: wireframeMaterial, nacelle: wireframeMaterial };
       }
       if (renderType === 'blueprint') {
-          return { hull: blueprintFillMaterial, secondary: blueprintFillMaterial, saucer: blueprintFillMaterial };
+          return { hull: blueprintFillMaterial, secondary: blueprintFillMaterial, saucer: blueprintFillMaterial, nacelle: blueprintFillMaterial };
       }
       // shaded
-      return { hull: hullMaterial, secondary: secondaryMaterial, saucer: saucerMaterial };
-  }, [renderType, wireframeMaterial, blueprintFillMaterial, hullMaterial, secondaryMaterial, saucerMaterial]);
+      return { hull: hullMaterial, secondary: secondaryMaterial, saucer: saucerMaterial, nacelle: nacelleMaterial };
+  }, [renderType, wireframeMaterial, blueprintFillMaterial, hullMaterial, secondaryMaterial, saucerMaterial, nacelleMaterial]);
 
 
   const zoom = 4.5;
@@ -149,6 +151,7 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
             hullMaterial={materials.hull}
             secondaryMaterial={materials.secondary}
             saucerMaterial={materials.saucer}
+            nacelleMaterial={materials.nacelle}
             renderType={renderType}
         />
         <Viewport 
@@ -158,6 +161,7 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
             hullMaterial={materials.hull}
             secondaryMaterial={materials.secondary}
             saucerMaterial={materials.saucer}
+            nacelleMaterial={materials.nacelle}
             renderType={renderType}
         />
         <Viewport 
@@ -167,6 +171,7 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
             hullMaterial={materials.hull}
             secondaryMaterial={materials.secondary}
             saucerMaterial={materials.saucer}
+            nacelleMaterial={materials.nacelle}
             renderType={renderType}
         />
         <Viewport 
@@ -176,6 +181,7 @@ export const Multiview: React.FC<MultiviewProps> = ({ shipParams, width, setWidt
             hullMaterial={materials.hull}
             secondaryMaterial={materials.secondary}
             saucerMaterial={materials.saucer}
+            nacelleMaterial={materials.nacelle}
             renderType={renderType}
         >
         </Viewport>

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Box } from '@react-three/drei';
 
-const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, material }) => {
+const BussardTOS: React.FC<{ p: any; material: THREE.Material, mirrored: boolean }> = ({ p, material, mirrored }) => {
     const { outerShellGeo, innerCoreGeo, bussardRearGeo } = useMemo(() => {
         const createBussardDome = (radiusScale: number) => {
             const bussardPoints: THREE.Vector2[] = [];
@@ -29,12 +29,27 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
             return geo;
         };
 
-        const outerShellGeo = createBussardDome(1.0);
-        const innerCoreGeo = createBussardDome(0.8);
-        const bussardRearGeo = outerShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
+        const baseOuterShellGeo = createBussardDome(1.0);
+        const baseInnerCoreGeo = createBussardDome(0.8);
+        const baseBussardRearGeo = baseOuterShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
 
-        return { outerShellGeo, innerCoreGeo, bussardRearGeo };
-    }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical]);
+        const mirrorGeo = (geo: THREE.BufferGeometry) => {
+            if (!mirrored) return geo;
+            const clonedGeo = geo.clone();
+            const uvs = clonedGeo.attributes.uv.array as Float32Array;
+            for (let i = 0; i < uvs.length; i += 2) {
+                uvs[i] = 1.0 - uvs[i];
+            }
+            clonedGeo.attributes.uv.needsUpdate = true;
+            return clonedGeo;
+        };
+
+        return { 
+            outerShellGeo: mirrorGeo(baseOuterShellGeo),
+            innerCoreGeo: mirrorGeo(baseInnerCoreGeo),
+            bussardRearGeo: mirrorGeo(baseBussardRearGeo)
+        };
+    }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical, mirrored]);
     
     const outerShellMaterial = useMemo(() => new THREE.MeshStandardMaterial({
         color: new THREE.Color('#ffccaa'),
@@ -159,7 +174,7 @@ const BussardTOS: React.FC<{ p: any; material: THREE.Material }> = ({ p, materia
     );
 };
 
-const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, material }) => {
+const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material, mirrored: boolean }> = ({ p, material, mirrored }) => {
     const { outerShellGeo, innerCoreGeo, bussardRearGeo } = useMemo(() => {
         const createBussardDome = (radiusScale: number) => {
             const bussardPoints: THREE.Vector2[] = [];
@@ -184,12 +199,27 @@ const BussardTNGSwirl: React.FC<{ p: any; material: THREE.Material }> = ({ p, ma
             return geo;
         };
 
-        const outerShellGeo = createBussardDome(1.0);
-        const innerCoreGeo = createBussardDome(0.8);
-        const bussardRearGeo = outerShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
+        const baseOuterShellGeo = createBussardDome(1.0);
+        const baseInnerCoreGeo = createBussardDome(0.8);
+        const baseBussardRearGeo = baseOuterShellGeo.clone().rotateX(Math.PI).scale(1, 4, 1).translate(0, 5 * p.length, 0);
 
-        return { outerShellGeo, innerCoreGeo, bussardRearGeo };
-    }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical]);
+        const mirrorGeo = (geo: THREE.BufferGeometry) => {
+            if (!mirrored) return geo;
+            const clonedGeo = geo.clone();
+            const uvs = clonedGeo.attributes.uv.array as Float32Array;
+            for (let i = 0; i < uvs.length; i += 2) {
+                uvs[i] = 1.0 - uvs[i];
+            }
+            clonedGeo.attributes.uv.needsUpdate = true;
+            return clonedGeo;
+        };
+
+        return { 
+            outerShellGeo: mirrorGeo(baseOuterShellGeo),
+            innerCoreGeo: mirrorGeo(baseInnerCoreGeo),
+            bussardRearGeo: mirrorGeo(baseBussardRearGeo)
+        };
+    }, [p.radius, p.bussardRadius, p.length, p.bussardCurvature, p.segments, p.widthRatio, p.bussardWidthRatio, p.bussardSkewVertical, mirrored]);
     
     const outerShellMaterial = useMemo(() => new THREE.MeshStandardMaterial({
         color: new THREE.Color('#ffccaa'),
@@ -341,14 +371,15 @@ const BussardRadiator: React.FC<{ p: any }> = ({ p }) => {
 interface BussardCollectorProps {
     params: any;
     material: THREE.Material;
+    mirrored?: boolean;
 }
 
-export const BussardCollector: React.FC<BussardCollectorProps> = ({ params, material }) => {
+export const BussardCollector: React.FC<BussardCollectorProps> = ({ params, material, mirrored }) => {
     switch (params.bussardType) {
-        case 'TNG Swirl': return <BussardTNGSwirl p={params} material={material} />;
+        case 'TNG Swirl': return <BussardTNGSwirl p={params} material={material} mirrored={!!mirrored} />;
         case 'TNG': return <BussardTNG p={params} />;
         case 'Radiator': return <BussardRadiator p={params} />;
         case 'TOS':
-        default: return <BussardTOS p={params} material={material} />;
+        default: return <BussardTOS p={params} material={material} mirrored={!!mirrored} />;
     }
 }

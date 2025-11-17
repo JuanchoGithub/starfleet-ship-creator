@@ -15,16 +15,17 @@ interface ShipProps {
     shipParams: ShipParameters;
     material: Material;
     secondaryMaterial: Material;
+    nacelleMaterial: Material;
     saucerMaterial: Material;
 }
 
-export const Ship = forwardRef<Group, ShipProps>(({ shipParams, material, secondaryMaterial, saucerMaterial }, ref) => {
+export const Ship = forwardRef<Group, ShipProps>(({ shipParams, material, secondaryMaterial, nacelleMaterial, saucerMaterial }, ref) => {
   return (
     <group ref={ref} name="Starship">
         <PrimaryHull params={shipParams} material={saucerMaterial} />
         <EngineeringHull params={shipParams} material={material} />
         <Neck params={shipParams} material={material} />
-        <Nacelles params={shipParams} material={secondaryMaterial} />
+        <Nacelles params={shipParams} material={nacelleMaterial} />
         <Pylons params={shipParams} material={secondaryMaterial} />
         <ImpulseEngines params={shipParams} material={material} />
     </group>

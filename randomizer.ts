@@ -182,6 +182,30 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
         p.pylonLower_toggle = false;
         p.boomLower_toggle = false;
     }
+
+    if (archetype === 'Cruiser' || archetype === 'Explorer') {
+        // Nacelle Texturing
+        p.nacelle_texture_toggle = Math.random() > 0.3;
+        p.nacelle_texture_seed = rand(0, 1000);
+        p.nacelle_texture_scale = rand(4, 12);
+        p.nacelle_texture_panel_color_variation = rand(0.02, 0.1);
+        p.nacelle_texture_pennant_toggle = Math.random() > 0.2;
+        p.nacelle_texture_pennant_length = rand(0.4, 0.8);
+        p.nacelle_texture_pennant_group_width = rand(0.04, 0.2);
+        p.nacelle_texture_pennant_position = rand(0.2, 0.6);
+        p.nacelle_texture_pennant_rotation = rand(-45, 45);
+        p.nacelle_texture_pennant_glow_intensity = rand(0.5, 2.0);
+        p.nacelle_texture_delta_toggle = Math.random() > 0.1;
+        p.nacelle_texture_delta_position = rand(0.1, 0.4);
+        p.nacelle_texture_delta_glow_intensity = rand(0.5, 2.0);
+        p.nacelle_texture_pennant_reflection = rand(0.3, 0.8);
+        p.nacelle_texture_pennant_sides = pick(['Outward', 'Inward', 'Both']);
+        p.nacelle_texture_pennant_line_count = Math.floor(rand(1, 4));
+        p.nacelle_texture_pennant_line_width = rand(0.1, 1);
+        p.nacelle_texture_pennant_taper_start = rand(0.5, 1.5);
+        p.nacelle_texture_pennant_taper_end = rand(0.5, 1.5);
+    }
+
     // FIX: Completed the implementation for the 'Explorer' archetype and ensured the function returns the generated parameters.
     return p;
 }

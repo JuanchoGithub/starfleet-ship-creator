@@ -1,3 +1,6 @@
+
+
+
 import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
@@ -116,7 +119,7 @@ const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored,
         <group name="Nacelle_Assembly" rotation={[-Math.PI / 2, 0, 0]}>
             <mesh name="Nacelle_Body" geometry={nacelleGeo} material={[material, grillMaterial]} castShadow receiveShadow />
             <group name="Bussard_Collector" position={[0, assemblyParams.bussardYOffset, assemblyParams.bussardZOffset]}>
-                <BussardCollector params={assemblyParams} material={material} />
+                <BussardCollector params={assemblyParams} material={material} mirrored={mirrored} />
             </group>
         </group>
     );
@@ -124,7 +127,8 @@ const NacelleAssembly: React.FC<NacelleAssemblyProps> = ({ nacelleGeo, mirrored,
 
 interface NacellePairProps {
     x: number; z: number; y: number; rotation: number;
-    nacelleGeo: THREE.BufferGeometry;
+    portNacelleGeo: THREE.BufferGeometry;
+    starboardNacelleGeo: THREE.BufferGeometry;
     params: any;
     material: THREE.Material;
     portName: string;
@@ -132,7 +136,7 @@ interface NacellePairProps {
 }
 
 const NacellePair: React.FC<NacellePairProps> = (props) => {
-    const { x, z, y, rotation, nacelleGeo, params, material, portName, starboardName } = props;
+    const { x, z, y, rotation, portNacelleGeo, starboardNacelleGeo, params, material, portName, starboardName } = props;
 
     const starboardParams = useMemo(() => ({
         ...params,
@@ -156,10 +160,10 @@ const NacellePair: React.FC<NacellePairProps> = (props) => {
     return (
         <>
             <group name={portName} position={[-x, z, y]} rotation={[0, 0, rotation]}>
-                <NacelleAssembly mirrored={false} assemblyParams={params} grillMaterial={grillMaterial} nacelleGeo={nacelleGeo} material={material} />
+                <NacelleAssembly mirrored={true} assemblyParams={params} grillMaterial={grillMaterial} nacelleGeo={portNacelleGeo} material={material} />
             </group>
             <group name={starboardName} position={[x, z, y]} rotation={[0, 0, -rotation]}>
-                <NacelleAssembly mirrored={true} assemblyParams={starboardParams} grillMaterial={grillMaterial} nacelleGeo={nacelleGeo} material={material} />
+                <NacelleAssembly mirrored={false} assemblyParams={starboardParams} grillMaterial={grillMaterial} nacelleGeo={starboardNacelleGeo} material={material} />
             </group>
         </>
     );
@@ -309,7 +313,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
 
     const upperNacelleGeos = useMemo(() => {
         if (!params.nacelle_toggle) return null;
-        return generateNacelleGeometries(
+        const { nacelleGeo: starboardGeo } = generateNacelleGeometries(
             params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio,
             params.nacelle_foreTaper, params.nacelle_aftTaper,
             params.nacelle_segments,
@@ -324,6 +328,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 skew: params.nacelle_grill_skew,
             }
         );
+
+        const portGeo = starboardGeo.clone();
+        const uvs = portGeo.attributes.uv.array as Float32Array;
+        for (let i = 0; i < uvs.length; i += 2) {
+            uvs[i] = 1.0 - uvs[i];
+        }
+        portGeo.attributes.uv.needsUpdate = true;
+
+        return { portGeo, starboardGeo };
     }, [
         params.nacelle_toggle, params.nacelle_length, params.nacelle_radius, params.nacelle_widthRatio, params.nacelle_foreTaper, params.nacelle_aftTaper, 
         params.nacelle_segments, params.nacelle_skew, params.nacelle_undercut, params.nacelle_undercutStart,
@@ -333,7 +346,7 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
 
     const lowerNacelleGeos = useMemo(() => {
         if (!params.nacelleLower_toggle) return null;
-        return generateNacelleGeometries(
+        const { nacelleGeo: starboardGeo } = generateNacelleGeometries(
             params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio,
             params.nacelleLower_foreTaper, params.nacelleLower_aftTaper,
             params.nacelleLower_segments,
@@ -348,6 +361,15 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 skew: params.nacelleLower_grill_skew,
             }
         );
+
+        const portGeo = starboardGeo.clone();
+        const uvs = portGeo.attributes.uv.array as Float32Array;
+        for (let i = 0; i < uvs.length; i += 2) {
+            uvs[i] = 1.0 - uvs[i];
+        }
+        portGeo.attributes.uv.needsUpdate = true;
+
+        return { portGeo, starboardGeo };
     }, [
         params.nacelleLower_toggle, params.nacelleLower_length, params.nacelleLower_radius, params.nacelleLower_widthRatio, params.nacelleLower_foreTaper, 
         params.nacelleLower_aftTaper, params.nacelleLower_segments, params.nacelleLower_skew, params.nacelleLower_undercut, params.nacelleLower_undercutStart,
@@ -364,7 +386,8 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 z={params.nacelle_z}
                 y={params.nacelle_y}
                 rotation={params.nacelle_rotation}
-                nacelleGeo={upperNacelleGeos.nacelleGeo}
+                portNacelleGeo={upperNacelleGeos.portGeo}
+                starboardNacelleGeo={upperNacelleGeos.starboardGeo}
                 material={material}
                 params={{
                     length: params.nacelle_length,
@@ -403,7 +426,8 @@ export const Nacelles: React.FC<{ params: ShipParameters, material: THREE.Materi
                 z={params.nacelleLower_z}
                 y={params.nacelleLower_y}
                 rotation={params.nacelleLower_rotation}
-                nacelleGeo={lowerNacelleGeos.nacelleGeo}
+                portNacelleGeo={lowerNacelleGeos.portGeo}
+                starboardNacelleGeo={lowerNacelleGeos.starboardGeo}
                 material={material}
                 params={{
                     length: params.nacelleLower_length,

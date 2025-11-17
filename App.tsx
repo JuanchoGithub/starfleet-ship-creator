@@ -11,6 +11,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
 import { generateTextures } from './components/TextureGenerator';
 import { generateSaucerTextures } from './components/SaucerTextureGenerator';
+import { generateNacelleTextures } from './components/NacelleTextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
 import { Archetype, generateShipParameters } from './randomizer';
 
@@ -176,8 +177,15 @@ const App: React.FC = () => {
     roughness: 0.4,
   }));
 
+  const [nacelleMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+  }));
+
   const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
   const [isGeneratingSaucerTextures, setIsGeneratingSaucerTextures] = useState(false);
+  const [isGeneratingNacelleTextures, setIsGeneratingNacelleTextures] = useState(false);
 
   const handleGenerateTextures = useCallback(() => {
     setIsGeneratingTextures(true);
@@ -274,17 +282,140 @@ const App: React.FC = () => {
       saucerMaterial, shipName
   ]);
 
+  const handleGenerateNacelleTextures = useCallback(() => {
+    setIsGeneratingNacelleTextures(true);
+    setTimeout(() => {
+        const { map, normalMap, emissiveMap } = generateNacelleTextures({
+            seed: params.nacelle_texture_seed,
+            panelColorVariation: params.nacelle_texture_panel_color_variation,
+            window_density: params.nacelle_texture_window_density,
+            lit_window_fraction: params.nacelle_texture_lit_window_fraction,
+            window_color1: params.nacelle_texture_window_color1,
+            window_color2: params.nacelle_texture_window_color2,
+            pennant_toggle: params.nacelle_texture_pennant_toggle,
+            pennant_color: params.nacelle_texture_pennant_color,
+            pennant_length: params.nacelle_texture_pennant_length,
+            pennant_group_width: params.nacelle_texture_pennant_group_width,
+            pennant_line_width: params.nacelle_texture_pennant_line_width,
+            pennant_line_count: params.nacelle_texture_pennant_line_count,
+            pennant_taper_start: params.nacelle_texture_pennant_taper_start,
+            pennant_taper_end: params.nacelle_texture_pennant_taper_end,
+            pennant_sides: params.nacelle_texture_pennant_sides,
+            pennant_position: params.nacelle_texture_pennant_position,
+            pennant_rotation: params.nacelle_texture_pennant_rotation,
+            pennant_glow_intensity: params.nacelle_texture_pennant_glow_intensity,
+            delta_toggle: params.nacelle_texture_delta_toggle,
+            delta_position: params.nacelle_texture_delta_position,
+            delta_glow_intensity: params.nacelle_texture_delta_glow_intensity,
+            pennant_reflection: params.nacelle_texture_pennant_reflection,
+        });
+
+        if (nacelleMaterial.map) nacelleMaterial.map.dispose();
+        if (nacelleMaterial.normalMap) nacelleMaterial.normalMap.dispose();
+        if (nacelleMaterial.emissiveMap) nacelleMaterial.emissiveMap.dispose();
+
+        nacelleMaterial.map = map;
+        nacelleMaterial.normalMap = normalMap;
+        nacelleMaterial.emissiveMap = emissiveMap;
+        nacelleMaterial.needsUpdate = true;
+        
+        setIsGeneratingNacelleTextures(false);
+    }, 50);
+  }, [
+      params.nacelle_texture_seed, params.nacelle_texture_panel_color_variation,
+      params.nacelle_texture_window_density, params.nacelle_texture_lit_window_fraction,
+      params.nacelle_texture_window_color1, params.nacelle_texture_window_color2,
+      params.nacelle_texture_pennant_toggle, params.nacelle_texture_pennant_color,
+      params.nacelle_texture_pennant_length, params.nacelle_texture_pennant_group_width,
+      params.nacelle_texture_pennant_line_width, params.nacelle_texture_pennant_line_count,
+      params.nacelle_texture_pennant_taper_start, params.nacelle_texture_pennant_taper_end,
+      params.nacelle_texture_pennant_sides, params.nacelle_texture_pennant_position,
+      params.nacelle_texture_pennant_rotation, params.nacelle_texture_pennant_glow_intensity,
+      params.nacelle_texture_delta_toggle, params.nacelle_texture_delta_position, 
+      params.nacelle_texture_delta_glow_intensity,
+      params.nacelle_texture_pennant_reflection,
+      nacelleMaterial
+  ]);
+
   useEffect(() => {
     if (params.texture_toggle) {
         handleGenerateTextures();
     }
-  }, [params.texture_toggle, handleGenerateTextures]);
+  }, [
+    params.texture_toggle, 
+    params.texture_seed,
+    params.texture_density,
+    params.texture_panel_color_variation,
+    params.texture_window_density,
+    params.texture_window_color1,
+    params.texture_window_color2,
+    handleGenerateTextures
+  ]);
   
   useEffect(() => {
     if (params.saucer_texture_toggle) {
         handleGenerateSaucerTextures();
     }
-  }, [params.saucer_texture_toggle, handleGenerateSaucerTextures]);
+  }, [
+    params.saucer_texture_toggle,
+    params.saucer_texture_seed,
+    params.saucer_texture_panel_color_variation,
+    params.saucer_texture_window_density,
+    params.saucer_texture_lit_window_fraction,
+    params.saucer_texture_window_color1,
+    params.saucer_texture_window_color2,
+    params.saucer_texture_window_bands,
+    params.ship_registry,
+    params.saucer_texture_name_toggle,
+    params.saucer_texture_name_text_color,
+    params.saucer_texture_name_font_size,
+    params.saucer_texture_name_angle,
+    params.saucer_texture_name_curve,
+    params.saucer_texture_name_orientation,
+    params.saucer_texture_name_distance,
+    params.saucer_texture_registry_toggle,
+    params.saucer_texture_registry_text_color,
+    params.saucer_texture_registry_font_size,
+    params.saucer_texture_registry_angle,
+    params.saucer_texture_registry_curve,
+    params.saucer_texture_registry_orientation,
+    params.saucer_texture_registry_distance,
+    params.saucer_texture_bridge_registry_toggle,
+    params.saucer_texture_bridge_registry_font_size,
+    shipName,
+    handleGenerateSaucerTextures
+  ]);
+
+  useEffect(() => {
+    if (params.nacelle_texture_toggle) {
+        handleGenerateNacelleTextures();
+    }
+  }, [
+    params.nacelle_texture_toggle,
+    params.nacelle_texture_seed,
+    params.nacelle_texture_panel_color_variation,
+    params.nacelle_texture_window_density,
+    params.nacelle_texture_lit_window_fraction,
+    params.nacelle_texture_window_color1,
+    params.nacelle_texture_window_color2,
+    params.nacelle_texture_pennant_toggle,
+    params.nacelle_texture_pennant_color,
+    params.nacelle_texture_pennant_length,
+    params.nacelle_texture_pennant_group_width,
+    params.nacelle_texture_pennant_line_width,
+    params.nacelle_texture_pennant_line_count,
+    params.nacelle_texture_pennant_taper_start,
+    params.nacelle_texture_pennant_taper_end,
+    params.nacelle_texture_pennant_sides,
+    params.nacelle_texture_pennant_position,
+    params.nacelle_texture_pennant_rotation,
+    params.nacelle_texture_pennant_glow_intensity,
+    params.nacelle_texture_delta_toggle,
+    params.nacelle_texture_delta_position,
+    params.nacelle_texture_delta_glow_intensity,
+    params.nacelle_texture_pennant_reflection,
+    handleGenerateNacelleTextures
+  ]);
 
   useEffect(() => {
     const textureScale = params.texture_scale || 8;
@@ -294,9 +425,20 @@ const App: React.FC = () => {
     if (secondaryMaterial.map) secondaryMaterial.map.repeat.set(textureScale, textureScale);
     if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.repeat.set(textureScale, textureScale);
 
+    const nacelleTextureScale = params.nacelle_texture_scale || 8;
+    const nacelleTextureAspect = 2.0; // Height is 2x width
+    if (nacelleMaterial.map) nacelleMaterial.map.repeat.set(nacelleTextureScale, nacelleTextureScale / nacelleTextureAspect);
+    if (nacelleMaterial.normalMap) nacelleMaterial.normalMap.repeat.set(nacelleTextureScale, nacelleTextureScale / nacelleTextureAspect);
+    if (nacelleMaterial.emissiveMap) nacelleMaterial.emissiveMap.repeat.set(nacelleTextureScale, nacelleTextureScale / nacelleTextureAspect);
+
     hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
     saucerMaterial.emissiveIntensity = params.saucer_texture_emissive_intensity;
+    nacelleMaterial.emissiveIntensity = params.nacelle_texture_glow_intensity;
     
+    // For emissive maps to work, the material's emissive color must be non-black.
+    // We set it to white so the map's colors are used directly.
+    nacelleMaterial.emissive = new THREE.Color('#ffffff');
+
     if (!params.texture_toggle) {
         hullMaterial.map = null;
         hullMaterial.normalMap = null;
@@ -309,12 +451,23 @@ const App: React.FC = () => {
         saucerMaterial.normalMap = null;
         saucerMaterial.emissiveMap = null;
     }
+    if (!params.nacelle_texture_toggle) {
+        nacelleMaterial.map = null;
+        nacelleMaterial.normalMap = null;
+        nacelleMaterial.emissiveMap = null;
+    }
 
     hullMaterial.needsUpdate = true;
     saucerMaterial.needsUpdate = true;
     secondaryMaterial.needsUpdate = true;
+    nacelleMaterial.needsUpdate = true;
 
-  }, [params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, params.saucer_texture_toggle, params.saucer_texture_emissive_intensity, hullMaterial, saucerMaterial, secondaryMaterial]);
+  }, [
+      params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, 
+      params.saucer_texture_toggle, params.saucer_texture_emissive_intensity,
+      params.nacelle_texture_toggle, params.nacelle_texture_scale, params.nacelle_texture_glow_intensity,
+      hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial
+  ]);
 
   useEffect(() => {
     (hullMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
@@ -323,7 +476,9 @@ const App: React.FC = () => {
     saucerMaterial.needsUpdate = true;
     (secondaryMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     secondaryMaterial.needsUpdate = true;
-  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial]);
+    (nacelleMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    nacelleMaterial.needsUpdate = true;
+  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial]);
 
   useEffect(() => {
     try {
@@ -551,10 +706,11 @@ const App: React.FC = () => {
             hullMaterial={hullMaterial}
             secondaryMaterial={secondaryMaterial}
             saucerMaterial={saucerMaterial}
+            nacelleMaterial={nacelleMaterial}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} lightParams={lightParams} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} lightParams={lightParams} />
         <div className="absolute bottom-4 right-4 text-right text-white p-2 bg-black/30 rounded-md pointer-events-none">
           <h1 className="text-2xl tracking-wider uppercase">{shipName.replace('*', '')}</h1>
           {params.ship_registry && <h2 className="text-md tracking-wider">{params.ship_registry}</h2>}
@@ -694,6 +850,20 @@ const App: React.FC = () => {
                   </button>
               </div>
               <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+
+              <div className="p-3 space-y-3 border-t border-space-light">
+                  <p className="text-sm text-mid-gray">Customize the procedural texture for the warp nacelles.</p>
+                  <button 
+                      onClick={handleGenerateNacelleTextures} 
+                      disabled={isGeneratingNacelleTextures}
+                      className="w-full flex items-center justify-center gap-2 bg-accent-blue text-white font-semibold py-2 px-4 rounded-md hover:bg-accent-glow transition-colors disabled:bg-mid-gray disabled:cursor-wait"
+                  >
+                      <SparklesIcon className='w-5 h-5' />
+                      {isGeneratingNacelleTextures ? 'Generating...' : 'Generate Nacelle Textures'}
+                  </button>
+              </div>
+              <ControlGroup groupName="Nacelle Texturing" configs={TEXTURE_PARAM_CONFIG["Nacelle Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+
               <div className="p-3 space-y-3 border-t border-space-light">
                   <p className="text-sm text-mid-gray">Use the controls in the "General Hull Texturing" panel below to customize the texture for other ship sections, then click here to apply it.</p>
                   <button 
