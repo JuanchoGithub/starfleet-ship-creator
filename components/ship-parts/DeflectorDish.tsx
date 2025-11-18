@@ -113,69 +113,187 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
 }
 
 function generateVortexTexture(color1: string, color2: string) {
-    const size = 512;
+    const size = 1024;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.getImageData(0, 0, size, size);
-    const data = imageData.data;
+
+    const emissiveCanvas = document.createElement('canvas');
+    emissiveCanvas.width = size;
+    emissiveCanvas.height = size;
+    const emissiveCtx = emissiveCanvas.getContext('2d')!;
+
     const center = size / 2;
+    const maxRadius = size / 2 * 0.95;
+    
+    // Colors
+    const glowColor = new THREE.Color(color1);
+    const baseColor = new THREE.Color(color2);
+    
+    // --- Backgrounds ---
+    // Diffuse: Dark metallic base
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(0, 0, size, size);
+    
+    // Emissive: Black start
+    emissiveCtx.fillStyle = 'black';
+    emissiveCtx.fillRect(0, 0, size, size);
 
-    const c1 = new THREE.Color(color1); // Bright yellow
-    const c2 = new THREE.Color(color2); // Dark base
+    // --- Configuration ---
+    const numSectors = 24;
+    const numRungs = 10;
+    const innerRadius = maxRadius * 0.25;
+    const outerRadius = maxRadius * 0.9;
+    
+    // --- 1. Draw The Turbine "Ladders" ---
+    for (let i = 0; i < numSectors; i++) {
+        const angleStep = (Math.PI * 2) / numSectors;
+        const padding = angleStep * 0.15; // Space for the spoke
+        
+        const startAngle = i * angleStep + padding;
+        const endAngle = (i + 1) * angleStep - padding;
+        
+        // Draw Rungs
+        const rungStep = (outerRadius - innerRadius) / numRungs;
+        
+        for (let j = 0; j < numRungs; j++) {
+            const r = innerRadius + j * rungStep + rungStep * 0.5;
+            const thickness = (size * 0.015) * (1 - j/numRungs * 0.3); // Taper thickness slightly
 
-    const numLines = 72;
-    const swirlFactor = 5;
-
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-            const dx = x - center;
-            const dy = y - center;
-            const r = Math.sqrt(dx * dx + dy * dy);
-            const normR = r / center;
-
-            if (normR > 1.0) continue;
-
-            const theta = Math.atan2(dy, dx);
+            // Diffuse: Bright color
+            ctx.beginPath();
+            ctx.arc(center, center, r, startAngle, endAngle);
+            ctx.strokeStyle = glowColor.getStyle();
+            ctx.lineWidth = thickness;
+            ctx.stroke();
             
-            const distortedR = Math.pow(normR, 0.75);
-            const swirledTheta = theta + distortedR * swirlFactor;
-            
-            const lines = (Math.sin(swirledTheta * numLines) * 0.5 + 0.5);
-            const lineIntensity = lines > 0.95 ? 1.0 : 0.4;
-
-            const radialGlow = Math.pow(1.0 - normR, 2.0);
-            
-            let finalColor = new THREE.Color().lerpColors(c2, c1, radialGlow);
-            finalColor.multiplyScalar(lineIntensity);
-
-            if (x < center) {
-                const fade = Math.max(0, Math.min(1, (x - (center - 2)) / 2)); // Fast smoothstep
-                finalColor.multiplyScalar(fade * 0.5 + 0.1);
-            }
-            
-            const index = (y * size + x) * 4;
-            data[index] = finalColor.r * 255;
-            data[index + 1] = finalColor.g * 255;
-            data[index + 2] = finalColor.b * 255;
-            data[index + 3] = 255;
+            // Emissive: Intense glow
+            emissiveCtx.beginPath();
+            emissiveCtx.arc(center, center, r, startAngle, endAngle);
+            emissiveCtx.strokeStyle = glowColor.getStyle();
+            emissiveCtx.lineWidth = thickness;
+            emissiveCtx.shadowColor = glowColor.getStyle();
+            emissiveCtx.shadowBlur = thickness * 2;
+            emissiveCtx.stroke();
+            emissiveCtx.shadowBlur = 0; // Reset
         }
     }
-    ctx.putImageData(imageData, 0, 0);
+    
+    // --- 2. Draw Spokes (The structure between ladders) ---
+    // We draw these on the diffuse map to cover any sloppy rung edges and provide structure
+    for (let i = 0; i < numSectors; i++) {
+        const angle = i * (Math.PI * 2) / numSectors;
+        const spokeWidth = size * 0.015;
+        
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle);
+        
+        // Spoke body
+        ctx.fillStyle = baseColor.getStyle();
+        ctx.fillRect(innerRadius, -spokeWidth/2, outerRadius - innerRadius, spokeWidth);
+        
+        // Highlight edge
+        ctx.fillStyle = '#555'; // Highlight
+        ctx.fillRect(innerRadius, -spokeWidth/2, outerRadius - innerRadius, spokeWidth * 0.2);
 
-    // Reflection
-    ctx.save();
+        ctx.restore();
+    }
+    
+    // --- 3. Outer Rim ---
+    const rimThickness = size * 0.03;
+    // Diffuse rim
     ctx.beginPath();
-    ctx.ellipse(center, center * 1.55, center * 0.9, center * 0.6, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(10, 5, 0, 0.5)';
-    ctx.fill();
-    ctx.restore();
+    ctx.arc(center, center, outerRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = baseColor.getStyle();
+    ctx.lineWidth = rimThickness;
+    ctx.stroke();
+    
+    // Emissive Rim Accents
+    // Dashed line around the outside
+    const numDashes = numSectors * 2;
+    for (let i = 0; i < numDashes; i++) {
+        const angle = i * (Math.PI * 2) / numDashes;
+        const dashLen = (Math.PI * 2) / numDashes * 0.5;
+        
+        emissiveCtx.beginPath();
+        emissiveCtx.arc(center, center, outerRadius + rimThickness, angle, angle + dashLen);
+        emissiveCtx.strokeStyle = glowColor.getStyle();
+        emissiveCtx.lineWidth = size * 0.01;
+        emissiveCtx.stroke();
+        
+        // Add to diffuse too
+        ctx.beginPath();
+        ctx.arc(center, center, outerRadius + rimThickness, angle, angle + dashLen);
+        ctx.strokeStyle = glowColor.getStyle();
+        ctx.lineWidth = size * 0.01;
+        ctx.stroke();
+    }
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    return { map: texture, emissiveMap: texture };
+    // --- 4. Center Hub ---
+    // Dark circle
+    ctx.beginPath();
+    ctx.arc(center, center, innerRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    
+    // Glowing "Eye" or inner turbine
+    const eyeRadius = innerRadius * 0.6;
+    // Draw a starburst pattern in the center
+    const numSpikes = 12;
+    
+    emissiveCtx.save();
+    emissiveCtx.translate(center, center);
+    emissiveCtx.fillStyle = glowColor.getStyle();
+    emissiveCtx.shadowColor = glowColor.getStyle();
+    emissiveCtx.shadowBlur = 20;
+    
+    ctx.save();
+    ctx.translate(center, center);
+    ctx.fillStyle = glowColor.getStyle();
+
+    for(let i=0; i<numSpikes; i++) {
+        const angle = i * (Math.PI * 2) / numSpikes;
+        
+        // Draw simple trapezoid spike
+        const drawSpike = (context: CanvasRenderingContext2D) => {
+            context.rotate(angle);
+            context.beginPath();
+            context.moveTo(eyeRadius * 0.2, 0);
+            context.lineTo(eyeRadius, -eyeRadius * 0.1);
+            context.lineTo(eyeRadius, eyeRadius * 0.1);
+            context.closePath();
+            context.fill();
+            context.rotate(-angle);
+        }
+        
+        drawSpike(emissiveCtx);
+        drawSpike(ctx);
+    }
+    
+    emissiveCtx.restore();
+    ctx.restore();
+    
+    // Center Cap
+    const capRadius = eyeRadius * 0.3;
+    ctx.beginPath();
+    ctx.arc(center, center, capRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#222';
+    ctx.fill();
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const map = new THREE.CanvasTexture(canvas);
+    map.wrapS = THREE.RepeatWrapping;
+    map.wrapT = THREE.RepeatWrapping;
+
+    const emissiveMap = new THREE.CanvasTexture(emissiveCanvas);
+    emissiveMap.wrapS = THREE.RepeatWrapping;
+    emissiveMap.wrapT = THREE.RepeatWrapping;
+
+    return { map, emissiveMap };
 }
 
 interface DeflectorDishProps {
