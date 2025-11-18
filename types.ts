@@ -351,6 +351,10 @@ export interface ShipParameters {
   neck_texture_window_color2: string;
   neck_texture_glow_intensity: number;
   neck_texture_torpedo_launcher_toggle: boolean;
+  neck_texture_torpedo_color: string;
+  neck_texture_torpedo_size: number;
+  neck_texture_torpedo_glow: number;
+  neck_texture_window_width_scale: number;
 
   // Saucer Texturing
   saucer_texture_toggle: boolean;

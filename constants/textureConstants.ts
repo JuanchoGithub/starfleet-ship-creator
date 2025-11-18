@@ -1,5 +1,6 @@
 
 
+
 import { ParamConfigGroups } from '../types';
 
 export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
@@ -97,10 +98,14 @@ export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
     "Panels & Details": {
       neck_texture_panel_color_variation: { label: "Panel Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
       neck_texture_torpedo_launcher_toggle: { label: "Torpedo Launchers", type: 'toggle' },
+      neck_texture_torpedo_color: { label: "Torpedo Color", type: 'color' },
+      neck_texture_torpedo_size: { label: "Torpedo Size", min: 0.1, max: 3.0, step: 0.1, type: 'slider' },
+      neck_texture_torpedo_glow: { label: "Torpedo Glow", min: 0, max: 10, step: 0.1, type: 'slider' },
     },
     "Windows": {
       neck_texture_window_lanes: { label: "Window Lanes", min: 0, max: 32, step: 1, type: 'slider' },
       neck_texture_window_density: { label: "Vertical Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      neck_texture_window_width_scale: { label: "Window Width", min: 0.1, max: 2.0, step: 0.1, type: 'slider' },
       neck_texture_lit_window_fraction: { label: "Lit Fraction", min: 0, max: 1, step: 0.01, type: 'slider' },
       neck_texture_window_color1: { label: "Window Color A", type: 'color' },
       neck_texture_window_color2: { label: "Window Color B", type: 'color' },

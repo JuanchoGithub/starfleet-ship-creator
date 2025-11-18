@@ -16,9 +16,14 @@ const DEFAULT_NECK_PARAMS = {
     neck_texture_window_color2: "#aaccff",
     neck_texture_glow_intensity: 2,
     neck_texture_torpedo_launcher_toggle: true,
+    neck_texture_torpedo_color: '#ff0000',
+    neck_texture_torpedo_size: 1.0,
+    neck_texture_torpedo_glow: 3.0,
+    neck_texture_window_width_scale: 1.0,
 };
 
-export const INITIAL_SHIP_PARAMS: ShipParameters = { ...STOCK_SHIPS['Stargazer Class'], ...DEFAULT_NECK_PARAMS };
+// Apply defaults first, then overwrite with specific ship parameters
+export const INITIAL_SHIP_PARAMS: ShipParameters = { ...DEFAULT_NECK_PARAMS, ...STOCK_SHIPS['Galaxy Class'] };
 
 // New Config for specific Deflector Dish parameters, exported for use in manual rendering logic in App.tsx
 export const DEFLECTOR_PARAM_CONFIG: SubParamGroup = {

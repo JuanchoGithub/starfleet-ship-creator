@@ -368,5 +368,9 @@ export const enterpriseNX01Ship: ShipParameters = {
   "neck_texture_window_color1": "#ffffaa",
   "neck_texture_window_color2": "#aaccff",
   "neck_texture_glow_intensity": 2,
-  "neck_texture_torpedo_launcher_toggle": true
+  "neck_texture_torpedo_launcher_toggle": true,
+  "neck_texture_torpedo_color": "#ff0000",
+  "neck_texture_torpedo_size": 1,
+  "neck_texture_torpedo_glow": 5,
+  "neck_texture_window_width_scale": 1
 };

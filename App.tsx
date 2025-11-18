@@ -1,6 +1,10 @@
 
 
 
+
+
+
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
@@ -146,7 +150,7 @@ const ControlGroup: React.FC<{
 const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
   const [lightParams, setLightParams] = useState<LightParameters>(INITIAL_LIGHT_PARAMS);
-  const [shipName, setShipName] = useState<string>('Stargazer Class');
+  const [shipName, setShipName] = useState<string>('Galaxy Class');
   const [randomizerArchetype, setRandomizerArchetype] = useState<Archetype>('Cruiser');
 
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -368,6 +372,11 @@ const App: React.FC = () => {
             window_color1: params.neck_texture_window_color1,
             window_color2: params.neck_texture_window_color2,
             torpedo_launcher_toggle: params.neck_texture_torpedo_launcher_toggle,
+            // New parameters passed to generator
+            torpedo_color: params.neck_texture_torpedo_color,
+            torpedo_size: params.neck_texture_torpedo_size,
+            torpedo_glow: params.neck_texture_torpedo_glow,
+            window_width_scale: params.neck_texture_window_width_scale,
         });
 
         if (neckMaterial.map) neckMaterial.map.dispose();
@@ -393,7 +402,10 @@ const App: React.FC = () => {
     params.neck_texture_window_density, params.neck_texture_window_lanes,
     params.neck_texture_lit_window_fraction,
     params.neck_texture_window_color1, params.neck_texture_window_color2,
-    params.neck_texture_torpedo_launcher_toggle, params.neck_texture_scale,
+    params.neck_texture_torpedo_launcher_toggle, 
+    params.neck_texture_torpedo_color, params.neck_texture_torpedo_size, params.neck_texture_torpedo_glow,
+    params.neck_texture_window_width_scale,
+    params.neck_texture_scale,
     neckMaterial
   ]);
 
@@ -650,6 +662,10 @@ const App: React.FC = () => {
     params.neck_texture_window_color1,
     params.neck_texture_window_color2,
     params.neck_texture_torpedo_launcher_toggle,
+    params.neck_texture_torpedo_color,
+    params.neck_texture_torpedo_size,
+    params.neck_texture_torpedo_glow,
+    params.neck_texture_window_width_scale,
     // Scale changes will trigger regeneration to ensure it's baked/applied correctly 
     // if we want dynamic updates, although repeat is set below.
     params.neck_texture_scale, 
@@ -1003,7 +1019,7 @@ const App: React.FC = () => {
 
   const handleResetToDefault = () => {
     setParams(INITIAL_SHIP_PARAMS);
-    setShipName('Stargazer Class');
+    setShipName('Galaxy Class');
   };
 
   const handleDeleteDesign = useCallback((name: string) => {

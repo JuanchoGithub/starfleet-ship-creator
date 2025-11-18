@@ -361,11 +361,15 @@ export const advancedEnterpriseShip: ShipParameters = {
   "neck_texture_seed": 88,
   "neck_texture_scale": 1,
   "neck_texture_panel_color_variation": 0.05,
-  "neck_texture_window_density": 0.4,
-  "neck_texture_window_lanes": 12,
-  "neck_texture_lit_window_fraction": 0.5,
+  "neck_texture_window_density": 0.24,
+  "neck_texture_window_lanes": 15,
+  "neck_texture_lit_window_fraction": 0.19,
   "neck_texture_window_color1": "#ffffaa",
   "neck_texture_window_color2": "#aaccff",
   "neck_texture_glow_intensity": 2,
-  "neck_texture_torpedo_launcher_toggle": true
+  "neck_texture_torpedo_launcher_toggle": false,
+  "neck_texture_torpedo_color": "#ff0000",
+  "neck_texture_torpedo_size": 1,
+  "neck_texture_torpedo_glow": 5,
+  "neck_texture_window_width_scale": 0.4
 };

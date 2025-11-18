@@ -1,5 +1,6 @@
 
 
+
 import * as THREE from 'three';
 
 // A simple pseudorandom number generator for deterministic results based on a seed
@@ -20,13 +21,18 @@ interface NeckTextureGenerationParams {
     window_color1: string;
     window_color2: string;
     torpedo_launcher_toggle: boolean;
+    torpedo_color: string;
+    torpedo_size: number;
+    torpedo_glow: number;
+    window_width_scale: number;
 }
 
 export function generateNeckTextures(params: NeckTextureGenerationParams) {
     const size = 1024;
     const { 
         seed, panelColorVariation, window_density, window_lanes, lit_window_fraction,
-        window_color1, window_color2, torpedo_launcher_toggle
+        window_color1, window_color2, torpedo_launcher_toggle,
+        torpedo_color, torpedo_size, torpedo_glow, window_width_scale
     } = params;
     const random = createPRNG(seed);
 
@@ -116,7 +122,11 @@ export function generateNeckTextures(params: NeckTextureGenerationParams) {
     // Explicit user control over lane count
     if (window_lanes > 0) {
         const bayWidth = size / window_lanes;
-        const windowWidth = Math.min(bayWidth * 0.6, 16); // constrained width
+        const baseWindowWidth = Math.min(bayWidth * 0.6, 16); // constrained width
+        
+        // Apply user scale factor to compensate for geometry stretching
+        const windowWidth = Math.max(1, baseWindowWidth * window_width_scale);
+        
         const windowHeight = 16; 
         const verticalSpacing = 32;
 
@@ -150,9 +160,9 @@ export function generateNeckTextures(params: NeckTextureGenerationParams) {
         
         // Place launcher near the bottom of the neck
         const launcherY = size * 0.8; 
-        const launcherWidth = 60;
-        const launcherHeight = 40;
-        const spacing = 30;
+        const launcherWidth = 60 * torpedo_size;
+        const launcherHeight = 40 * torpedo_size;
+        const spacing = 30 * torpedo_size;
 
         const drawLauncher = (x: number, y: number) => {
             // Hull plate backdrop
@@ -165,12 +175,16 @@ export function generateNeckTextures(params: NeckTextureGenerationParams) {
             mapCtx.ellipse(x, y, launcherWidth/2, launcherHeight/2, 0, 0, Math.PI * 2);
             mapCtx.fill();
             
-            // Rim glow (red warning)
-            emissiveCtx.strokeStyle = '#ff0000';
-            emissiveCtx.lineWidth = 3;
+            // Rim glow
+            emissiveCtx.strokeStyle = torpedo_color;
+            emissiveCtx.lineWidth = 3 * (torpedo_glow / 2.0); // Glow intensity affects line width
+            emissiveCtx.shadowColor = torpedo_color;
+            emissiveCtx.shadowBlur = 10 * torpedo_glow;
             emissiveCtx.beginPath();
             emissiveCtx.ellipse(x, y, launcherWidth/2 - 2, launcherHeight/2 - 2, 0, 0, Math.PI * 2);
             emissiveCtx.stroke();
+            // Reset shadow
+            emissiveCtx.shadowBlur = 0;
             
             // Normal detail (flat bottom to look recessed)
             normalCtx.fillStyle = 'rgb(128, 128, 255)';
@@ -187,8 +201,8 @@ export function generateNeckTextures(params: NeckTextureGenerationParams) {
         mapCtx.strokeStyle = '#666';
         mapCtx.lineWidth = 4;
         mapCtx.beginPath();
-        mapCtx.moveTo(foreCenterX, launcherY - 100);
-        mapCtx.lineTo(foreCenterX, launcherY + 100);
+        mapCtx.moveTo(foreCenterX, launcherY - 100 * torpedo_size);
+        mapCtx.lineTo(foreCenterX, launcherY + 100 * torpedo_size);
         mapCtx.stroke();
     }
 

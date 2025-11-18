@@ -262,7 +262,7 @@ export const galaxyClassShip: ShipParameters = {
   "nacelleLower_z": -3.39,
   "nacelleLower_length": 30.63,
   "nacelleLower_radius": 3.87,
-  "nacelleLower_widthRatio": 0.5,
+  "nacelleLower_widthRatio": 0.39,
   "nacelleLower_foreTaper": 1,
   "nacelleLower_aftTaper": 1,
   "nacelleLower_foreCurve": 1,
@@ -364,8 +364,12 @@ export const galaxyClassShip: ShipParameters = {
   "neck_texture_window_density": 0.4,
   "neck_texture_window_lanes": 12,
   "neck_texture_lit_window_fraction": 0.5,
-  "neck_texture_window_color1": "#ffffaa",
+  "neck_texture_window_color1": "#bd73d9",
   "neck_texture_window_color2": "#aaccff",
   "neck_texture_glow_intensity": 2,
-  "neck_texture_torpedo_launcher_toggle": true
+  "neck_texture_torpedo_launcher_toggle": true,
+  "neck_texture_torpedo_color": "#ff0000",
+  "neck_texture_torpedo_size": 1,
+  "neck_texture_torpedo_glow": 5,
+  "neck_texture_window_width_scale": 0.5
 };
