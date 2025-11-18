@@ -28,7 +28,6 @@ export const galaxyClassShip: ShipParameters = {
   "engineering_texture_registry_sides": "Both",
   "engineering_texture_registry_position_y": 0.5,
   "engineering_texture_registry_rotation": 0,
-  // FIX: Added missing properties for engineering hull pennant and delta to match the ShipParameters type.
   "engineering_texture_pennant_toggle": false,
   "engineering_texture_pennant_color": "#dd3333",
   "engineering_texture_pennant_length": 0.5,
@@ -133,8 +132,8 @@ export const galaxyClassShip: ShipParameters = {
   "sublight_glowIntensity": 3,
   "sublight_animSpeed": 1.5,
   "neck_toggle": true,
-  "neck_primaryForeOffset": 0.62,
-  "neck_primaryAftOffset": 0.88,
+  "neck_primaryForeOffset": 0.87,
+  "neck_primaryAftOffset": 0.69,
   "neck_engineeringForeOffset": 0.24,
   "neck_engineeringAftOffset": -0.49,
   "neck_primaryThickness": 4.2,

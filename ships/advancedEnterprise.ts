@@ -28,7 +28,6 @@ export const advancedEnterpriseShip: ShipParameters = {
   "engineering_texture_registry_sides": "Both",
   "engineering_texture_registry_position_y": 0.5,
   "engineering_texture_registry_rotation": 0,
-  // FIX: Added missing properties for engineering hull pennant and delta to match the ShipParameters type.
   "engineering_texture_pennant_toggle": false,
   "engineering_texture_pennant_color": "#dd3333",
   "engineering_texture_pennant_length": 0.5,
@@ -133,8 +132,8 @@ export const advancedEnterpriseShip: ShipParameters = {
   "sublight_glowIntensity": 3,
   "sublight_animSpeed": 1.5,
   "neck_toggle": true,
-  "neck_primaryForeOffset": 0.51,
-  "neck_primaryAftOffset": 0.76,
+  "neck_primaryForeOffset": 0.78,
+  "neck_primaryAftOffset": 0.48,
   "neck_engineeringForeOffset": 0.06,
   "neck_engineeringAftOffset": -0.28,
   "neck_primaryThickness": 4,
