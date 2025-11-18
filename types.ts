@@ -21,6 +21,10 @@ declare global {
       // The `extend` function from R3F should automatically type this, but since the core
       // type augmentation is failing, we must define it manually as a fallback.
       arrowHelper: Node<THREE.ArrowHelper, ConstructorParameters<typeof THREE.ArrowHelper>>;
+      
+      // FIX: Add index signature to allow standard HTML/SVG elements (div, span, svg, etc.)
+      // which might be missing due to namespace shadowing or configuration issues.
+      [elemName: string]: any;
     }
   }
 }

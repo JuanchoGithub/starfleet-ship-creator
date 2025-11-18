@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
@@ -114,7 +107,7 @@ const ControlGroup: React.FC<{
   params: ShipParameters | LightParameters;
   onParamChange: (key: any, value: any) => void;
   defaultOpen?: boolean;
-}> = ({ groupName, configs, params, onParamChange, defaultOpen = true }) => {
+}> = React.memo(({ groupName, configs, params, onParamChange, defaultOpen = true }) => {
   if (!configs) return null;
   
   const entries = Object.entries(configs);
@@ -144,7 +137,7 @@ const ControlGroup: React.FC<{
       )}
     </Accordion>
   );
-};
+});
 
 
 const App: React.FC = () => {
@@ -225,104 +218,100 @@ const App: React.FC = () => {
 
   const handleGenerateTextures = useCallback(() => {
     setIsGeneratingTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateTextures({
-            seed: params.texture_seed,
-            density: params.texture_density,
-            panelColorVariation: params.texture_panel_color_variation,
-            window_density: params.texture_window_density,
-            window_color1: params.texture_window_color1,
-            window_color2: params.texture_window_color2,
-        });
+    const { map, normalMap, emissiveMap } = generateTextures({
+        seed: params.texture_seed,
+        density: params.texture_density,
+        panelColorVariation: params.texture_panel_color_variation,
+        window_density: params.texture_window_density,
+        window_color1: params.texture_window_color1,
+        window_color2: params.texture_window_color2,
+    });
 
-        if (hullMaterial.map) hullMaterial.map.dispose();
-        if (hullMaterial.normalMap) hullMaterial.normalMap.dispose();
-        if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.dispose();
-        if (secondaryMaterial.map) secondaryMaterial.map.dispose();
-        if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.dispose();
+    if (hullMaterial.map) hullMaterial.map.dispose();
+    if (hullMaterial.normalMap) hullMaterial.normalMap.dispose();
+    if (hullMaterial.emissiveMap) hullMaterial.emissiveMap.dispose();
+    if (secondaryMaterial.map) secondaryMaterial.map.dispose();
+    if (secondaryMaterial.normalMap) secondaryMaterial.normalMap.dispose();
 
-        hullMaterial.map = map;
-        hullMaterial.normalMap = normalMap;
-        hullMaterial.emissiveMap = emissiveMap;
-        hullMaterial.needsUpdate = true;
-        
-        const secondaryMap = new THREE.CanvasTexture(map.image as HTMLCanvasElement);
-        secondaryMap.wrapS = THREE.RepeatWrapping;
-        secondaryMap.wrapT = THREE.RepeatWrapping;
-        const secondaryNormalMap = new THREE.CanvasTexture(normalMap.image as HTMLCanvasElement);
-        secondaryNormalMap.wrapS = THREE.RepeatWrapping;
-        secondaryNormalMap.wrapT = THREE.RepeatWrapping;
+    hullMaterial.map = map;
+    hullMaterial.normalMap = normalMap;
+    hullMaterial.emissiveMap = emissiveMap;
+    hullMaterial.needsUpdate = true;
+    
+    const secondaryMap = new THREE.CanvasTexture(map.image as HTMLCanvasElement);
+    secondaryMap.wrapS = THREE.RepeatWrapping;
+    secondaryMap.wrapT = THREE.RepeatWrapping;
+    const secondaryNormalMap = new THREE.CanvasTexture(normalMap.image as HTMLCanvasElement);
+    secondaryNormalMap.wrapS = THREE.RepeatWrapping;
+    secondaryNormalMap.wrapT = THREE.RepeatWrapping;
 
-        secondaryMaterial.map = secondaryMap;
-        secondaryMaterial.normalMap = secondaryNormalMap;
-        secondaryMaterial.emissiveMap = null;
-        secondaryMaterial.needsUpdate = true;
-        
-        setIsGeneratingTextures(false);
-    }, 50);
+    secondaryMaterial.map = secondaryMap;
+    secondaryMaterial.normalMap = secondaryNormalMap;
+    secondaryMaterial.emissiveMap = null;
+    secondaryMaterial.needsUpdate = true;
+    
+    setIsGeneratingTextures(false);
   }, [params.texture_seed, params.texture_density, params.texture_panel_color_variation, params.texture_window_density, params.texture_window_color1, params.texture_window_color2, hullMaterial, secondaryMaterial]);
 
   const handleGenerateSaucerTextures = useCallback(() => {
     setIsGeneratingSaucerTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateSaucerTextures({
-            seed: params.saucer_texture_seed,
-            panelColorVariation: params.saucer_texture_panel_color_variation,
-            window_density: params.saucer_texture_window_density,
-            lit_window_fraction: params.saucer_texture_lit_window_fraction,
-            window_color1: params.saucer_texture_window_color1,
-            window_color2: params.saucer_texture_window_color2,
-            window_bands: params.saucer_texture_window_bands,
-            shipName: shipName,
-            registry: params.ship_registry,
-            // Top Name
-            name_top_toggle: params.saucer_texture_name_top_toggle,
-            name_top_color: params.saucer_texture_name_top_text_color,
-            name_top_font_size: params.saucer_texture_name_top_font_size,
-            name_top_angle: params.saucer_texture_name_top_angle,
-            name_top_curve: params.saucer_texture_name_top_curve,
-            name_top_orientation: params.saucer_texture_name_top_orientation,
-            name_top_distance: params.saucer_texture_name_top_distance,
-            // Bottom Name
-            name_bottom_toggle: params.saucer_texture_name_bottom_toggle,
-            name_bottom_color: params.saucer_texture_name_bottom_text_color,
-            name_bottom_font_size: params.saucer_texture_name_bottom_font_size,
-            name_bottom_angle: params.saucer_texture_name_bottom_angle,
-            name_bottom_curve: params.saucer_texture_name_bottom_curve,
-            name_bottom_orientation: params.saucer_texture_name_bottom_orientation,
-            name_bottom_distance: params.saucer_texture_name_bottom_distance,
-            // Top Registry
-            registry_top_toggle: params.saucer_texture_registry_top_toggle,
-            registry_top_color: params.saucer_texture_registry_top_text_color,
-            registry_top_font_size: params.saucer_texture_registry_top_font_size,
-            registry_top_angle: params.saucer_texture_registry_top_angle,
-            registry_top_curve: params.saucer_texture_registry_top_curve,
-            registry_top_orientation: params.saucer_texture_registry_top_orientation,
-            registry_top_distance: params.saucer_texture_registry_top_distance,
-            // Bottom Registry
-            registry_bottom_toggle: params.saucer_texture_registry_bottom_toggle,
-            registry_bottom_color: params.saucer_texture_registry_bottom_text_color,
-            registry_bottom_font_size: params.saucer_texture_registry_bottom_font_size,
-            registry_bottom_angle: params.saucer_texture_registry_bottom_angle,
-            registry_bottom_curve: params.saucer_texture_registry_bottom_curve,
-            registry_bottom_orientation: params.saucer_texture_registry_bottom_orientation,
-            registry_bottom_distance: params.saucer_texture_registry_bottom_distance,
-            // Bridge
-            bridge_registry_toggle: params.saucer_texture_bridge_registry_toggle,
-            bridge_registry_font_size: params.saucer_texture_bridge_registry_font_size,
-        });
+    const { map, normalMap, emissiveMap } = generateSaucerTextures({
+        seed: params.saucer_texture_seed,
+        panelColorVariation: params.saucer_texture_panel_color_variation,
+        window_density: params.saucer_texture_window_density,
+        lit_window_fraction: params.saucer_texture_lit_window_fraction,
+        window_color1: params.saucer_texture_window_color1,
+        window_color2: params.saucer_texture_window_color2,
+        window_bands: params.saucer_texture_window_bands,
+        shipName: shipName,
+        registry: params.ship_registry,
+        // Top Name
+        name_top_toggle: params.saucer_texture_name_top_toggle,
+        name_top_color: params.saucer_texture_name_top_text_color,
+        name_top_font_size: params.saucer_texture_name_top_font_size,
+        name_top_angle: params.saucer_texture_name_top_angle,
+        name_top_curve: params.saucer_texture_name_top_curve,
+        name_top_orientation: params.saucer_texture_name_top_orientation,
+        name_top_distance: params.saucer_texture_name_top_distance,
+        // Bottom Name
+        name_bottom_toggle: params.saucer_texture_name_bottom_toggle,
+        name_bottom_color: params.saucer_texture_name_bottom_text_color,
+        name_bottom_font_size: params.saucer_texture_name_bottom_font_size,
+        name_bottom_angle: params.saucer_texture_name_bottom_angle,
+        name_bottom_curve: params.saucer_texture_name_bottom_curve,
+        name_bottom_orientation: params.saucer_texture_name_bottom_orientation,
+        name_bottom_distance: params.saucer_texture_name_bottom_distance,
+        // Top Registry
+        registry_top_toggle: params.saucer_texture_registry_top_toggle,
+        registry_top_color: params.saucer_texture_registry_top_text_color,
+        registry_top_font_size: params.saucer_texture_registry_top_font_size,
+        registry_top_angle: params.saucer_texture_registry_top_angle,
+        registry_top_curve: params.saucer_texture_registry_top_curve,
+        registry_top_orientation: params.saucer_texture_registry_top_orientation,
+        registry_top_distance: params.saucer_texture_registry_top_distance,
+        // Bottom Registry
+        registry_bottom_toggle: params.saucer_texture_registry_bottom_toggle,
+        registry_bottom_color: params.saucer_texture_registry_bottom_text_color,
+        registry_bottom_font_size: params.saucer_texture_registry_bottom_font_size,
+        registry_bottom_angle: params.saucer_texture_registry_bottom_angle,
+        registry_bottom_curve: params.saucer_texture_registry_bottom_curve,
+        registry_bottom_orientation: params.saucer_texture_registry_bottom_orientation,
+        registry_bottom_distance: params.saucer_texture_registry_bottom_distance,
+        // Bridge
+        bridge_registry_toggle: params.saucer_texture_bridge_registry_toggle,
+        bridge_registry_font_size: params.saucer_texture_bridge_registry_font_size,
+    });
 
-        if (saucerMaterial.map) saucerMaterial.map.dispose();
-        if (saucerMaterial.normalMap) saucerMaterial.normalMap.dispose();
-        if (saucerMaterial.emissiveMap) saucerMaterial.emissiveMap.dispose();
+    if (saucerMaterial.map) saucerMaterial.map.dispose();
+    if (saucerMaterial.normalMap) saucerMaterial.normalMap.dispose();
+    if (saucerMaterial.emissiveMap) saucerMaterial.emissiveMap.dispose();
 
-        saucerMaterial.map = map;
-        saucerMaterial.normalMap = normalMap;
-        saucerMaterial.emissiveMap = emissiveMap;
-        saucerMaterial.needsUpdate = true;
-        
-        setIsGeneratingSaucerTextures(false);
-    }, 50);
+    saucerMaterial.map = map;
+    saucerMaterial.normalMap = normalMap;
+    saucerMaterial.emissiveMap = emissiveMap;
+    saucerMaterial.needsUpdate = true;
+    
+    setIsGeneratingSaucerTextures(false);
   }, [
       params, // Pass the whole params object since many properties are used
       saucerMaterial, shipName
@@ -330,73 +319,69 @@ const App: React.FC = () => {
 
   const handleGenerateBridgeTextures = useCallback(() => {
     setIsGeneratingBridgeTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateBridgeTextures({
-            seed: params.bridge_texture_seed,
-            panel_toggle: params.bridge_texture_panel_toggle,
-            panelColorVariation: params.bridge_texture_panel_color_variation,
-            light_density: params.bridge_texture_light_density,
-            light_color1: params.bridge_texture_light_color1,
-            light_color2: params.bridge_texture_light_color2,
-            rotation_offset: params.bridge_texture_rotation_offset,
-            window_bands_toggle: params.bridge_texture_window_bands_toggle,
-            window_bands_count: params.bridge_texture_window_bands_count,
-            window_density: params.bridge_texture_window_density,
-            lit_window_fraction: params.bridge_texture_lit_window_fraction,
-            window_color1: params.bridge_texture_window_color1,
-            window_color2: params.bridge_texture_window_color2,
-        });
+    const { map, normalMap, emissiveMap } = generateBridgeTextures({
+        seed: params.bridge_texture_seed,
+        panel_toggle: params.bridge_texture_panel_toggle,
+        panelColorVariation: params.bridge_texture_panel_color_variation,
+        light_density: params.bridge_texture_light_density,
+        light_color1: params.bridge_texture_light_color1,
+        light_color2: params.bridge_texture_light_color2,
+        rotation_offset: params.bridge_texture_rotation_offset,
+        window_bands_toggle: params.bridge_texture_window_bands_toggle,
+        window_bands_count: params.bridge_texture_window_bands_count,
+        window_density: params.bridge_texture_window_density,
+        lit_window_fraction: params.bridge_texture_lit_window_fraction,
+        window_color1: params.bridge_texture_window_color1,
+        window_color2: params.bridge_texture_window_color2,
+    });
 
-        if (bridgeMaterial.map) bridgeMaterial.map.dispose();
-        if (bridgeMaterial.normalMap) bridgeMaterial.normalMap.dispose();
-        if (bridgeMaterial.emissiveMap) bridgeMaterial.emissiveMap.dispose();
+    if (bridgeMaterial.map) bridgeMaterial.map.dispose();
+    if (bridgeMaterial.normalMap) bridgeMaterial.normalMap.dispose();
+    if (bridgeMaterial.emissiveMap) bridgeMaterial.emissiveMap.dispose();
 
-        bridgeMaterial.map = map;
-        bridgeMaterial.normalMap = normalMap;
-        bridgeMaterial.emissiveMap = emissiveMap;
-        bridgeMaterial.needsUpdate = true;
-        
-        setIsGeneratingBridgeTextures(false);
-    }, 50);
+    bridgeMaterial.map = map;
+    bridgeMaterial.normalMap = normalMap;
+    bridgeMaterial.emissiveMap = emissiveMap;
+    bridgeMaterial.needsUpdate = true;
+    
+    setIsGeneratingBridgeTextures(false);
   }, [params, bridgeMaterial]);
 
   const handleGenerateNeckTextures = useCallback(() => {
     setIsGeneratingNeckTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateNeckTextures({
-            seed: params.neck_texture_seed,
-            panelColorVariation: params.neck_texture_panel_color_variation,
-            window_density: params.neck_texture_window_density,
-            window_lanes: params.neck_texture_window_lanes,
-            lit_window_fraction: params.neck_texture_lit_window_fraction,
-            window_color1: params.neck_texture_window_color1,
-            window_color2: params.neck_texture_window_color2,
-            torpedo_launcher_toggle: params.neck_texture_torpedo_launcher_toggle,
-            // New parameters passed to generator
-            torpedo_color: params.neck_texture_torpedo_color,
-            torpedo_size: params.neck_texture_torpedo_size,
-            torpedo_glow: params.neck_texture_torpedo_glow,
-            window_width_scale: params.neck_texture_window_width_scale,
-        });
+    const { map, normalMap, emissiveMap } = generateNeckTextures({
+        seed: params.neck_texture_seed,
+        panelColorVariation: params.neck_texture_panel_color_variation,
+        window_density: params.neck_texture_window_density,
+        window_lanes: params.neck_texture_window_lanes,
+        lit_window_fraction: params.neck_texture_lit_window_fraction,
+        window_color1: params.neck_texture_window_color1,
+        window_color2: params.neck_texture_window_color2,
+        torpedo_launcher_toggle: params.neck_texture_torpedo_launcher_toggle,
+        // New parameters passed to generator
+        torpedo_color: params.neck_texture_torpedo_color,
+        torpedo_size: params.neck_texture_torpedo_size,
+        torpedo_glow: params.neck_texture_torpedo_glow,
+        window_width_scale: params.neck_texture_window_width_scale,
+    });
 
-        if (neckMaterial.map) neckMaterial.map.dispose();
-        if (neckMaterial.normalMap) neckMaterial.normalMap.dispose();
-        if (neckMaterial.emissiveMap) neckMaterial.emissiveMap.dispose();
+    if (neckMaterial.map) neckMaterial.map.dispose();
+    if (neckMaterial.normalMap) neckMaterial.normalMap.dispose();
+    if (neckMaterial.emissiveMap) neckMaterial.emissiveMap.dispose();
 
-        neckMaterial.map = map;
-        neckMaterial.normalMap = normalMap;
-        neckMaterial.emissiveMap = emissiveMap;
-        
-        // Apply scale immediately to new textures
-        const neckTextureScale = params.neck_texture_scale || 1;
-        neckMaterial.map.repeat.set(neckTextureScale, neckTextureScale);
-        neckMaterial.normalMap.repeat.set(neckTextureScale, neckTextureScale);
-        neckMaterial.emissiveMap.repeat.set(neckTextureScale, neckTextureScale);
+    neckMaterial.map = map;
+    neckMaterial.normalMap = normalMap;
+    neckMaterial.emissiveMap = emissiveMap;
+    
+    // Apply scale immediately to new textures
+    const neckTextureScale = params.neck_texture_scale || 1;
+    neckMaterial.map.repeat.set(neckTextureScale, neckTextureScale);
+    neckMaterial.normalMap.repeat.set(neckTextureScale, neckTextureScale);
+    neckMaterial.emissiveMap.repeat.set(neckTextureScale, neckTextureScale);
 
-        neckMaterial.needsUpdate = true;
-        
-        setIsGeneratingNeckTextures(false);
-    }, 50);
+    neckMaterial.needsUpdate = true;
+    
+    setIsGeneratingNeckTextures(false);
   }, [
     params.neck_texture_seed, params.neck_texture_panel_color_variation,
     params.neck_texture_window_density, params.neck_texture_window_lanes,
@@ -411,51 +396,49 @@ const App: React.FC = () => {
 
   const handleGenerateEngineeringTextures = useCallback(() => {
     setIsGeneratingEngineeringTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateEngineeringTextures({
-            seed: params.engineering_texture_seed,
-            panelColorVariation: params.engineering_texture_panel_color_variation,
-            window_density: params.engineering_texture_window_density,
-            lit_window_fraction: params.engineering_texture_lit_window_fraction,
-            window_bands: params.engineering_texture_window_bands,
-            window_color1: params.engineering_texture_window_color1,
-            window_color2: params.engineering_texture_window_color2,
-            registry: params.ship_registry,
-            registry_toggle: params.engineering_texture_registry_toggle,
-            registry_color: params.engineering_texture_registry_text_color,
-            registry_font_size: params.engineering_texture_registry_font_size,
-            registry_sides: params.engineering_texture_registry_sides,
-            registry_position_y: params.engineering_texture_registry_position_y,
-            registry_rotation: params.engineering_texture_registry_rotation,
-            pennant_toggle: params.engineering_texture_pennant_toggle,
-            pennant_color: params.engineering_texture_pennant_color,
-            pennant_length: params.engineering_texture_pennant_length,
-            pennant_group_width: params.engineering_texture_pennant_group_width,
-            pennant_line_width: params.engineering_texture_pennant_line_width,
-            pennant_line_count: params.engineering_texture_pennant_line_count,
-            pennant_taper_start: params.engineering_texture_pennant_taper_start,
-            pennant_taper_end: params.engineering_texture_pennant_taper_end,
-            pennant_sides: params.engineering_texture_pennant_sides,
-            pennant_position: params.engineering_texture_pennant_position,
-            pennant_rotation: params.engineering_texture_pennant_rotation,
-            pennant_glow_intensity: params.engineering_texture_pennant_glow_intensity,
-            delta_toggle: params.engineering_texture_delta_toggle,
-            delta_position: params.engineering_texture_delta_position,
-            delta_glow_intensity: params.engineering_texture_delta_glow_intensity,
-            pennant_reflection: params.engineering_texture_pennant_reflection,
-        });
+    const { map, normalMap, emissiveMap } = generateEngineeringTextures({
+        seed: params.engineering_texture_seed,
+        panelColorVariation: params.engineering_texture_panel_color_variation,
+        window_density: params.engineering_texture_window_density,
+        lit_window_fraction: params.engineering_texture_lit_window_fraction,
+        window_bands: params.engineering_texture_window_bands,
+        window_color1: params.engineering_texture_window_color1,
+        window_color2: params.engineering_texture_window_color2,
+        registry: params.ship_registry,
+        registry_toggle: params.engineering_texture_registry_toggle,
+        registry_color: params.engineering_texture_registry_text_color,
+        registry_font_size: params.engineering_texture_registry_font_size,
+        registry_sides: params.engineering_texture_registry_sides,
+        registry_position_y: params.engineering_texture_registry_position_y,
+        registry_rotation: params.engineering_texture_registry_rotation,
+        pennant_toggle: params.engineering_texture_pennant_toggle,
+        pennant_color: params.engineering_texture_pennant_color,
+        pennant_length: params.engineering_texture_pennant_length,
+        pennant_group_width: params.engineering_texture_pennant_group_width,
+        pennant_line_width: params.engineering_texture_pennant_line_width,
+        pennant_line_count: params.engineering_texture_pennant_line_count,
+        pennant_taper_start: params.engineering_texture_pennant_taper_start,
+        pennant_taper_end: params.engineering_texture_pennant_taper_end,
+        pennant_sides: params.engineering_texture_pennant_sides,
+        pennant_position: params.engineering_texture_pennant_position,
+        pennant_rotation: params.engineering_texture_pennant_rotation,
+        pennant_glow_intensity: params.engineering_texture_pennant_glow_intensity,
+        delta_toggle: params.engineering_texture_delta_toggle,
+        delta_position: params.engineering_texture_delta_position,
+        delta_glow_intensity: params.engineering_texture_delta_glow_intensity,
+        pennant_reflection: params.engineering_texture_pennant_reflection,
+    });
 
-        if (engineeringMaterial.map) engineeringMaterial.map.dispose();
-        if (engineeringMaterial.normalMap) engineeringMaterial.normalMap.dispose();
-        if (engineeringMaterial.emissiveMap) engineeringMaterial.emissiveMap.dispose();
+    if (engineeringMaterial.map) engineeringMaterial.map.dispose();
+    if (engineeringMaterial.normalMap) engineeringMaterial.normalMap.dispose();
+    if (engineeringMaterial.emissiveMap) engineeringMaterial.emissiveMap.dispose();
 
-        engineeringMaterial.map = map;
-        engineeringMaterial.normalMap = normalMap;
-        engineeringMaterial.emissiveMap = emissiveMap;
-        engineeringMaterial.needsUpdate = true;
-        
-        setIsGeneratingEngineeringTextures(false);
-    }, 50);
+    engineeringMaterial.map = map;
+    engineeringMaterial.normalMap = normalMap;
+    engineeringMaterial.emissiveMap = emissiveMap;
+    engineeringMaterial.needsUpdate = true;
+    
+    setIsGeneratingEngineeringTextures(false);
   }, [
       params.engineering_texture_seed, params.engineering_texture_panel_color_variation,
       params.engineering_texture_window_density, params.engineering_texture_lit_window_fraction,
@@ -479,43 +462,41 @@ const App: React.FC = () => {
 
   const handleGenerateNacelleTextures = useCallback(() => {
     setIsGeneratingNacelleTextures(true);
-    setTimeout(() => {
-        const { map, normalMap, emissiveMap } = generateNacelleTextures({
-            seed: params.nacelle_texture_seed,
-            panelColorVariation: params.nacelle_texture_panel_color_variation,
-            window_density: params.nacelle_texture_window_density,
-            lit_window_fraction: params.nacelle_texture_lit_window_fraction,
-            window_color1: params.nacelle_texture_window_color1,
-            window_color2: params.nacelle_texture_window_color2,
-            pennant_toggle: params.nacelle_texture_pennant_toggle,
-            pennant_color: params.nacelle_texture_pennant_color,
-            pennant_length: params.nacelle_texture_pennant_length,
-            pennant_group_width: params.nacelle_texture_pennant_group_width,
-            pennant_line_width: params.nacelle_texture_pennant_line_width,
-            pennant_line_count: params.nacelle_texture_pennant_line_count,
-            pennant_taper_start: params.nacelle_texture_pennant_taper_start,
-            pennant_taper_end: params.nacelle_texture_pennant_taper_end,
-            pennant_sides: params.nacelle_texture_pennant_sides,
-            pennant_position: params.nacelle_texture_pennant_position,
-            pennant_rotation: params.nacelle_texture_pennant_rotation,
-            pennant_glow_intensity: params.nacelle_texture_pennant_glow_intensity,
-            delta_toggle: params.nacelle_texture_delta_toggle,
-            delta_position: params.nacelle_texture_delta_position,
-            delta_glow_intensity: params.nacelle_texture_delta_glow_intensity,
-            pennant_reflection: params.nacelle_texture_pennant_reflection,
-        });
+    const { map, normalMap, emissiveMap } = generateNacelleTextures({
+        seed: params.nacelle_texture_seed,
+        panelColorVariation: params.nacelle_texture_panel_color_variation,
+        window_density: params.nacelle_texture_window_density,
+        lit_window_fraction: params.nacelle_texture_lit_window_fraction,
+        window_color1: params.nacelle_texture_window_color1,
+        window_color2: params.nacelle_texture_window_color2,
+        pennant_toggle: params.nacelle_texture_pennant_toggle,
+        pennant_color: params.nacelle_texture_pennant_color,
+        pennant_length: params.nacelle_texture_pennant_length,
+        pennant_group_width: params.nacelle_texture_pennant_group_width,
+        pennant_line_width: params.nacelle_texture_pennant_line_width,
+        pennant_line_count: params.nacelle_texture_pennant_line_count,
+        pennant_taper_start: params.nacelle_texture_pennant_taper_start,
+        pennant_taper_end: params.nacelle_texture_pennant_taper_end,
+        pennant_sides: params.nacelle_texture_pennant_sides,
+        pennant_position: params.nacelle_texture_pennant_position,
+        pennant_rotation: params.nacelle_texture_pennant_rotation,
+        pennant_glow_intensity: params.nacelle_texture_pennant_glow_intensity,
+        delta_toggle: params.nacelle_texture_delta_toggle,
+        delta_position: params.nacelle_texture_delta_position,
+        delta_glow_intensity: params.nacelle_texture_delta_glow_intensity,
+        pennant_reflection: params.nacelle_texture_pennant_reflection,
+    });
 
-        if (nacelleMaterial.map) nacelleMaterial.map.dispose();
-        if (nacelleMaterial.normalMap) nacelleMaterial.normalMap.dispose();
-        if (nacelleMaterial.emissiveMap) nacelleMaterial.emissiveMap.dispose();
+    if (nacelleMaterial.map) nacelleMaterial.map.dispose();
+    if (nacelleMaterial.normalMap) nacelleMaterial.normalMap.dispose();
+    if (nacelleMaterial.emissiveMap) nacelleMaterial.emissiveMap.dispose();
 
-        nacelleMaterial.map = map;
-        nacelleMaterial.normalMap = normalMap;
-        nacelleMaterial.emissiveMap = emissiveMap;
-        nacelleMaterial.needsUpdate = true;
-        
-        setIsGeneratingNacelleTextures(false);
-    }, 50);
+    nacelleMaterial.map = map;
+    nacelleMaterial.normalMap = normalMap;
+    nacelleMaterial.emissiveMap = emissiveMap;
+    nacelleMaterial.needsUpdate = true;
+    
+    setIsGeneratingNacelleTextures(false);
   }, [
       params.nacelle_texture_seed, params.nacelle_texture_panel_color_variation,
       params.nacelle_texture_window_density, params.nacelle_texture_lit_window_fraction,
@@ -532,10 +513,11 @@ const App: React.FC = () => {
       nacelleMaterial
   ]);
 
+  // Debounced Texture Generation Effects
   useEffect(() => {
-    if (params.texture_toggle) {
-        handleGenerateTextures();
-    }
+    if (!params.texture_toggle) return;
+    const t = setTimeout(handleGenerateTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.texture_toggle, 
     params.texture_seed,
@@ -548,9 +530,9 @@ const App: React.FC = () => {
   ]);
   
   useEffect(() => {
-    if (params.saucer_texture_toggle) {
-        handleGenerateSaucerTextures();
-    }
+    if (!params.saucer_texture_toggle) return;
+    const t = setTimeout(handleGenerateSaucerTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.saucer_texture_toggle,
     params.saucer_texture_seed,
@@ -596,9 +578,9 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (params.bridge_texture_toggle) {
-        handleGenerateBridgeTextures();
-    }
+    if (!params.bridge_texture_toggle) return;
+    const t = setTimeout(handleGenerateBridgeTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.bridge_texture_toggle,
     params.bridge_texture_seed,
@@ -618,9 +600,9 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (params.nacelle_texture_toggle) {
-        handleGenerateNacelleTextures();
-    }
+    if (!params.nacelle_texture_toggle) return;
+    const t = setTimeout(handleGenerateNacelleTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.nacelle_texture_toggle,
     params.nacelle_texture_seed,
@@ -649,9 +631,9 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (params.neck_texture_toggle) {
-        handleGenerateNeckTextures();
-    }
+    if (!params.neck_texture_toggle) return;
+    const t = setTimeout(handleGenerateNeckTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.neck_texture_toggle,
     params.neck_texture_seed,
@@ -666,16 +648,14 @@ const App: React.FC = () => {
     params.neck_texture_torpedo_size,
     params.neck_texture_torpedo_glow,
     params.neck_texture_window_width_scale,
-    // Scale changes will trigger regeneration to ensure it's baked/applied correctly 
-    // if we want dynamic updates, although repeat is set below.
     params.neck_texture_scale, 
     handleGenerateNeckTextures
   ]);
 
   useEffect(() => {
-    if (params.engineering_texture_toggle) {
-        handleGenerateEngineeringTextures();
-    }
+    if (!params.engineering_texture_toggle) return;
+    const t = setTimeout(handleGenerateEngineeringTextures, 150);
+    return () => clearTimeout(t);
   }, [
     params.engineering_texture_toggle,
     params.engineering_texture_seed,
@@ -734,10 +714,6 @@ const App: React.FC = () => {
         engineeringMaterial.emissiveMap.repeat.set(engTextureScale, engTextureScale / engTextureAspect);
         engineeringMaterial.emissiveMap.offset.set(params.engineering_texture_rotation_offset || 0, 0);
     }
-    
-    // Note: Neck scale is now handled inside handleGenerateNeckTextures to prevent reset on regeneration.
-    // But we keep it here for when the slider is moved without full regeneration if possible,
-    // although currently any param change triggers regeneration for neck.
     
     const nacelleTextureScale = params.nacelle_texture_scale || 8;
     const nacelleTextureAspect = 2.0; // Height is 2x width

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDownIcon } from './icons';
 
-export const Accordion: React.FC<{ title: string; children: React.ReactNode, defaultOpen?: boolean }> = ({ title, children, defaultOpen = true }) => {
+export const Accordion: React.FC<{ title: string; children: React.ReactNode, defaultOpen?: boolean }> = React.memo(({ title, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <div className="border-b border-space-light">
@@ -15,7 +15,7 @@ export const Accordion: React.FC<{ title: string; children: React.ReactNode, def
       {isOpen && <div className="p-3 pt-0 space-y-3">{children}</div>}
     </div>
   );
-};
+});
 
 interface SliderProps {
   label: string;
@@ -26,7 +26,7 @@ interface SliderProps {
   onChange: (value: number) => void;
 }
 
-export const Slider: React.FC<SliderProps> = ({ label, value, min, max, step, onChange }) => (
+export const Slider: React.FC<SliderProps> = React.memo(({ label, value, min, max, step, onChange }) => (
   <div>
     <div className="flex justify-between items-center text-sm mb-1">
       <label className="text-mid-gray">{label}</label>
@@ -42,7 +42,7 @@ export const Slider: React.FC<SliderProps> = ({ label, value, min, max, step, on
       className="w-full h-2 bg-space-light rounded-lg appearance-none cursor-pointer accent-accent-blue"
     />
   </div>
-);
+));
 
 interface ToggleProps {
   label: string;
@@ -50,7 +50,7 @@ interface ToggleProps {
   onChange: (checked: boolean) => void;
 }
 
-export const Toggle: React.FC<ToggleProps> = ({ label, checked, onChange }) => (
+export const Toggle: React.FC<ToggleProps> = React.memo(({ label, checked, onChange }) => (
     <div className="flex justify-between items-center">
         <label className="text-mid-gray text-sm">{label}</label>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -58,7 +58,7 @@ export const Toggle: React.FC<ToggleProps> = ({ label, checked, onChange }) => (
             <div className="w-11 h-6 bg-space-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"></div>
         </label>
     </div>
-);
+));
 
 interface ColorPickerProps {
     label: string;
@@ -66,7 +66,7 @@ interface ColorPickerProps {
     onChange: (value: string) => void;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange }) => (
+export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({ label, value, onChange }) => (
     <div className="flex justify-between items-center">
         <label className="text-mid-gray text-sm">{label}</label>
         <div className="relative rounded-md overflow-hidden w-9 h-6 border border-space-light">
@@ -78,7 +78,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange
             />
         </div>
     </div>
-);
+));
 
 interface SelectProps {
     label: string;
@@ -87,7 +87,7 @@ interface SelectProps {
     onChange: (value: string) => void;
 }
 
-export const Select: React.FC<SelectProps> = ({ label, value, options, onChange }) => (
+export const Select: React.FC<SelectProps> = React.memo(({ label, value, options, onChange }) => (
     <div className="flex justify-between items-center">
         <label className="text-mid-gray text-sm">{label}</label>
         <select
@@ -98,4 +98,4 @@ export const Select: React.FC<SelectProps> = ({ label, value, options, onChange 
             {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
     </div>
-);
+));

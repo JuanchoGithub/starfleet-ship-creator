@@ -146,8 +146,8 @@ const SceneContent: React.FC<SceneProps> = ({ shipParams, shipRef, hullMaterial,
             position={[lightParams.directional_position_x, lightParams.directional_position_y, lightParams.directional_position_z]} 
             intensity={lightParams.directional_intensity} 
             castShadow 
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
             shadow-camera-left={-50}
             shadow-camera-right={50}
             shadow-camera-top={50}
