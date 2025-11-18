@@ -1,3 +1,5 @@
+
+
 import { ShipParameters } from '../types';
 
 export const enterpriseNX01Ship: ShipParameters = {
@@ -355,5 +357,16 @@ export const enterpriseNX01Ship: ShipParameters = {
   "nacelle_texture_pennant_line_count": 1,
   "nacelle_texture_pennant_line_width": 1,
   "nacelle_texture_pennant_taper_start": 1,
-  "nacelle_texture_pennant_taper_end": 1
+  "nacelle_texture_pennant_taper_end": 1,
+  "neck_texture_toggle": true,
+  "neck_texture_seed": 88,
+  "neck_texture_scale": 1,
+  "neck_texture_panel_color_variation": 0.05,
+  "neck_texture_window_density": 0.4,
+  "neck_texture_window_lanes": 12,
+  "neck_texture_lit_window_fraction": 0.5,
+  "neck_texture_window_color1": "#ffffaa",
+  "neck_texture_window_color2": "#aaccff",
+  "neck_texture_glow_intensity": 2,
+  "neck_texture_torpedo_launcher_toggle": true
 };

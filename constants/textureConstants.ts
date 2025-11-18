@@ -1,3 +1,5 @@
+
+
 import { ParamConfigGroups } from '../types';
 
 export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
@@ -62,7 +64,6 @@ export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
     "Registry Text": {
         engineering_texture_registry_toggle: { label: "Enable", type: 'toggle' },
         engineering_texture_registry_sides: { label: "Sides", type: 'select', options: ['Outward', 'Inward', 'Both'] },
-        // FIX: Completed the object definition by adding the missing `step` and `type` properties.
         engineering_texture_registry_font_size: { label: "Font Size", min: 10, max: 150, step: 1, type: 'slider' },
         engineering_texture_registry_text_color: { label: "Color", type: 'color' },
         engineering_texture_registry_position_y: { label: "Vertical Position", min: 0, max: 1, step: 0.01, type: 'slider' },
@@ -85,6 +86,25 @@ export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
       engineering_texture_delta_toggle: { label: "Enable Delta", type: 'toggle' },
       engineering_texture_delta_position: { label: "Delta Position", min: 0, max: 1.5, step: 0.01, type: 'slider' },
       engineering_texture_delta_glow_intensity: { label: "Delta Glow", min: 0, max: 5, step: 0.1, type: 'slider' },
+    }
+  },
+  "Neck Texturing": {
+    "General": {
+      neck_texture_toggle: { label: "Enable", type: 'toggle' },
+      neck_texture_seed: { label: "Seed", min: 1, max: 1000, step: 1, type: 'slider' },
+      neck_texture_scale: { label: "Scale", min: 0.01, max: 20, step: 0.001, type: 'slider' },
+    },
+    "Panels & Details": {
+      neck_texture_panel_color_variation: { label: "Panel Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
+      neck_texture_torpedo_launcher_toggle: { label: "Torpedo Launchers", type: 'toggle' },
+    },
+    "Windows": {
+      neck_texture_window_lanes: { label: "Window Lanes", min: 0, max: 32, step: 1, type: 'slider' },
+      neck_texture_window_density: { label: "Vertical Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      neck_texture_lit_window_fraction: { label: "Lit Fraction", min: 0, max: 1, step: 0.01, type: 'slider' },
+      neck_texture_window_color1: { label: "Window Color A", type: 'color' },
+      neck_texture_window_color2: { label: "Window Color B", type: 'color' },
+      neck_texture_glow_intensity: { label: "Glow Intensity", min: 0, max: 10, step: 0.01, type: 'slider' },
     }
   },
   "Nacelle Texturing": {

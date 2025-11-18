@@ -1,3 +1,4 @@
+
 // The automatic JSX augmentation from `@react-three/fiber` appears to be failing in this project's setup.
 // This manual augmentation of the global JSX namespace ensures that TypeScript recognizes 
 // react-three-fiber's JSX elements (like <mesh>, <group>, etc.) throughout the application.
@@ -337,6 +338,19 @@ export interface ShipParameters {
   engineering_texture_delta_position: number;
   engineering_texture_delta_glow_intensity: number;
   engineering_texture_pennant_reflection: number;
+  
+  // Neck Texturing
+  neck_texture_toggle: boolean;
+  neck_texture_seed: number;
+  neck_texture_scale: number;
+  neck_texture_panel_color_variation: number;
+  neck_texture_window_density: number;
+  neck_texture_window_lanes: number;
+  neck_texture_lit_window_fraction: number;
+  neck_texture_window_color1: string;
+  neck_texture_window_color2: string;
+  neck_texture_glow_intensity: number;
+  neck_texture_torpedo_launcher_toggle: boolean;
 
   // Saucer Texturing
   saucer_texture_toggle: boolean;

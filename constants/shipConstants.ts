@@ -1,7 +1,24 @@
+
 import { ShipParameters, LightParameters, EnvironmentPreset, ParamConfigGroups, SubParamGroup } from '../types';
 import { STOCK_SHIPS } from '../ships';
 
-export const INITIAL_SHIP_PARAMS: ShipParameters = STOCK_SHIPS['Stargazer Class'];
+// We need to patch the initial ship params with the new neck texture fields if they don't exist
+// in the stock ship data.
+const DEFAULT_NECK_PARAMS = {
+    neck_texture_toggle: true,
+    neck_texture_seed: 88,
+    neck_texture_scale: 1,
+    neck_texture_panel_color_variation: 0.05,
+    neck_texture_window_density: 0.4,
+    neck_texture_window_lanes: 12,
+    neck_texture_lit_window_fraction: 0.5,
+    neck_texture_window_color1: "#ffffaa",
+    neck_texture_window_color2: "#aaccff",
+    neck_texture_glow_intensity: 2,
+    neck_texture_torpedo_launcher_toggle: true,
+};
+
+export const INITIAL_SHIP_PARAMS: ShipParameters = { ...STOCK_SHIPS['Stargazer Class'], ...DEFAULT_NECK_PARAMS };
 
 // New Config for specific Deflector Dish parameters, exported for use in manual rendering logic in App.tsx
 export const DEFLECTOR_PARAM_CONFIG: SubParamGroup = {

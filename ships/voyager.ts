@@ -1,3 +1,5 @@
+
+
 import { ShipParameters } from '../types';
 
 export const voyagerShip: ShipParameters = {
@@ -341,18 +343,29 @@ export const voyagerShip: ShipParameters = {
   "nacelle_texture_glow_intensity": 2,
   "nacelle_texture_pennant_toggle": true,
   "nacelle_texture_pennant_color": "#dd3333",
-  "nacelle_texture_pennant_length": 0.5,
+  "nacelle_texture_pennant_length": 0.57,
   "nacelle_texture_pennant_group_width": 0.05,
-  "nacelle_texture_pennant_position": 0.35,
-  "nacelle_texture_pennant_rotation": -90,
+  "nacelle_texture_pennant_position": 0.65,
+  "nacelle_texture_pennant_rotation": 0,
   "nacelle_texture_pennant_glow_intensity": 0,
   "nacelle_texture_delta_toggle": true,
-  "nacelle_texture_delta_position": 0,
+  "nacelle_texture_delta_position": 1,
   "nacelle_texture_delta_glow_intensity": 0,
   "nacelle_texture_pennant_reflection": 0.5,
-  "nacelle_texture_pennant_sides": "Both",
+  "nacelle_texture_pennant_sides": "Outward",
   "nacelle_texture_pennant_line_count": 2,
-  "nacelle_texture_pennant_line_width": 0.47,
-  "nacelle_texture_pennant_taper_start": 1,
-  "nacelle_texture_pennant_taper_end": 1
+  "nacelle_texture_pennant_line_width": 0.66,
+  "nacelle_texture_pennant_taper_start": 1.5,
+  "nacelle_texture_pennant_taper_end": 0.1,
+  "neck_texture_toggle": true,
+  "neck_texture_seed": 88,
+  "neck_texture_scale": 1,
+  "neck_texture_panel_color_variation": 0.05,
+  "neck_texture_window_density": 0.4,
+  "neck_texture_window_lanes": 12, // ADDED
+  "neck_texture_lit_window_fraction": 0.5,
+  "neck_texture_window_color1": "#ffffaa",
+  "neck_texture_window_color2": "#aaccff",
+  "neck_texture_glow_intensity": 2,
+  "neck_texture_torpedo_launcher_toggle": true
 };
