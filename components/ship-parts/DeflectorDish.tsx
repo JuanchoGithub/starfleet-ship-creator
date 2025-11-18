@@ -4,8 +4,18 @@ import * as THREE from 'three';
 import { ShipParameters } from '../../types';
 import { useFrame } from '@react-three/fiber';
 
-function generateMovieRefitTexture(color1: string, color2: string, centerColor: string, baseColor: string) {
-    const size = 256;
+function generateMovieRefitTexture(
+    color1: string, 
+    color2: string, 
+    centerColor: string, 
+    baseColor: string,
+    lineCount: number,
+    lineLength: number,
+    lineThickness: number,
+    centerRadiusScale: number,
+    ringWidth: number
+) {
+    const size = 512; // Increased resolution slightly
     const mapCanvas = document.createElement('canvas');
     mapCanvas.width = size;
     mapCanvas.height = size;
@@ -24,20 +34,25 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
     emissiveCtx.fillRect(0, 0, size, size);
 
     // Outer blue ring
+    // ringWidth param (0-1) maps to a portion of the radius
+    const outerRingRadius = radius * 0.9;
+    const outerRingThickness = radius * Math.max(0.05, ringWidth);
+
     emissiveCtx.save();
     emissiveCtx.beginPath();
-    emissiveCtx.arc(center, center, radius * 0.85, 0, Math.PI * 2);
+    emissiveCtx.arc(center, center, outerRingRadius - outerRingThickness/2, 0, Math.PI * 2);
     emissiveCtx.strokeStyle = color2;
-    emissiveCtx.lineWidth = size * 0.1;
+    emissiveCtx.lineWidth = outerRingThickness;
     emissiveCtx.shadowColor = color2;
-    emissiveCtx.shadowBlur = size * 0.1;
+    emissiveCtx.shadowBlur = outerRingThickness;
     emissiveCtx.stroke();
     emissiveCtx.restore();
 
     // Central glow
+    const centralGlowRadius = radius * Math.max(0.1, centerRadiusScale);
     emissiveCtx.save();
     emissiveCtx.beginPath();
-    emissiveCtx.arc(center, center, radius * 0.18, 0, Math.PI * 2);
+    emissiveCtx.arc(center, center, centralGlowRadius, 0, Math.PI * 2);
     emissiveCtx.fillStyle = centerColor;
     emissiveCtx.shadowColor = centerColor;
     emissiveCtx.shadowBlur = size * 0.1;
@@ -45,17 +60,20 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
     emissiveCtx.restore();
 
     // --- Color Map ---
-    mapCtx.fillStyle = baseColor; // Customizable base color
+    mapCtx.fillStyle = baseColor; 
     mapCtx.fillRect(0, 0, size, size);
     
     // Copper fins
-    const finCount = 72;
-    const finInnerRadius = radius * 0.25;
-    const finOuterRadius = radius * 0.78;
+    const finCount = Math.max(2, Math.floor(lineCount));
+    const finInnerRadius = radius * 0.25; // Start slightly outside center
+    // lineLength param controls how far out they go
+    const maxFinLen = radius * 0.9;
+    const finOuterRadius = finInnerRadius + (maxFinLen - finInnerRadius) * lineLength;
 
     // Configure emissive drawing for fins
-    emissiveCtx.globalAlpha = 0.7; // Moderate glow so it doesn't wash out
-    emissiveCtx.lineWidth = 2;
+    emissiveCtx.globalAlpha = 0.7; 
+    const thickness = Math.max(1, lineThickness);
+    emissiveCtx.lineWidth = thickness;
     emissiveCtx.strokeStyle = color1;
 
     for (let i = 0; i < finCount; i++) {
@@ -82,7 +100,7 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
             center + Math.sin(angle) * finOuterRadius
         );
         mapCtx.strokeStyle = gradient;
-        mapCtx.lineWidth = 3;
+        mapCtx.lineWidth = thickness * 1.5; // Slightly thicker on diffuse
         mapCtx.stroke();
 
         // Draw on Emissive Map (Glow)
@@ -100,8 +118,9 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
     emissiveCtx.globalAlpha = 1.0;
 
     // Central dark area (cap over fins)
+    // Matches central glow radius but ensures clean cutout on diffuse
     mapCtx.beginPath();
-    mapCtx.arc(center, center, finInnerRadius, 0, Math.PI * 2);
+    mapCtx.arc(center, center, centralGlowRadius, 0, Math.PI * 2);
     mapCtx.fillStyle = '#000000';
     mapCtx.fill();
 
@@ -112,7 +131,13 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
     return { map, emissiveMap };
 }
 
-function generateVortexTexture(color1: string, color2: string) {
+function generateVortexTexture(
+    color1: string, 
+    color2: string,
+    numSectors: number,
+    centerRadiusScale: number,
+    lineThickness: number
+) {
     const size = 1024;
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -141,14 +166,15 @@ function generateVortexTexture(color1: string, color2: string) {
     emissiveCtx.fillRect(0, 0, size, size);
 
     // --- Configuration ---
-    const numSectors = 24;
+    const sectors = Math.max(3, Math.floor(numSectors));
     const numRungs = 10;
-    const innerRadius = maxRadius * 0.25;
+    const innerRadius = maxRadius * Math.max(0.1, centerRadiusScale);
     const outerRadius = maxRadius * 0.9;
+    const spokeThickness = Math.max(1, lineThickness) * (size / 512); // Scaling based on resolution
     
     // --- 1. Draw The Turbine "Ladders" ---
-    for (let i = 0; i < numSectors; i++) {
-        const angleStep = (Math.PI * 2) / numSectors;
+    for (let i = 0; i < sectors; i++) {
+        const angleStep = (Math.PI * 2) / sectors;
         const padding = angleStep * 0.15; // Space for the spoke
         
         const startAngle = i * angleStep + padding;
@@ -182,9 +208,9 @@ function generateVortexTexture(color1: string, color2: string) {
     
     // --- 2. Draw Spokes (The structure between ladders) ---
     // We draw these on the diffuse map to cover any sloppy rung edges and provide structure
-    for (let i = 0; i < numSectors; i++) {
-        const angle = i * (Math.PI * 2) / numSectors;
-        const spokeWidth = size * 0.015;
+    for (let i = 0; i < sectors; i++) {
+        const angle = i * (Math.PI * 2) / sectors;
+        const width = size * 0.015 * (spokeThickness / 2);
         
         ctx.save();
         ctx.translate(center, center);
@@ -192,11 +218,11 @@ function generateVortexTexture(color1: string, color2: string) {
         
         // Spoke body
         ctx.fillStyle = baseColor.getStyle();
-        ctx.fillRect(innerRadius, -spokeWidth/2, outerRadius - innerRadius, spokeWidth);
+        ctx.fillRect(innerRadius, -width/2, outerRadius - innerRadius, width);
         
         // Highlight edge
         ctx.fillStyle = '#555'; // Highlight
-        ctx.fillRect(innerRadius, -spokeWidth/2, outerRadius - innerRadius, spokeWidth * 0.2);
+        ctx.fillRect(innerRadius, -width/2, outerRadius - innerRadius, width * 0.2);
 
         ctx.restore();
     }
@@ -212,7 +238,7 @@ function generateVortexTexture(color1: string, color2: string) {
     
     // Emissive Rim Accents
     // Dashed line around the outside
-    const numDashes = numSectors * 2;
+    const numDashes = sectors * 2;
     for (let i = 0; i < numDashes; i++) {
         const angle = i * (Math.PI * 2) / numDashes;
         const dashLen = (Math.PI * 2) / numDashes * 0.5;
@@ -303,23 +329,36 @@ interface DeflectorDishProps {
 export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
     
     const textures = useMemo(() => {
-        if (params.engineering_dishType === 'Movie Refit') {
+        if (params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Advanced Refit') {
             // Use Color4 for center, Color3 for base to allow UI customization
             return generateMovieRefitTexture(
                 params.engineering_dishColor1,
                 params.engineering_dishColor2,
                 params.engineering_dishColor4 || '#FFFFFF',
-                params.engineering_dishColor3 || '#181008'
+                params.engineering_dishColor3 || '#181008',
+                params.engineering_dish_lines,
+                params.engineering_dish_line_length,
+                params.engineering_dish_line_thickness,
+                params.engineering_dish_center_radius,
+                params.engineering_dish_ring_width
             );
         }
-        if (params.engineering_dishType === 'Advanced Refit') {
-            return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4);
-        }
         if (params.engineering_dishType === 'Vortex') {
-            return generateVortexTexture(params.engineering_dishColor1, params.engineering_dishColor2);
+            return generateVortexTexture(
+                params.engineering_dishColor1, 
+                params.engineering_dishColor2,
+                params.engineering_dish_lines,
+                params.engineering_dish_center_radius,
+                params.engineering_dish_line_thickness
+            );
         }
         return null;
-    }, [params.engineering_dishType, params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4]);
+    }, [
+        params.engineering_dishType, 
+        params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4,
+        params.engineering_dish_lines, params.engineering_dish_line_length, params.engineering_dish_line_thickness,
+        params.engineering_dish_center_radius, params.engineering_dish_ring_width
+    ]);
 
     const deflectorMaterial = useMemo(() => {
         if ((params.engineering_dishType === 'Movie Refit' || params.engineering_dishType === 'Vortex' || params.engineering_dishType === 'Advanced Refit') && textures) {

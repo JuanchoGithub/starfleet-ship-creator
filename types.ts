@@ -116,6 +116,13 @@ export interface ShipParameters {
   engineering_dishTextureShearX: number;
   engineering_dishTextureShearY: number;
   engineering_segments: number;
+  
+  // Specific Deflector Dish Controls
+  engineering_dish_lines: number;
+  engineering_dish_line_length: number; // 0 to 1
+  engineering_dish_line_thickness: number;
+  engineering_dish_center_radius: number; // 0 to 1 relative to dish size
+  engineering_dish_ring_width: number; // 0 to 1
 
   // Upper Nacelles
   nacelle_toggle: boolean;

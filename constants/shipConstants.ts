@@ -1,7 +1,38 @@
-import { ShipParameters, ParamConfigGroups } from '../types';
+import { ShipParameters, LightParameters, EnvironmentPreset, ParamConfigGroups, SubParamGroup } from '../types';
 import { STOCK_SHIPS } from '../ships';
 
 export const INITIAL_SHIP_PARAMS: ShipParameters = STOCK_SHIPS['Stargazer Class'];
+
+// New Config for specific Deflector Dish parameters, exported for use in manual rendering logic in App.tsx
+export const DEFLECTOR_PARAM_CONFIG: SubParamGroup = {
+    "Structure": {
+        engineering_dishType: { label: 'Style', type: 'select', options: ['Pulse', 'Movie Refit', 'Vortex', 'Advanced Refit'] },
+        engineering_dishRadius: { label: "Radius", min: 0, max: 1.5, step: 0.01, type: 'slider' },
+        engineering_dishInset: { label: "Inset", min: -2, max: 5, step: 0.01, type: 'slider' },
+        engineering_dishGlowIntensity: { label: 'Glow Intensity', min: 0, max: 10, step: 0.1, type: 'slider' },
+        engineering_dishPulseSpeed: { label: 'Pulse Speed', min: 0, max: 5, step: 0.1, type: 'slider' },
+        engineering_dishAnimSpeed: { label: 'Anim. Speed', min: -5, max: 5, step: 0.1, type: 'slider' },
+    },
+    "Colors": {
+        engineering_dishColor1: { label: 'Color A', type: 'color' },
+        engineering_dishColor2: { label: 'Color B', type: 'color' },
+        engineering_dishColor3: { label: 'Color C', type: 'color' },
+        engineering_dishColor4: { label: 'Color D', type: 'color' },
+    },
+    "Detailing": {
+        engineering_dish_lines: { label: "Line Count", min: 0, max: 120, step: 1, type: 'slider' },
+        engineering_dish_line_length: { label: "Line Length", min: 0, max: 1, step: 0.01, type: 'slider' },
+        engineering_dish_line_thickness: { label: "Line Thickness", min: 0.1, max: 10, step: 0.1, type: 'slider' },
+        engineering_dish_center_radius: { label: "Center Radius", min: 0, max: 1, step: 0.01, type: 'slider' },
+        engineering_dish_ring_width: { label: "Ring Width", min: 0, max: 0.5, step: 0.01, type: 'slider' },
+    },
+    "Texture Mapping": {
+        engineering_dishTextureScaleX: { label: 'Texture Scale X', min: 0.1, max: 5, step: 0.01, type: 'slider' },
+        engineering_dishTextureScaleY: { label: 'Texture Scale Y', min: 0.1, max: 5, step: 0.01, type: 'slider' },
+        engineering_dishTextureShearX: { label: 'Texture Shear X', min: -2, max: 2, step: 0.01, type: 'slider' },
+        engineering_dishTextureShearY: { label: 'Texture Shear Y', min: -2, max: 2, step: 0.01, type: 'slider' },
+    }
+};
 
 export const PARAM_CONFIG: ParamConfigGroups = {
   "Ship Identity": {
@@ -103,22 +134,6 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       engineering_length: { label: "Length", min: 5, max: 30, step: 0.01, type: 'slider' },
       engineering_radius: { label: "Radius", min: 0.5, max: 5, step: 0.01, type: 'slider' },
       engineering_widthRatio: { label: "Width Ratio", min: 0.5, max: 8, step: 0.01, type: 'slider' },
-    },
-    "Deflector Dish": {
-      engineering_dishType: { label: 'Style', type: 'select', options: ['Pulse', 'Movie Refit', 'Vortex', 'Advanced Refit'] },
-      engineering_dishRadius: { label: "Radius", min: 0, max: 1.5, step: 0.01, type: 'slider' },
-      engineering_dishInset: { label: "Inset", min: -2, max: 5, step: 0.01, type: 'slider' },
-      engineering_dishColor1: { label: 'Color A', type: 'color' },
-      engineering_dishColor2: { label: 'Color B', type: 'color' },
-      engineering_dishColor3: { label: 'Color C', type: 'color' },
-      engineering_dishColor4: { label: 'Color D', type: 'color' },
-      engineering_dishGlowIntensity: { label: 'Glow', min: 0, max: 10, step: 0.1, type: 'slider' },
-      engineering_dishPulseSpeed: { label: 'Pulse Speed', min: 0, max: 5, step: 0.1, type: 'slider' },
-      engineering_dishAnimSpeed: { label: 'Anim. Speed', min: -5, max: 5, step: 0.1, type: 'slider' },
-      engineering_dishTextureScaleX: { label: 'Texture Scale X', min: 0.1, max: 5, step: 0.01, type: 'slider' },
-      engineering_dishTextureScaleY: { label: 'Texture Scale Y', min: 0.1, max: 5, step: 0.01, type: 'slider' },
-      engineering_dishTextureShearX: { label: 'Texture Shear X', min: -2, max: 2, step: 0.01, type: 'slider' },
-      engineering_dishTextureShearY: { label: 'Texture Shear Y', min: -2, max: 2, step: 0.01, type: 'slider' },
     },
     "Hull Shaping": {
       engineering_skew: { label: "Skew", min: -5, max: 5, step: 0.01, type: 'slider' },

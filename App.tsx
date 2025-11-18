@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
-import { INITIAL_SHIP_PARAMS, PARAM_CONFIG } from './constants/shipConstants';
+import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, DEFLECTOR_PARAM_CONFIG } from './constants/shipConstants';
 import { TEXTURE_PARAM_CONFIG } from './constants/textureConstants';
 import { INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants/lightConstants';
 import { STOCK_SHIPS } from './ships';
@@ -1042,6 +1042,75 @@ const App: React.FC = () => {
     );
   }
 
+  const renderDeflectorControls = () => {
+      const dishType = params.engineering_dishType;
+      const structureConfigs = DEFLECTOR_PARAM_CONFIG["Structure"];
+      const colorsConfigs = DEFLECTOR_PARAM_CONFIG["Colors"];
+      const detailConfigs = DEFLECTOR_PARAM_CONFIG["Detailing"];
+      const textureConfigs = DEFLECTOR_PARAM_CONFIG["Texture Mapping"];
+
+      return (
+        <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3">Style & Structure</h4>
+            {renderControl("engineering_dishType", structureConfigs["engineering_dishType"], params, handleParamChange)}
+            {renderControl("engineering_dishRadius", structureConfigs["engineering_dishRadius"], params, handleParamChange)}
+            {renderControl("engineering_dishInset", structureConfigs["engineering_dishInset"], params, handleParamChange)}
+
+            {dishType === 'Pulse' && (
+                <>
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Appearance</h4>
+                    {renderControl("engineering_dishColor1", { ...colorsConfigs["engineering_dishColor1"], label: "Main Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishColor2", { ...colorsConfigs["engineering_dishColor2"], label: "Pulse Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishGlowIntensity", structureConfigs["engineering_dishGlowIntensity"], params, handleParamChange)}
+                    {renderControl("engineering_dishPulseSpeed", structureConfigs["engineering_dishPulseSpeed"], params, handleParamChange)}
+                </>
+            )}
+
+            {(dishType === 'Movie Refit' || dishType === 'Advanced Refit') && (
+                 <>
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Colors</h4>
+                    {renderControl("engineering_dishColor1", { ...colorsConfigs["engineering_dishColor1"], label: "Fins Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishColor2", { ...colorsConfigs["engineering_dishColor2"], label: "Outer Ring Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishColor3", { ...colorsConfigs["engineering_dishColor3"], label: "Background Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishColor4", { ...colorsConfigs["engineering_dishColor4"], label: "Center Glow Color" }, params, handleParamChange)}
+                    
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Details</h4>
+                    {renderControl("engineering_dish_lines", { ...detailConfigs["engineering_dish_lines"], label: "Fin Count" }, params, handleParamChange)}
+                    {renderControl("engineering_dish_line_length", detailConfigs["engineering_dish_line_length"], params, handleParamChange)}
+                    {renderControl("engineering_dish_line_thickness", detailConfigs["engineering_dish_line_thickness"], params, handleParamChange)}
+                    {renderControl("engineering_dish_center_radius", detailConfigs["engineering_dish_center_radius"], params, handleParamChange)}
+                    {renderControl("engineering_dish_ring_width", detailConfigs["engineering_dish_ring_width"], params, handleParamChange)}
+                    {renderControl("engineering_dishGlowIntensity", structureConfigs["engineering_dishGlowIntensity"], params, handleParamChange)}
+                    {renderControl("engineering_dishPulseSpeed", structureConfigs["engineering_dishPulseSpeed"], params, handleParamChange)}
+                    
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Texture Mapping</h4>
+                    {Object.entries(textureConfigs).map(([key, config]) => renderControl(key, config, params, handleParamChange))}
+                    {renderControl("engineering_dishAnimSpeed", structureConfigs["engineering_dishAnimSpeed"], params, handleParamChange)}
+                </>
+            )}
+            
+            {dishType === 'Vortex' && (
+                 <>
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Colors</h4>
+                    {renderControl("engineering_dishColor1", { ...colorsConfigs["engineering_dishColor1"], label: "Glow Color" }, params, handleParamChange)}
+                    {renderControl("engineering_dishColor2", { ...colorsConfigs["engineering_dishColor2"], label: "Dust/Structure Color" }, params, handleParamChange)}
+                    
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Structure</h4>
+                    {renderControl("engineering_dish_lines", { ...detailConfigs["engineering_dish_lines"], label: "Sector Count", min: 3, max: 36 }, params, handleParamChange)}
+                    {renderControl("engineering_dish_center_radius", { ...detailConfigs["engineering_dish_center_radius"], label: "Core Radius" }, params, handleParamChange)}
+                    {renderControl("engineering_dish_line_thickness", { ...detailConfigs["engineering_dish_line_thickness"], label: "Structure Thickness" }, params, handleParamChange)}
+                    {renderControl("engineering_dishGlowIntensity", structureConfigs["engineering_dishGlowIntensity"], params, handleParamChange)}
+                    {renderControl("engineering_dishPulseSpeed", structureConfigs["engineering_dishPulseSpeed"], params, handleParamChange)}
+
+                    <h4 className="text-sm font-semibold text-mid-gray uppercase tracking-wider border-b border-space-light/50 pb-2 mb-3 pt-4">Texture Mapping</h4>
+                    {Object.entries(textureConfigs).map(([key, config]) => renderControl(key, config, params, handleParamChange))}
+                    {renderControl("engineering_dishAnimSpeed", structureConfigs["engineering_dishAnimSpeed"], params, handleParamChange)}
+                </>
+            )}
+        </div>
+      );
+  }
+
   return (
     <div className="w-full h-screen flex flex-col md:flex-row bg-space-dark relative">
       {isMultiviewOpen && (
@@ -1201,6 +1270,9 @@ const App: React.FC = () => {
             
             <Accordion title="Engineering Assembly" defaultOpen={false}>
                 <ControlGroup groupName="Engineering" configs={PARAM_CONFIG["Engineering"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
+                <Accordion title="Deflector Dish" defaultOpen={false}>
+                    {renderDeflectorControls()}
+                </Accordion>
                 <ControlGroup groupName="Connecting Neck" configs={PARAM_CONFIG["Connecting Neck"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
 
