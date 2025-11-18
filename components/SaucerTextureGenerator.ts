@@ -1,3 +1,4 @@
+
 import * as THREE from 'three';
 import { TextOrientation } from '../types';
 
@@ -21,21 +22,37 @@ interface SaucerTextureGenerationParams {
     shipName: string;
     registry: string;
     
-    name_toggle: boolean;
-    name_color: string;
-    name_font_size: number;
-    name_angle: number;
-    name_curve: number;
-    name_orientation: TextOrientation;
-    name_distance: number;
+    name_top_toggle: boolean;
+    name_top_color: string;
+    name_top_font_size: number;
+    name_top_angle: number;
+    name_top_curve: number;
+    name_top_orientation: TextOrientation;
+    name_top_distance: number;
+
+    name_bottom_toggle: boolean;
+    name_bottom_color: string;
+    name_bottom_font_size: number;
+    name_bottom_angle: number;
+    name_bottom_curve: number;
+    name_bottom_orientation: TextOrientation;
+    name_bottom_distance: number;
     
-    registry_toggle: boolean;
-    registry_color: string;
-    registry_font_size: number;
-    registry_angle: number;
-    registry_curve: number;
-    registry_orientation: TextOrientation;
-    registry_distance: number;
+    registry_top_toggle: boolean;
+    registry_top_color: string;
+    registry_top_font_size: number;
+    registry_top_angle: number;
+    registry_top_curve: number;
+    registry_top_orientation: TextOrientation;
+    registry_top_distance: number;
+
+    registry_bottom_toggle: boolean;
+    registry_bottom_color: string;
+    registry_bottom_font_size: number;
+    registry_bottom_angle: number;
+    registry_bottom_curve: number;
+    registry_bottom_orientation: TextOrientation;
+    registry_bottom_distance: number;
     
     bridge_registry_toggle: boolean;
     bridge_registry_font_size: number;
@@ -113,40 +130,22 @@ function drawText(ctx: CanvasRenderingContext2D, text: string, centerX: number, 
     ctx.restore();
 }
 
-
-export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
-    const size = 2048; // Higher resolution for more detail
-    const { 
-        seed, panelColorVariation, window_density, lit_window_fraction, window_bands,
-        shipName, registry, 
-        name_toggle, name_color, name_font_size, name_angle, name_curve, name_orientation, name_distance,
-        registry_toggle, registry_color, registry_font_size, registry_angle, registry_curve, registry_orientation, registry_distance,
-        bridge_registry_toggle, bridge_registry_font_size
-    } = params;
-    const random = createPRNG(seed);
-
-    // --- Create Canvases ---
-    const mapCanvas = document.createElement('canvas');
-    mapCanvas.width = size;
-    mapCanvas.height = size;
-    const mapCtx = mapCanvas.getContext('2d')!;
-
-    const normalCanvas = document.createElement('canvas');
-    normalCanvas.width = size;
-    normalCanvas.height = size;
-    const normalCtx = normalCanvas.getContext('2d')!;
-
-    const emissiveCanvas = document.createElement('canvas');
-    emissiveCanvas.width = size;
-    emissiveCanvas.height = size;
-    const emissiveCtx = emissiveCanvas.getContext('2d')!;
+function drawSymmetricalPatterns(
+    mapCtx: CanvasRenderingContext2D,
+    normalCtx: CanvasRenderingContext2D,
+    emissiveCtx: CanvasRenderingContext2D,
+    size: number,
+    params: SaucerTextureGenerationParams,
+    random: () => number
+) {
+    const { panelColorVariation, window_density, lit_window_fraction, window_bands } = params;
 
     // --- Base Colors ---
-    const baseGray = 204; // #cccccc
+    const baseGray = 204;
     mapCtx.fillStyle = `rgb(${baseGray}, ${baseGray}, ${baseGray})`;
     mapCtx.fillRect(0, 0, size, size);
 
-    normalCtx.fillStyle = 'rgb(128, 128, 255)'; // Neutral normal
+    normalCtx.fillStyle = 'rgb(128, 128, 255)';
     normalCtx.fillRect(0, 0, size, size);
 
     emissiveCtx.fillStyle = 'black';
@@ -155,48 +154,33 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
     const center = { x: size / 2, y: size / 2 };
 
     // --- Draw "Aztec" Panel Pattern ---
-    const radialSegments = Math.floor(random() * 24) + 32; // 32 to 56 radial segments
-    const ringCount = Math.floor(random() * 8) + 12; // 12 to 20 concentric rings
+    const radialSegments = Math.floor(random() * 24) + 32;
+    const ringCount = Math.floor(random() * 8) + 12;
     const ringSpacings: number[] = [];
     const ringIsWindowBand = new Array(ringCount).fill(false);
 
-    for (let i = 0; i < ringCount; i++) {
-        ringSpacings.push(random() * 0.5 + 0.5);
-    }
+    for (let i = 0; i < ringCount; i++) ringSpacings.push(random() * 0.5 + 0.5);
     const totalSpacing = ringSpacings.reduce((a, b) => a + b, 0);
     const normalizedSpacings = ringSpacings.map(s => s / totalSpacing);
 
-    // --- Designate Window Bands ---
-    const bandCandidates: number[] = [];
-    for (let i = 1; i < ringCount - 1; i++) { // Avoid only the innermost and outermost rings
-        bandCandidates.push(i);
-    }
-    for (let i = 0; i < window_bands; i++) {
-        if (bandCandidates.length > 0) {
-            const randIndex = Math.floor(random() * bandCandidates.length);
-            const bandIndex = bandCandidates.splice(randIndex, 1)[0];
-            ringIsWindowBand[bandIndex] = true;
-        }
+    const bandCandidates: number[] = Array.from({ length: ringCount - 2 }, (_, i) => i + 1);
+    for (let i = 0; i < window_bands && bandCandidates.length > 0; i++) {
+        const randIndex = Math.floor(random() * bandCandidates.length);
+        const bandIndex = bandCandidates.splice(randIndex, 1)[0];
+        ringIsWindowBand[bandIndex] = true;
     }
 
-
-    let currentRadius = size * 0.05; // Start with a central circle
+    let currentRadius = size * 0.05;
     for (let i = 0; i < ringCount; i++) {
         const ringWidth = normalizedSpacings[i] * (size / 2 - size * 0.05);
         const nextRadius = currentRadius + ringWidth;
-
         for (let j = 0; j < radialSegments; j++) {
-            const angleStart = (j / radialSegments) * 2 * Math.PI;
-            const angleEnd = ((j + 1) / radialSegments) * 2 * Math.PI;
-
-            if (random() > 0.15 || (i < 2)) {
+            if (random() > 0.15 || i < 2) {
                 const grayVariation = Math.floor((random() - 0.5) * 2 * panelColorVariation * 255);
-                const panelGray = Math.max(0, Math.min(255, baseGray + grayVariation));
-                
-                mapCtx.fillStyle = `rgb(${panelGray}, ${panelGray}, ${panelGray})`;
+                mapCtx.fillStyle = `rgb(${Math.max(0, Math.min(255, baseGray + grayVariation))}, ${Math.max(0, Math.min(255, baseGray + grayVariation))}, ${Math.max(0, Math.min(255, baseGray + grayVariation))})`;
                 mapCtx.beginPath();
-                mapCtx.arc(center.x, center.y, nextRadius, angleStart, angleEnd);
-                mapCtx.arc(center.x, center.y, currentRadius, angleEnd, angleStart, true);
+                mapCtx.arc(center.x, center.y, nextRadius, (j / radialSegments) * 2 * Math.PI, ((j + 1) / radialSegments) * 2 * Math.PI);
+                mapCtx.arc(center.x, center.y, currentRadius, ((j + 1) / radialSegments) * 2 * Math.PI, (j / radialSegments) * 2 * Math.PI, true);
                 mapCtx.closePath();
                 mapCtx.fill();
             }
@@ -204,17 +188,14 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
         currentRadius = nextRadius;
     }
 
-    // --- Draw Bridge Registry (in the center, where bridge UVs will map) ---
-    if (bridge_registry_toggle && registry) {
-        mapCtx.fillStyle = registry_color;
-        mapCtx.font = `bold ${bridge_registry_font_size}px Orbitron, sans-serif`;
+    if (params.bridge_registry_toggle && params.registry) {
+        mapCtx.fillStyle = params.registry_top_color;
+        mapCtx.font = `bold ${params.bridge_registry_font_size}px Orbitron, sans-serif`;
         mapCtx.textAlign = 'center';
         mapCtx.textBaseline = 'middle';
-        mapCtx.fillText(registry.toUpperCase(), center.x, center.y);
+        mapCtx.fillText(params.registry.toUpperCase(), center.x, center.y);
     }
 
-
-    // --- Draw Panel Lines ---
     const lineGray = 150;
     const normalGrooveStrength = 30;
     mapCtx.strokeStyle = `rgb(${lineGray}, ${lineGray}, ${lineGray})`;
@@ -223,20 +204,18 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
 
     currentRadius = size * 0.05;
     for (let i = 0; i < ringCount; i++) {
-        const ringWidth = normalizedSpacings[i] * (size / 2 - size * 0.05);
-        currentRadius += ringWidth;
+        currentRadius += normalizedSpacings[i] * (size / 2 - size * 0.05);
         if (random() > 0.2) {
             mapCtx.beginPath();
             mapCtx.arc(center.x, center.y, currentRadius, 0, 2 * Math.PI);
             mapCtx.stroke();
-            
             normalCtx.strokeStyle = `rgb(128, 128, ${255 - normalGrooveStrength})`;
             normalCtx.beginPath();
             normalCtx.arc(center.x, center.y, currentRadius, 0, 2 * Math.PI);
             normalCtx.stroke();
         }
     }
-    
+
     for (let j = 0; j < radialSegments; j++) {
         if (random() > 0.3) {
             const angle = (j / radialSegments) * 2 * Math.PI;
@@ -244,70 +223,35 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
             mapCtx.moveTo(center.x + Math.cos(angle) * size * 0.05, center.y + Math.sin(angle) * size * 0.05);
             mapCtx.lineTo(center.x + Math.cos(angle) * (size / 2), center.y + Math.sin(angle) * (size / 2));
             mapCtx.stroke();
-            
-            const normalAngle = angle + Math.PI / 2;
-            const highlight = `rgb(${128 - Math.cos(normalAngle) * normalGrooveStrength}, ${128 - Math.sin(normalAngle) * normalGrooveStrength}, 255)`;
-            const shadow = `rgb(${128 + Math.cos(normalAngle) * normalGrooveStrength}, ${128 + Math.sin(normalAngle) * normalGrooveStrength}, 255)`;
-            
-            const grad = normalCtx.createLinearGradient(
-                center.x - Math.cos(angle) * 2, center.y - Math.sin(angle) * 2,
-                center.x + Math.cos(angle) * 2, center.y + Math.sin(angle) * 2
-            );
-            grad.addColorStop(0, highlight);
-            grad.addColorStop(1, shadow);
-
-            normalCtx.strokeStyle = grad;
-            normalCtx.beginPath();
-            normalCtx.moveTo(center.x + Math.cos(angle) * size * 0.05, center.y + Math.sin(angle) * size * 0.05);
-            normalCtx.lineTo(center.x + Math.cos(angle) * (size / 2), center.y + Math.sin(angle) * (size / 2));
-            normalCtx.stroke();
         }
     }
 
-    // --- Draw Windows in Bands ---
     currentRadius = size * 0.05;
     for (let i = 0; i < ringCount; i++) {
         const ringWidth = normalizedSpacings[i] * (size / 2 - size * 0.05);
-        
         if (ringIsWindowBand[i]) {
             const radius = currentRadius + ringWidth / 2;
             const circumference = 2 * Math.PI * radius;
-
-            const baseWindowWidth = 12;
-            const baseWindowSpacing = 8;
-            const numWindows = Math.floor(circumference / (baseWindowWidth + baseWindowSpacing));
-            const baseWindowHeight = 16;
-            
+            const numWindows = Math.floor(circumference / 20);
             for (let j = 0; j < numWindows; j++) {
-                // Use window_density to control the presence of a physical window (creating gaps).
-                if (random() > window_density) {
-                    continue;
-                }
-
+                if (random() > window_density) continue;
                 const angle = (j / numWindows) * 2 * Math.PI;
                 const x = center.x + Math.cos(angle) * radius;
                 const y = center.y + Math.sin(angle) * radius;
-                
-                // Randomize window dimensions for a more organic look.
-                const widthVariation = baseWindowWidth * 0.25 * (random() * 2 - 1); // +/- 25%
-                const heightVariation = baseWindowHeight * 0.2 * (random() * 2 - 1); // +/- 20%
-                const windowWidth = baseWindowWidth + widthVariation;
-                const windowHeight = baseWindowHeight + heightVariation;
-
+                const w = 12 + (random() * 2 - 1) * 3;
+                const h = 16 + (random() * 2 - 1) * 3;
                 mapCtx.save();
                 mapCtx.translate(x, y);
-                mapCtx.rotate(angle + Math.PI / 2); // Align with radial lines
-                mapCtx.fillStyle = '#222222'; // Dark unlit window
-                mapCtx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
+                mapCtx.rotate(angle + Math.PI / 2);
+                mapCtx.fillStyle = '#222222';
+                mapCtx.fillRect(-w / 2, -h / 2, w, h);
                 mapCtx.restore();
-
-                // Use the lit_window_fraction to determine if this existing window is lit.
                 if (random() < lit_window_fraction) {
                     emissiveCtx.save();
                     emissiveCtx.translate(x, y);
-                    emissiveCtx.rotate(angle + Math.PI / 2); // Align with radial lines
+                    emissiveCtx.rotate(angle + Math.PI / 2);
                     emissiveCtx.fillStyle = random() > 0.5 ? params.window_color1 : params.window_color2;
-                    emissiveCtx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
+                    emissiveCtx.fillRect(-w / 2, -h / 2, w, h);
                     emissiveCtx.restore();
                 }
             }
@@ -315,31 +259,13 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
         currentRadius += ringWidth;
     }
 
-    // --- Draw Ship Name & Registry ---
-    if (registry_toggle && registry) {
-        mapCtx.fillStyle = registry_color;
-        mapCtx.font = `bold ${registry_font_size}px Orbitron, sans-serif`;
-        mapCtx.textAlign = 'center';
-        mapCtx.textBaseline = 'middle';
-        drawText(mapCtx, registry.toUpperCase(), center.x, center.y, size * registry_distance, registry_angle, registry_curve, registry_orientation);
-    }
-    if (name_toggle && shipName) {
-        mapCtx.fillStyle = name_color;
-        mapCtx.font = `bold ${name_font_size}px Orbitron, sans-serif`;
-        mapCtx.textAlign = 'center';
-        mapCtx.textBaseline = 'middle';
-        drawText(mapCtx, shipName.toUpperCase().replace('*', ''), center.x, center.y, size * name_distance, name_angle, name_curve, name_orientation);
-    }
-
-    // --- Escape Pod Hatches ---
     const hatchCount = Math.floor(random() * 8) + 8;
-    for(let i=0; i < hatchCount; i++) {
+    for (let i = 0; i < hatchCount; i++) {
         const r = size * (random() * 0.3 + 0.15);
         const a = random() * Math.PI * 2;
         const x = center.x + Math.cos(a) * r;
         const y = center.y + Math.sin(a) * r;
         const hatchRadius = random() * 10 + 15;
-
         mapCtx.fillStyle = `rgb(${baseGray - 20}, ${baseGray - 20}, ${baseGray - 20})`;
         mapCtx.beginPath();
         mapCtx.arc(x, y, hatchRadius, 0, Math.PI * 2);
@@ -347,20 +273,100 @@ export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
         mapCtx.strokeStyle = `rgb(${lineGray}, ${lineGray}, ${lineGray})`;
         mapCtx.lineWidth = 2;
         mapCtx.stroke();
-
-        // Add a slight bevel to the normal map
-        const normalBevelStrength = 15;
-        const grad = normalCtx.createRadialGradient(x, y, hatchRadius - 2, x, y, hatchRadius + 2);
-        grad.addColorStop(0, `rgb(128, 128, ${255 - normalBevelStrength})`);
-        grad.addColorStop(1, `rgb(128, 128, 255)`);
-        normalCtx.fillStyle = grad;
-        normalCtx.beginPath();
-        normalCtx.arc(x, y, hatchRadius + 2, 0, Math.PI * 2);
-        normalCtx.fill();
     }
+}
 
 
-    // --- Create Three.js Textures ---
+export function generateSaucerTextures(params: SaucerTextureGenerationParams) {
+    const size = 2048;
+    const { 
+        seed, shipName, registry, 
+        name_top_toggle, name_top_color, name_top_font_size, name_top_angle, name_top_curve, name_top_orientation, name_top_distance,
+        name_bottom_toggle, name_bottom_color, name_bottom_font_size, name_bottom_angle, name_bottom_curve, name_bottom_orientation, name_bottom_distance,
+        registry_top_toggle, registry_top_color, registry_top_font_size, registry_top_angle, registry_top_curve, registry_top_orientation, registry_top_distance,
+        registry_bottom_toggle, registry_bottom_color, registry_bottom_font_size, registry_bottom_angle, registry_bottom_curve, registry_bottom_orientation, registry_bottom_distance
+    } = params;
+    const random = createPRNG(seed);
+
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = size;
+    patternCanvas.height = size;
+    const patternCtx = patternCanvas.getContext('2d')!;
+
+    const normalPatternCanvas = document.createElement('canvas');
+    normalPatternCanvas.width = size;
+    normalPatternCanvas.height = size;
+    const normalPatternCtx = normalPatternCanvas.getContext('2d')!;
+
+    const emissivePatternCanvas = document.createElement('canvas');
+    emissivePatternCanvas.width = size;
+    emissivePatternCanvas.height = size;
+    const emissivePatternCtx = emissivePatternCanvas.getContext('2d')!;
+
+    drawSymmetricalPatterns(patternCtx, normalPatternCtx, emissivePatternCtx, size, params, random);
+
+    const mapCanvas = document.createElement('canvas');
+    mapCanvas.width = size;
+    mapCanvas.height = size;
+    const mapCtx = mapCanvas.getContext('2d')!;
+    // Draw pattern onto top half (y: 0 to size/2)
+    mapCtx.drawImage(patternCanvas, 0, 0, size, size, 0, 0, size, size / 2);
+    // Draw pattern onto bottom half (y: size/2 to size)
+    mapCtx.drawImage(patternCanvas, 0, 0, size, size, 0, size / 2, size, size / 2);
+
+    const normalCanvas = document.createElement('canvas');
+    normalCanvas.width = size;
+    normalCanvas.height = size;
+    const normalCtx = normalCanvas.getContext('2d')!;
+    normalCtx.drawImage(normalPatternCanvas, 0, 0, size, size, 0, 0, size, size / 2);
+    normalCtx.drawImage(normalPatternCanvas, 0, 0, size, size, 0, size / 2, size, size / 2);
+
+    const emissiveCanvas = document.createElement('canvas');
+    emissiveCanvas.width = size;
+    emissiveCanvas.height = size;
+    const emissiveCtx = emissiveCanvas.getContext('2d')!;
+    emissiveCtx.drawImage(emissivePatternCanvas, 0, 0, size, size, 0, 0, size, size / 2);
+    emissiveCtx.drawImage(emissivePatternCanvas, 0, 0, size, size, 0, size / 2, size, size / 2);
+
+    // --- Draw Top Text --- (Draws on TOP half of canvas, y: 0 to size/2)
+    mapCtx.save();
+    mapCtx.scale(1, 0.5); // Squash coordinate system into top half
+    if (registry_top_toggle && registry) {
+        mapCtx.fillStyle = registry_top_color;
+        mapCtx.font = `bold ${registry_top_font_size}px Orbitron, sans-serif`;
+        mapCtx.textAlign = 'center';
+        mapCtx.textBaseline = 'middle';
+        drawText(mapCtx, registry.toUpperCase(), size / 2, size / 2, size * registry_top_distance, registry_top_angle, registry_top_curve, registry_top_orientation);
+    }
+    if (name_top_toggle && shipName) {
+        mapCtx.fillStyle = name_top_color;
+        mapCtx.font = `bold ${name_top_font_size}px Orbitron, sans-serif`;
+        mapCtx.textAlign = 'center';
+        mapCtx.textBaseline = 'middle';
+        drawText(mapCtx, shipName.toUpperCase().replace('*', ''), size / 2, size / 2, size * name_top_distance, name_top_angle, name_top_curve, name_top_orientation);
+    }
+    mapCtx.restore();
+
+    // --- Draw Bottom Text --- (Draws on BOTTOM half of canvas, y: size/2 to size)
+    mapCtx.save();
+    mapCtx.translate(0, size / 2); // Move origin to the start of the bottom half
+    mapCtx.scale(1, 0.5); // Squash coordinate system into bottom half
+    if (registry_bottom_toggle && registry) {
+        mapCtx.fillStyle = registry_bottom_color;
+        mapCtx.font = `bold ${registry_bottom_font_size}px Orbitron, sans-serif`;
+        mapCtx.textAlign = 'center';
+        mapCtx.textBaseline = 'middle';
+        drawText(mapCtx, registry.toUpperCase(), size / 2, size / 2, size * registry_bottom_distance, registry_bottom_angle, registry_bottom_curve, registry_bottom_orientation);
+    }
+    if (name_bottom_toggle && shipName) {
+        mapCtx.fillStyle = name_bottom_color;
+        mapCtx.font = `bold ${name_bottom_font_size}px Orbitron, sans-serif`;
+        mapCtx.textAlign = 'center';
+        mapCtx.textBaseline = 'middle';
+        drawText(mapCtx, shipName.toUpperCase().replace('*', ''), size / 2, size / 2, size * name_bottom_distance, name_bottom_angle, name_bottom_curve, name_bottom_orientation);
+    }
+    mapCtx.restore();
+
     const map = new THREE.CanvasTexture(mapCanvas);
     const normalMap = new THREE.CanvasTexture(normalCanvas);
     const emissiveMap = new THREE.CanvasTexture(emissiveCanvas);

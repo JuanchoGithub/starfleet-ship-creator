@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
@@ -251,22 +252,38 @@ const App: React.FC = () => {
             window_bands: params.saucer_texture_window_bands,
             shipName: shipName,
             registry: params.ship_registry,
-            // Name
-            name_toggle: params.saucer_texture_name_top_toggle,
-            name_color: params.saucer_texture_name_top_text_color,
-            name_font_size: params.saucer_texture_name_top_font_size,
-            name_angle: params.saucer_texture_name_top_angle,
-            name_curve: params.saucer_texture_name_top_curve,
-            name_orientation: params.saucer_texture_name_top_orientation,
-            name_distance: params.saucer_texture_name_top_distance,
-            // Registry
-            registry_toggle: params.saucer_texture_registry_top_toggle,
-            registry_color: params.saucer_texture_registry_top_text_color,
-            registry_font_size: params.saucer_texture_registry_top_font_size,
-            registry_angle: params.saucer_texture_registry_top_angle,
-            registry_curve: params.saucer_texture_registry_top_curve,
-            registry_orientation: params.saucer_texture_registry_top_orientation,
-            registry_distance: params.saucer_texture_registry_top_distance,
+            // Top Name
+            name_top_toggle: params.saucer_texture_name_top_toggle,
+            name_top_color: params.saucer_texture_name_top_text_color,
+            name_top_font_size: params.saucer_texture_name_top_font_size,
+            name_top_angle: params.saucer_texture_name_top_angle,
+            name_top_curve: params.saucer_texture_name_top_curve,
+            name_top_orientation: params.saucer_texture_name_top_orientation,
+            name_top_distance: params.saucer_texture_name_top_distance,
+            // Bottom Name
+            name_bottom_toggle: params.saucer_texture_name_bottom_toggle,
+            name_bottom_color: params.saucer_texture_name_bottom_text_color,
+            name_bottom_font_size: params.saucer_texture_name_bottom_font_size,
+            name_bottom_angle: params.saucer_texture_name_bottom_angle,
+            name_bottom_curve: params.saucer_texture_name_bottom_curve,
+            name_bottom_orientation: params.saucer_texture_name_bottom_orientation,
+            name_bottom_distance: params.saucer_texture_name_bottom_distance,
+            // Top Registry
+            registry_top_toggle: params.saucer_texture_registry_top_toggle,
+            registry_top_color: params.saucer_texture_registry_top_text_color,
+            registry_top_font_size: params.saucer_texture_registry_top_font_size,
+            registry_top_angle: params.saucer_texture_registry_top_angle,
+            registry_top_curve: params.saucer_texture_registry_top_curve,
+            registry_top_orientation: params.saucer_texture_registry_top_orientation,
+            registry_top_distance: params.saucer_texture_registry_top_distance,
+            // Bottom Registry
+            registry_bottom_toggle: params.saucer_texture_registry_bottom_toggle,
+            registry_bottom_color: params.saucer_texture_registry_bottom_text_color,
+            registry_bottom_font_size: params.saucer_texture_registry_bottom_font_size,
+            registry_bottom_angle: params.saucer_texture_registry_bottom_angle,
+            registry_bottom_curve: params.saucer_texture_registry_bottom_curve,
+            registry_bottom_orientation: params.saucer_texture_registry_bottom_orientation,
+            registry_bottom_distance: params.saucer_texture_registry_bottom_distance,
             // Bridge
             bridge_registry_toggle: params.saucer_texture_bridge_registry_toggle,
             bridge_registry_font_size: params.saucer_texture_bridge_registry_font_size,
@@ -284,13 +301,7 @@ const App: React.FC = () => {
         setIsGeneratingSaucerTextures(false);
     }, 50);
   }, [
-      params.saucer_texture_seed, params.saucer_texture_panel_color_variation, params.saucer_texture_window_density, 
-      params.saucer_texture_lit_window_fraction,
-      params.saucer_texture_window_color1, params.saucer_texture_window_color2, params.saucer_texture_window_bands,
-      params.ship_registry, 
-      params.saucer_texture_name_top_toggle, params.saucer_texture_name_top_text_color, params.saucer_texture_name_top_font_size, params.saucer_texture_name_top_angle, params.saucer_texture_name_top_curve, params.saucer_texture_name_top_orientation, params.saucer_texture_name_top_distance,
-      params.saucer_texture_registry_top_toggle, params.saucer_texture_registry_top_text_color, params.saucer_texture_registry_top_font_size, params.saucer_texture_registry_top_angle, params.saucer_texture_registry_top_curve, params.saucer_texture_registry_top_orientation, params.saucer_texture_registry_top_distance,
-      params.saucer_texture_bridge_registry_toggle, params.saucer_texture_bridge_registry_font_size,
+      params, // Pass the whole params object since many properties are used
       saucerMaterial, shipName
   ]);
 
@@ -462,6 +473,20 @@ const App: React.FC = () => {
     params.saucer_texture_registry_top_distance,
     params.saucer_texture_bridge_registry_toggle,
     params.saucer_texture_bridge_registry_font_size,
+    params.saucer_texture_name_bottom_toggle,
+    params.saucer_texture_name_bottom_text_color,
+    params.saucer_texture_name_bottom_font_size,
+    params.saucer_texture_name_bottom_angle,
+    params.saucer_texture_name_bottom_curve,
+    params.saucer_texture_name_bottom_orientation,
+    params.saucer_texture_name_bottom_distance,
+    params.saucer_texture_registry_bottom_toggle,
+    params.saucer_texture_registry_bottom_text_color,
+    params.saucer_texture_registry_bottom_font_size,
+    params.saucer_texture_registry_bottom_angle,
+    params.saucer_texture_registry_bottom_curve,
+    params.saucer_texture_registry_bottom_orientation,
+    params.saucer_texture_registry_bottom_distance,
     shipName,
     handleGenerateSaucerTextures
   ]);

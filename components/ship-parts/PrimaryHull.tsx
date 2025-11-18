@@ -142,10 +142,27 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
                     const uvs = new Float32Array(positions.count * 2);
                     for (let i = 0; i < positions.count; i++) {
                         const x = positions.getX(i);
+                        const y = positions.getY(i);
                         const z = positions.getZ(i);
-                        // Normalize coordinates to [0, 1] range based on the bounding box
-                        uvs[i * 2] = (x - minX) / sizeX;
-                        uvs[i * 2 + 1] = 1.0 - ((z - minZ) / sizeZ); // Invert V for texture mapping
+
+                        const u = (x - minX) / sizeX;
+                        const v_planar = 1.0 - ((z - minZ) / sizeZ);
+
+                        // The saucer geometry is generated from y=0 (top) down to y=-thickness (bottom).
+                        // We can use the vertex's y-position to determine if it's on the top or bottom surface.
+                        const isTop = y > -thickness * 0.5;
+
+                        let v;
+                        if (isTop) {
+                            // Map to the top half of the texture [0.5, 1.0]
+                            v = 0.5 + v_planar * 0.5;
+                        } else {
+                            // Map to the bottom half of the texture [0, 0.5] and flip it to orient correctly
+                            v = 0.5 - v_planar * 0.5;
+                        }
+
+                        uvs[i * 2] = u;
+                        uvs[i * 2 + 1] = v;
                     }
                     geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
                 };
