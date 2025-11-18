@@ -344,21 +344,37 @@ export interface ShipParameters {
   saucer_texture_window_color2: string;
   saucer_texture_emissive_intensity: number;
 
-  saucer_texture_name_toggle: boolean;
-  saucer_texture_name_font_size: number;
-  saucer_texture_name_text_color: string;
-  saucer_texture_name_angle: number;
-  saucer_texture_name_curve: number;
-  saucer_texture_name_orientation: TextOrientation;
-  saucer_texture_name_distance: number;
+  saucer_texture_name_top_toggle: boolean;
+  saucer_texture_name_top_font_size: number;
+  saucer_texture_name_top_text_color: string;
+  saucer_texture_name_top_angle: number;
+  saucer_texture_name_top_curve: number;
+  saucer_texture_name_top_orientation: TextOrientation;
+  saucer_texture_name_top_distance: number;
+
+  saucer_texture_name_bottom_toggle: boolean;
+  saucer_texture_name_bottom_font_size: number;
+  saucer_texture_name_bottom_text_color: string;
+  saucer_texture_name_bottom_angle: number;
+  saucer_texture_name_bottom_curve: number;
+  saucer_texture_name_bottom_orientation: TextOrientation;
+  saucer_texture_name_bottom_distance: number;
   
-  saucer_texture_registry_toggle: boolean;
-  saucer_texture_registry_font_size: number;
-  saucer_texture_registry_text_color: string;
-  saucer_texture_registry_angle: number;
-  saucer_texture_registry_curve: number;
-  saucer_texture_registry_orientation: TextOrientation;
-  saucer_texture_registry_distance: number;
+  saucer_texture_registry_top_toggle: boolean;
+  saucer_texture_registry_top_font_size: number;
+  saucer_texture_registry_top_text_color: string;
+  saucer_texture_registry_top_angle: number;
+  saucer_texture_registry_top_curve: number;
+  saucer_texture_registry_top_orientation: TextOrientation;
+  saucer_texture_registry_top_distance: number;
+
+  saucer_texture_registry_bottom_toggle: boolean;
+  saucer_texture_registry_bottom_font_size: number;
+  saucer_texture_registry_bottom_text_color: string;
+  saucer_texture_registry_bottom_angle: number;
+  saucer_texture_registry_bottom_curve: number;
+  saucer_texture_registry_bottom_orientation: TextOrientation;
+  saucer_texture_registry_bottom_distance: number;
 
   saucer_texture_bridge_registry_toggle: boolean;
   saucer_texture_bridge_registry_font_size: number;

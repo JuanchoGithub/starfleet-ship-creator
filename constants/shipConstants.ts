@@ -4,6 +4,9 @@ import { STOCK_SHIPS } from '../ships';
 export const INITIAL_SHIP_PARAMS: ShipParameters = STOCK_SHIPS['Stargazer Class'];
 
 export const PARAM_CONFIG: ParamConfigGroups = {
+  "Ship Identity": {
+    ship_registry: { label: "Registry", type: 'text' },
+  },
   "Saucer": {
     "General": {
       primary_toggle: { label: "Enable", type: 'toggle' },

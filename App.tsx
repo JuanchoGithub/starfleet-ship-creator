@@ -252,21 +252,21 @@ const App: React.FC = () => {
             shipName: shipName,
             registry: params.ship_registry,
             // Name
-            name_toggle: params.saucer_texture_name_toggle,
-            name_color: params.saucer_texture_name_text_color,
-            name_font_size: params.saucer_texture_name_font_size,
-            name_angle: params.saucer_texture_name_angle,
-            name_curve: params.saucer_texture_name_curve,
-            name_orientation: params.saucer_texture_name_orientation,
-            name_distance: params.saucer_texture_name_distance,
+            name_toggle: params.saucer_texture_name_top_toggle,
+            name_color: params.saucer_texture_name_top_text_color,
+            name_font_size: params.saucer_texture_name_top_font_size,
+            name_angle: params.saucer_texture_name_top_angle,
+            name_curve: params.saucer_texture_name_top_curve,
+            name_orientation: params.saucer_texture_name_top_orientation,
+            name_distance: params.saucer_texture_name_top_distance,
             // Registry
-            registry_toggle: params.saucer_texture_registry_toggle,
-            registry_color: params.saucer_texture_registry_text_color,
-            registry_font_size: params.saucer_texture_registry_font_size,
-            registry_angle: params.saucer_texture_registry_angle,
-            registry_curve: params.saucer_texture_registry_curve,
-            registry_orientation: params.saucer_texture_registry_orientation,
-            registry_distance: params.saucer_texture_registry_distance,
+            registry_toggle: params.saucer_texture_registry_top_toggle,
+            registry_color: params.saucer_texture_registry_top_text_color,
+            registry_font_size: params.saucer_texture_registry_top_font_size,
+            registry_angle: params.saucer_texture_registry_top_angle,
+            registry_curve: params.saucer_texture_registry_top_curve,
+            registry_orientation: params.saucer_texture_registry_top_orientation,
+            registry_distance: params.saucer_texture_registry_top_distance,
             // Bridge
             bridge_registry_toggle: params.saucer_texture_bridge_registry_toggle,
             bridge_registry_font_size: params.saucer_texture_bridge_registry_font_size,
@@ -288,8 +288,8 @@ const App: React.FC = () => {
       params.saucer_texture_lit_window_fraction,
       params.saucer_texture_window_color1, params.saucer_texture_window_color2, params.saucer_texture_window_bands,
       params.ship_registry, 
-      params.saucer_texture_name_toggle, params.saucer_texture_name_text_color, params.saucer_texture_name_font_size, params.saucer_texture_name_angle, params.saucer_texture_name_curve, params.saucer_texture_name_orientation, params.saucer_texture_name_distance,
-      params.saucer_texture_registry_toggle, params.saucer_texture_registry_text_color, params.saucer_texture_registry_font_size, params.saucer_texture_registry_angle, params.saucer_texture_registry_curve, params.saucer_texture_registry_orientation, params.saucer_texture_registry_distance,
+      params.saucer_texture_name_top_toggle, params.saucer_texture_name_top_text_color, params.saucer_texture_name_top_font_size, params.saucer_texture_name_top_angle, params.saucer_texture_name_top_curve, params.saucer_texture_name_top_orientation, params.saucer_texture_name_top_distance,
+      params.saucer_texture_registry_top_toggle, params.saucer_texture_registry_top_text_color, params.saucer_texture_registry_top_font_size, params.saucer_texture_registry_top_angle, params.saucer_texture_registry_top_curve, params.saucer_texture_registry_top_orientation, params.saucer_texture_registry_top_distance,
       params.saucer_texture_bridge_registry_toggle, params.saucer_texture_bridge_registry_font_size,
       saucerMaterial, shipName
   ]);
@@ -446,20 +446,20 @@ const App: React.FC = () => {
     params.saucer_texture_window_color2,
     params.saucer_texture_window_bands,
     params.ship_registry,
-    params.saucer_texture_name_toggle,
-    params.saucer_texture_name_text_color,
-    params.saucer_texture_name_font_size,
-    params.saucer_texture_name_angle,
-    params.saucer_texture_name_curve,
-    params.saucer_texture_name_orientation,
-    params.saucer_texture_name_distance,
-    params.saucer_texture_registry_toggle,
-    params.saucer_texture_registry_text_color,
-    params.saucer_texture_registry_font_size,
-    params.saucer_texture_registry_angle,
-    params.saucer_texture_registry_curve,
-    params.saucer_texture_registry_orientation,
-    params.saucer_texture_registry_distance,
+    params.saucer_texture_name_top_toggle,
+    params.saucer_texture_name_top_text_color,
+    params.saucer_texture_name_top_font_size,
+    params.saucer_texture_name_top_angle,
+    params.saucer_texture_name_top_curve,
+    params.saucer_texture_name_top_orientation,
+    params.saucer_texture_name_top_distance,
+    params.saucer_texture_registry_top_toggle,
+    params.saucer_texture_registry_top_text_color,
+    params.saucer_texture_registry_top_font_size,
+    params.saucer_texture_registry_top_angle,
+    params.saucer_texture_registry_top_curve,
+    params.saucer_texture_registry_top_orientation,
+    params.saucer_texture_registry_top_distance,
     params.saucer_texture_bridge_registry_toggle,
     params.saucer_texture_bridge_registry_font_size,
     shipName,
@@ -1082,30 +1082,30 @@ const App: React.FC = () => {
               <ControlGroup groupName="Milky Way Effect" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange} defaultOpen={false} />
             </Accordion>
             
-            <Accordion title="Post-processing" defaultOpen>
+            <Accordion title="Post-processing" defaultOpen={false}>
               <ControlGroup groupName="Bloom & Post-processing" configs={LIGHT_PARAM_CONFIG["Bloom & Post-processing"]} params={lightParams} onParamChange={handleLightParamChange} />
             </Accordion>
 
-            <Accordion title="Textures">
+            <Accordion title="Textures" defaultOpen={false}>
               <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <ControlGroup groupName="Engineering Hull Texturing" configs={TEXTURE_PARAM_CONFIG["Engineering Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <ControlGroup groupName="Nacelle Texturing" configs={TEXTURE_PARAM_CONFIG["Nacelle Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
-              <ControlGroup groupName="General Hull Texturing" configs={TEXTURE_PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} />
+              <ControlGroup groupName="General Hull Texturing" configs={TEXTURE_PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
             
-            <Accordion title="Saucer Assembly">
-                <ControlGroup groupName="Saucer" configs={PARAM_CONFIG["Saucer"]} params={params} onParamChange={handleParamChange} />
+            <Accordion title="Saucer Assembly" defaultOpen={false}>
+                <ControlGroup groupName="Saucer" configs={PARAM_CONFIG["Saucer"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Bridge" configs={PARAM_CONFIG["Bridge"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Impulse Engines" configs={PARAM_CONFIG["Impulse Engines"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
             
-            <Accordion title="Engineering Assembly">
-                <ControlGroup groupName="Engineering" configs={PARAM_CONFIG["Engineering"]} params={params} onParamChange={handleParamChange} />
+            <Accordion title="Engineering Assembly" defaultOpen={false}>
+                <ControlGroup groupName="Engineering" configs={PARAM_CONFIG["Engineering"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <ControlGroup groupName="Connecting Neck" configs={PARAM_CONFIG["Connecting Neck"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
             </Accordion>
 
             <Accordion title="Upper Nacelle Assembly" defaultOpen={false}>
-                <ControlGroup groupName="Nacelle Body (Upper)" configs={PARAM_CONFIG["Nacelle Body (Upper)"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Nacelle Body (Upper)" configs={PARAM_CONFIG["Nacelle Body (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                 <Accordion title="Bussard Collectors (Upper)" defaultOpen={false}>
                     {renderBussardControls('nacelle')}
                 </Accordion>
@@ -1116,7 +1116,7 @@ const App: React.FC = () => {
             </Accordion>
             
             <Accordion title="Lower Nacelle Assembly" defaultOpen={false}>
-                <ControlGroup groupName="Nacelle Body (Lower)" configs={PARAM_CONFIG["Nacelle Body (Lower)"]} params={params} onParamChange={handleParamChange} />
+                <ControlGroup groupName="Nacelle Body (Lower)" configs={PARAM_CONFIG["Nacelle Body (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                  <Accordion title="Bussard Collectors (Lower)" defaultOpen={false}>
                     {renderBussardControls('nacelleLower')}
                 </Accordion>

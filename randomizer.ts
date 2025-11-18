@@ -37,10 +37,14 @@ export function generateShipParameters(archetype: Archetype, currentParams: Ship
     p.saucer_texture_window_bands = Math.floor(rand(3, 8));
     p.saucer_texture_window_density = rand(0.2, 0.8);
     p.saucer_texture_panel_color_variation = rand(0.03, 0.1);
-    p.saucer_texture_name_orientation = pick(['Upright', 'Inward', 'Outward']);
-    p.saucer_texture_registry_orientation = pick(['Upright', 'Inward', 'Outward']);
-    p.saucer_texture_name_distance = rand(0.3, 0.45);
-    p.saucer_texture_registry_distance = rand(0.3, 0.45);
+    // FIX: Corrected property name to its 'top' variant to match the ShipParameters type.
+    p.saucer_texture_name_top_orientation = pick(['Upright', 'Inward', 'Outward']);
+    // FIX: Corrected property name to its 'top' variant to match the ShipParameters type.
+    p.saucer_texture_registry_top_orientation = pick(['Upright', 'Inward', 'Outward']);
+    // FIX: Corrected property name to its 'top' variant to match the ShipParameters type.
+    p.saucer_texture_name_top_distance = rand(0.3, 0.45);
+    // FIX: Corrected property name to its 'top' variant to match the ShipParameters type.
+    p.saucer_texture_registry_top_distance = rand(0.3, 0.45);
 
 
     // --- Cruiser Archetype ---
