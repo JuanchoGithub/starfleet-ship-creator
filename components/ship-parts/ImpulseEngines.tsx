@@ -69,12 +69,20 @@ export const ImpulseEngines: React.FC<ImpulseEnginesProps> = ({ params, material
             const detail = 16;
             const r = sublight_radius;
             const l = sublight_length;
+            
+            // Close the bottom (Aft)
+            housingPoints.push(new THREE.Vector2(0, 0));
+
             for (let i = 0; i <= detail; i++) {
                 const p = i / detail;
                 const flare = 1 - Math.pow(1 - p, 2);
                 const radius = r * (0.6 + 0.4 * flare);
                 housingPoints.push(new THREE.Vector2(radius, p * l));
             }
+            
+            // Close the top (Forward)
+            housingPoints.push(new THREE.Vector2(0, l));
+
             const housingGeo = new THREE.LatheGeometry(housingPoints, segments, rotationSense * phiStart);
             housingGeo.center();
 
