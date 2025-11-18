@@ -3,7 +3,6 @@
 // react-three-fiber's JSX elements (like <mesh>, <group>, etc.) throughout the application.
 import { ThreeElements } from '@react-three/fiber';
 import * as THREE from 'three';
-// FIX: Import the full 'React' module as a namespace to access its JSX types for augmentation.
 import * as React from 'react';
 
 // Custom Node type for manually defining props for extended R3F components.
@@ -13,11 +12,10 @@ type Node<T, P extends any[]> = Omit<ThreeElements['group'], 'args' | 'ref'> & {
 };
 
 declare global {
-  // FIX: The JSX namespace augmentation was replacing React's built-in definitions for HTML/SVG elements.
-  // This was happening because `declare namespace JSX` can overwrite existing definitions.
-  // By switching to augment `React.JSX.IntrinsicElements`, we add react-three-fiber and custom
-  // types without removing the standard ones, fixing JSX errors across the application.
-  namespace React.JSX {
+  // FIX: Augment global JSX namespace to include ThreeElements.
+  // This merges with existing HTML/SVG definitions rather than overwriting them, 
+  // provided it's an interface extension.
+  namespace JSX {
     interface IntrinsicElements extends ThreeElements {
       // The `extend` function from R3F should automatically type this, but since the core
       // type augmentation is failing, we must define it manually as a fallback.

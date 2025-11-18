@@ -45,13 +45,19 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
     emissiveCtx.restore();
 
     // --- Color Map ---
-    mapCtx.fillStyle = baseColor; // Dark coppery brown
+    mapCtx.fillStyle = baseColor; // Customizable base color
     mapCtx.fillRect(0, 0, size, size);
     
     // Copper fins
     const finCount = 72;
     const finInnerRadius = radius * 0.25;
     const finOuterRadius = radius * 0.78;
+
+    // Configure emissive drawing for fins
+    emissiveCtx.globalAlpha = 0.7; // Moderate glow so it doesn't wash out
+    emissiveCtx.lineWidth = 2;
+    emissiveCtx.strokeStyle = color1;
+
     for (let i = 0; i < finCount; i++) {
         const angle = (i / finCount) * Math.PI * 2;
         
@@ -65,6 +71,7 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
         gradient.addColorStop(0.5, color1);
         gradient.addColorStop(1, '#664422');
 
+        // Draw on Diffuse Map
         mapCtx.beginPath();
         mapCtx.moveTo(
             center + Math.cos(angle) * finInnerRadius, 
@@ -77,9 +84,22 @@ function generateMovieRefitTexture(color1: string, color2: string, centerColor: 
         mapCtx.strokeStyle = gradient;
         mapCtx.lineWidth = 3;
         mapCtx.stroke();
-    }
 
-    // Central dark area
+        // Draw on Emissive Map (Glow)
+        emissiveCtx.beginPath();
+        emissiveCtx.moveTo(
+            center + Math.cos(angle) * finInnerRadius, 
+            center + Math.sin(angle) * finInnerRadius
+        );
+        emissiveCtx.lineTo(
+            center + Math.cos(angle) * finOuterRadius, 
+            center + Math.sin(angle) * finOuterRadius
+        );
+        emissiveCtx.stroke();
+    }
+    emissiveCtx.globalAlpha = 1.0;
+
+    // Central dark area (cap over fins)
     mapCtx.beginPath();
     mapCtx.arc(center, center, finInnerRadius, 0, Math.PI * 2);
     mapCtx.fillStyle = '#000000';
@@ -166,7 +186,13 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
     
     const textures = useMemo(() => {
         if (params.engineering_dishType === 'Movie Refit') {
-            return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2, '#FFFFFF', '#181008');
+            // Use Color4 for center, Color3 for base to allow UI customization
+            return generateMovieRefitTexture(
+                params.engineering_dishColor1,
+                params.engineering_dishColor2,
+                params.engineering_dishColor4 || '#FFFFFF',
+                params.engineering_dishColor3 || '#181008'
+            );
         }
         if (params.engineering_dishType === 'Advanced Refit') {
             return generateMovieRefitTexture(params.engineering_dishColor1, params.engineering_dishColor2, params.engineering_dishColor3, params.engineering_dishColor4);
