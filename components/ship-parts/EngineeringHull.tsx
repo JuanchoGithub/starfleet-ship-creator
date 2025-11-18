@@ -1,5 +1,4 @@
 
-import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';

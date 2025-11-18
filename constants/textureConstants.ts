@@ -18,6 +18,29 @@ export const TEXTURE_PARAM_CONFIG: ParamConfigGroups = {
       texture_emissive_intensity: { label: "Glow", min: 0, max: 5, step: 0.01, type: 'slider' },
     }
   },
+  "Bridge Texturing": {
+    "General": {
+      bridge_texture_toggle: { label: "Enable", type: 'toggle' },
+      bridge_texture_seed: { label: "Seed", min: 1, max: 1000, step: 1, type: 'slider' },
+      bridge_texture_rotation_offset: { label: "Rotation", min: 0, max: 360, step: 1, type: 'slider' },
+    },
+    "Panels & Details": {
+      bridge_texture_panel_toggle: { label: "Enable Panels", type: 'toggle' },
+      bridge_texture_panel_color_variation: { label: "Panel Color Variation", min: 0, max: 0.2, step: 0.01, type: 'slider' },
+      bridge_texture_light_density: { label: "Indicator Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      bridge_texture_light_color1: { label: "Indicator Color A", type: 'color' },
+      bridge_texture_light_color2: { label: "Indicator Color B", type: 'color' },
+    },
+    "Windows": {
+      bridge_texture_window_bands_toggle: { label: "Enable Window Bands", type: 'toggle' },
+      bridge_texture_window_bands_count: { label: "Window Bands", min: 0, max: 10, step: 1, type: 'slider' },
+      bridge_texture_window_density: { label: "Window Density", min: 0, max: 1, step: 0.01, type: 'slider' },
+      bridge_texture_lit_window_fraction: { label: "Lit Fraction", min: 0, max: 1, step: 0.01, type: 'slider' },
+      bridge_texture_window_color1: { label: "Window Color A", type: 'color' },
+      bridge_texture_window_color2: { label: "Window Color B", type: 'color' },
+      bridge_texture_emissive_intensity: { label: "Glow", min: 0, max: 10, step: 0.01, type: 'slider' },
+    }
+  },
   "Engineering Hull Texturing": {
     "General": {
       engineering_texture_toggle: { label: "Enable", type: 'toggle' },

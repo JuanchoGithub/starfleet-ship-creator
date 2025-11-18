@@ -379,6 +379,23 @@ export interface ShipParameters {
   saucer_texture_bridge_registry_toggle: boolean;
   saucer_texture_bridge_registry_font_size: number;
 
+  // Bridge Texturing
+  bridge_texture_toggle: boolean;
+  bridge_texture_seed: number;
+  bridge_texture_rotation_offset: number;
+  bridge_texture_panel_toggle: boolean;
+  bridge_texture_panel_color_variation: number;
+  bridge_texture_light_density: number;
+  bridge_texture_window_bands_toggle: boolean;
+  bridge_texture_window_bands_count: number;
+  bridge_texture_window_density: number;
+  bridge_texture_lit_window_fraction: number;
+  bridge_texture_window_color1: string;
+  bridge_texture_window_color2: string;
+  bridge_texture_light_color1: string;
+  bridge_texture_light_color2: string;
+  bridge_texture_emissive_intensity: number;
+
   // Nacelle Texturing
   nacelle_texture_toggle: boolean;
   nacelle_texture_seed: number;

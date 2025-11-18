@@ -1,5 +1,4 @@
 
-import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
@@ -52,7 +51,7 @@ export const Bridge: React.FC<BridgeProps> = ({ params, material }) => {
                 const x = positions.getX(i);
                 const z = positions.getZ(i);
                 uvs[i * 2] = (x - bbox.min.x) / sizeX;
-                uvs[i * 2 + 1] = 1.0 - ((z - bbox.min.z) / sizeZ); // Invert V
+                uvs[i * 2 + 1] = 1.0 - ((z - bbox.min.z) / sizeZ); // Invert V to match texture orientation
             }
             geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
         }

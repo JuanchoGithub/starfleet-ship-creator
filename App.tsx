@@ -14,6 +14,7 @@ import { generateTextures } from './components/TextureGenerator';
 import { generateSaucerTextures } from './components/SaucerTextureGenerator';
 import { generateNacelleTextures } from './components/NacelleTextureGenerator';
 import { generateEngineeringTextures } from './components/EngineeringTextureGenerator';
+import { generateBridgeTextures } from './components/BridgeTextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
 import { Archetype, generateShipParameters } from './randomizer';
 
@@ -176,6 +177,12 @@ const App: React.FC = () => {
     roughness: 0.4,
     emissive: '#ffffff',
   }));
+  const [bridgeMaterial] = useState(() => new THREE.MeshStandardMaterial({
+    color: '#cccccc',
+    metalness: 0.8,
+    roughness: 0.4,
+    emissive: '#ffffff',
+  }));
 
   const [engineeringMaterial] = useState(() => new THREE.MeshStandardMaterial({
     color: '#cccccc',
@@ -199,6 +206,7 @@ const App: React.FC = () => {
   const [isGeneratingSaucerTextures, setIsGeneratingSaucerTextures] = useState(false);
   const [isGeneratingNacelleTextures, setIsGeneratingNacelleTextures] = useState(false);
   const [isGeneratingEngineeringTextures, setIsGeneratingEngineeringTextures] = useState(false);
+  const [isGeneratingBridgeTextures, setIsGeneratingBridgeTextures] = useState(false);
 
   const handleGenerateTextures = useCallback(() => {
     setIsGeneratingTextures(true);
@@ -304,6 +312,38 @@ const App: React.FC = () => {
       params, // Pass the whole params object since many properties are used
       saucerMaterial, shipName
   ]);
+
+  const handleGenerateBridgeTextures = useCallback(() => {
+    setIsGeneratingBridgeTextures(true);
+    setTimeout(() => {
+        const { map, normalMap, emissiveMap } = generateBridgeTextures({
+            seed: params.bridge_texture_seed,
+            panel_toggle: params.bridge_texture_panel_toggle,
+            panelColorVariation: params.bridge_texture_panel_color_variation,
+            light_density: params.bridge_texture_light_density,
+            light_color1: params.bridge_texture_light_color1,
+            light_color2: params.bridge_texture_light_color2,
+            rotation_offset: params.bridge_texture_rotation_offset,
+            window_bands_toggle: params.bridge_texture_window_bands_toggle,
+            window_bands_count: params.bridge_texture_window_bands_count,
+            window_density: params.bridge_texture_window_density,
+            lit_window_fraction: params.bridge_texture_lit_window_fraction,
+            window_color1: params.bridge_texture_window_color1,
+            window_color2: params.bridge_texture_window_color2,
+        });
+
+        if (bridgeMaterial.map) bridgeMaterial.map.dispose();
+        if (bridgeMaterial.normalMap) bridgeMaterial.normalMap.dispose();
+        if (bridgeMaterial.emissiveMap) bridgeMaterial.emissiveMap.dispose();
+
+        bridgeMaterial.map = map;
+        bridgeMaterial.normalMap = normalMap;
+        bridgeMaterial.emissiveMap = emissiveMap;
+        bridgeMaterial.needsUpdate = true;
+        
+        setIsGeneratingBridgeTextures(false);
+    }, 50);
+  }, [params, bridgeMaterial]);
 
   const handleGenerateEngineeringTextures = useCallback(() => {
     setIsGeneratingEngineeringTextures(true);
@@ -492,6 +532,28 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
+    if (params.bridge_texture_toggle) {
+        handleGenerateBridgeTextures();
+    }
+  }, [
+    params.bridge_texture_toggle,
+    params.bridge_texture_seed,
+    params.bridge_texture_panel_color_variation,
+    params.bridge_texture_light_density,
+    params.bridge_texture_light_color1,
+    params.bridge_texture_light_color2,
+    params.bridge_texture_rotation_offset,
+    params.bridge_texture_panel_toggle,
+    params.bridge_texture_window_bands_toggle,
+    params.bridge_texture_window_bands_count,
+    params.bridge_texture_window_density,
+    params.bridge_texture_lit_window_fraction,
+    params.bridge_texture_window_color1,
+    params.bridge_texture_window_color2,
+    handleGenerateBridgeTextures
+  ]);
+
+  useEffect(() => {
     if (params.nacelle_texture_toggle) {
         handleGenerateNacelleTextures();
     }
@@ -593,11 +655,13 @@ const App: React.FC = () => {
 
     hullMaterial.emissiveIntensity = params.texture_emissive_intensity;
     saucerMaterial.emissiveIntensity = params.saucer_texture_emissive_intensity;
+    bridgeMaterial.emissiveIntensity = params.bridge_texture_emissive_intensity;
     engineeringMaterial.emissiveIntensity = params.engineering_texture_emissive_intensity;
     nacelleMaterial.emissiveIntensity = params.nacelle_texture_glow_intensity;
     
     // For emissive maps to work, the material's emissive color must be non-black.
     // We set it to white so the map's colors are used directly.
+    bridgeMaterial.emissive = new THREE.Color('#ffffff');
     engineeringMaterial.emissive = new THREE.Color('#ffffff');
     nacelleMaterial.emissive = new THREE.Color('#ffffff');
 
@@ -613,6 +677,11 @@ const App: React.FC = () => {
         saucerMaterial.normalMap = null;
         saucerMaterial.emissiveMap = null;
     }
+    if (!params.bridge_texture_toggle) {
+        bridgeMaterial.map = null;
+        bridgeMaterial.normalMap = null;
+        bridgeMaterial.emissiveMap = null;
+    }
     if (!params.nacelle_texture_toggle) {
         nacelleMaterial.map = null;
         nacelleMaterial.normalMap = null;
@@ -626,6 +695,7 @@ const App: React.FC = () => {
 
     hullMaterial.needsUpdate = true;
     saucerMaterial.needsUpdate = true;
+    bridgeMaterial.needsUpdate = true;
     secondaryMaterial.needsUpdate = true;
     nacelleMaterial.needsUpdate = true;
     engineeringMaterial.needsUpdate = true;
@@ -633,10 +703,11 @@ const App: React.FC = () => {
   }, [
       params.texture_toggle, params.texture_scale, params.texture_emissive_intensity, 
       params.saucer_texture_toggle, params.saucer_texture_emissive_intensity,
+      params.bridge_texture_toggle, params.bridge_texture_emissive_intensity,
       params.nacelle_texture_toggle, params.nacelle_texture_scale, params.nacelle_texture_glow_intensity,
       params.engineering_texture_toggle, params.engineering_texture_scale, params.engineering_texture_emissive_intensity,
       params.engineering_texture_rotation_offset,
-      hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial
+      hullMaterial, saucerMaterial, bridgeMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial
   ]);
 
   useEffect(() => {
@@ -644,13 +715,15 @@ const App: React.FC = () => {
     hullMaterial.needsUpdate = true;
     (saucerMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     saucerMaterial.needsUpdate = true;
+    (bridgeMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
+    bridgeMaterial.needsUpdate = true;
     (secondaryMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     secondaryMaterial.needsUpdate = true;
     (nacelleMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     nacelleMaterial.needsUpdate = true;
     (engineeringMaterial as THREE.MeshStandardMaterial).envMapIntensity = lightParams.env_intensity;
     engineeringMaterial.needsUpdate = true;
-  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial]);
+  }, [lightParams.env_intensity, hullMaterial, saucerMaterial, bridgeMaterial, secondaryMaterial, nacelleMaterial, engineeringMaterial]);
 
   useEffect(() => {
     try {
@@ -979,12 +1052,13 @@ const App: React.FC = () => {
             hullMaterial={hullMaterial}
             secondaryMaterial={secondaryMaterial}
             saucerMaterial={saucerMaterial}
+            bridgeMaterial={bridgeMaterial}
             nacelleMaterial={nacelleMaterial}
             engineeringMaterial={engineeringMaterial}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
-        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} engineeringMaterial={engineeringMaterial} lightParams={lightParams} />
+        <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} bridgeMaterial={bridgeMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} engineeringMaterial={engineeringMaterial} lightParams={lightParams} />
         <div className="absolute bottom-4 right-4 text-right text-white p-2 bg-black/30 rounded-md pointer-events-none">
           <h1 className="text-2xl tracking-wider uppercase">{shipName.replace('*', '')}</h1>
           {params.ship_registry && <h2 className="text-md tracking-wider">{params.ship_registry}</h2>}
@@ -1113,6 +1187,7 @@ const App: React.FC = () => {
 
             <Accordion title="Textures" defaultOpen={false}>
               <ControlGroup groupName="Saucer Texturing" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+              <ControlGroup groupName="Bridge Texturing" configs={TEXTURE_PARAM_CONFIG["Bridge Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <ControlGroup groupName="Engineering Hull Texturing" configs={TEXTURE_PARAM_CONFIG["Engineering Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <ControlGroup groupName="Nacelle Texturing" configs={TEXTURE_PARAM_CONFIG["Nacelle Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
               <ControlGroup groupName="General Hull Texturing" configs={TEXTURE_PARAM_CONFIG["General Hull Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />

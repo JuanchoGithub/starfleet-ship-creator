@@ -1,4 +1,4 @@
-import '@react-three/fiber';
+
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
@@ -26,7 +26,7 @@ export const Neck: React.FC<NeckProps> = ({ params, material }) => {
         let saucerAttachZAft = saucerZStart + saucerZSpan * params.neck_primaryAftOffset;
 
         // Ensure Fore is always greater than Aft (further down the Z-axis)
-        if (saucerAttachZFore < saucerAttachZAft) [saucerAttachZFore, saucerAttachZAft] = [saucerAttachZAft, saucerAttachZFore];
+        if (saucerAttachZFore < saucerAttachZAft) [saucerAttachZFore, saucerAttachZAft] = [saucerAttachZAft, saucerAttachZAft];
         
         // Engineering Hull Attachment
         const engAttachY = params.engineering_z + params.engineering_radius * 0.7 + (params.neck_engineeringVerticalOffset ?? 0);

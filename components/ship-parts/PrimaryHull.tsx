@@ -1,5 +1,4 @@
 
-import '@react-three/fiber';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../../types';
@@ -54,10 +53,11 @@ const createCapGeometry = (ring: THREE.Vector3[]) => {
 
 interface PrimaryHullProps {
     params: ShipParameters;
-    material: THREE.Material;
+    saucerMaterial: THREE.Material;
+    bridgeMaterial: THREE.Material;
 }
 
-export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) => {
+export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, saucerMaterial, bridgeMaterial }) => {
     const { saucerLeft, saucerRight, notchCaps } = useMemo(() => {
         const geos: {
             saucerLeft?: THREE.BufferGeometry,
@@ -233,14 +233,14 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, material }) =>
             position={[0, params.primary_z, params.primary_y]}
         >
             <group name="Saucer">
-                {saucerLeft && <mesh name="Saucer_Port" geometry={saucerLeft} material={material} castShadow receiveShadow />}
-                {saucerRight && <mesh name="Saucer_Starboard" geometry={saucerRight} material={material} castShadow receiveShadow />}
+                {saucerLeft && <mesh name="Saucer_Port" geometry={saucerLeft} material={saucerMaterial} castShadow receiveShadow />}
+                {saucerRight && <mesh name="Saucer_Starboard" geometry={saucerRight} material={saucerMaterial} castShadow receiveShadow />}
                 {notchCaps.map((geo, i) => (
-                    <mesh key={i} name={`Saucer_NotchCap_${i}`} geometry={geo} material={material} castShadow receiveShadow />
+                    <mesh key={i} name={`Saucer_NotchCap_${i}`} geometry={geo} material={saucerMaterial} castShadow receiveShadow />
                 ))}
 
                 {/* Bridge is placed on top of the saucer (at y=0) with a vertical offset */}
-                <Bridge params={params} material={material} />
+                <Bridge params={params} material={bridgeMaterial} />
             </group>
         </group>
     )

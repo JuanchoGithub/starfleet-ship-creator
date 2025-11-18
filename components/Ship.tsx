@@ -1,6 +1,4 @@
 
-
-import '@react-three/fiber';
 import React, { forwardRef } from 'react';
 import { ShipParameters } from '../types';
 import { PrimaryHull } from './ship-parts/PrimaryHull';
@@ -17,13 +15,14 @@ interface ShipProps {
     secondaryMaterial: Material;
     nacelleMaterial: Material;
     saucerMaterial: Material;
+    bridgeMaterial: Material;
     engineeringMaterial: Material;
 }
 
-export const Ship = forwardRef<Group, ShipProps>(({ shipParams, material, secondaryMaterial, nacelleMaterial, saucerMaterial, engineeringMaterial }, ref) => {
+export const Ship = forwardRef<Group, ShipProps>(({ shipParams, material, secondaryMaterial, nacelleMaterial, saucerMaterial, bridgeMaterial, engineeringMaterial }, ref) => {
   return (
     <group ref={ref} name="Starship">
-        <PrimaryHull params={shipParams} material={saucerMaterial} />
+        <PrimaryHull params={shipParams} saucerMaterial={saucerMaterial} bridgeMaterial={bridgeMaterial} />
         <EngineeringHull params={shipParams} material={engineeringMaterial} />
         <Neck params={shipParams} material={material} />
         <Nacelles params={shipParams} material={nacelleMaterial} />

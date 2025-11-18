@@ -1,5 +1,4 @@
 // By importing '@react-three/fiber', we extend JSX to include three.js elements.
-import '@react-three/fiber';
 import React, { useRef } from 'react';
 import { useFrame, extend } from '@react-three/fiber';
 import { Hud, OrthographicCamera, Text } from '@react-three/drei';
