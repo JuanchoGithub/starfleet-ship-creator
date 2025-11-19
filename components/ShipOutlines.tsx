@@ -1,12 +1,26 @@
+
 // FIX: Add a global import for '@react-three/fiber' to augment JSX types for this file.
 import '@react-three/fiber';
 import React, { useLayoutEffect, useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { ShipParameters } from '../types';
 
-export const ShipOutlines = ({ shipRef, shipParams }: { shipRef: React.RefObject<THREE.Group>, shipParams: ShipParameters }) => {
+interface ShipOutlinesProps {
+    shipRef: React.RefObject<THREE.Group>;
+    shipParams: ShipParameters;
+    color?: string;
+}
+
+export const ShipOutlines: React.FC<ShipOutlinesProps> = ({ shipRef, shipParams, color = '#388BFD' }) => {
     const linesRef = useRef<THREE.Group>(null!);
-    const lineMaterial = useMemo(() => new THREE.LineBasicMaterial({ color: '#388BFD' }), []);
+    
+    // Create a stable material instance
+    const lineMaterial = useMemo(() => new THREE.LineBasicMaterial({ color }), []);
+
+    // Update material color when prop changes without recreating the material or geometry
+    useEffect(() => {
+        lineMaterial.color.set(color);
+    }, [color, lineMaterial]);
 
     useLayoutEffect(() => {
         const group = linesRef.current;
@@ -22,8 +36,11 @@ export const ShipOutlines = ({ shipRef, shipParams }: { shipRef: React.RefObject
         if (shipRef.current) {
             shipRef.current.traverse((child) => {
                 if (child instanceof THREE.Mesh && child.geometry && child.visible) {
-                    // Create edges geometry for the current mesh
-                    const edges = new THREE.EdgesGeometry(child.geometry, 20); // 20-degree threshold for edges
+                    // Create edges geometry for the current mesh.
+                    // Threshold is set to 1 degree. This ensures that the structural grid lines 
+                    // of the smooth lathe geometries are drawn (since adjacent segment faces usually 
+                    // differ by ~5 degrees), but strictly coplanar diagonals are still hidden.
+                    const edges = new THREE.EdgesGeometry(child.geometry, 1);
                     createdGeometries.push(edges);
                     const line = new THREE.LineSegments(edges, lineMaterial);
                     

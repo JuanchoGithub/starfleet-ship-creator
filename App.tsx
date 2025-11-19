@@ -154,6 +154,7 @@ const App: React.FC = () => {
   const [pastebinText, setPastebinText] = useState('');
   const [isMultiviewOpen, setIsMultiviewOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(352); // Approx 10% wider than 320px (w-80)
+  const [orthoRenderType, setOrthoRenderType] = useState<'shaded' | 'wireframe' | 'blueprint'>('shaded');
 
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -1203,6 +1204,7 @@ const App: React.FC = () => {
             bridgeMaterial={bridgeMaterial}
             nacelleMaterial={nacelleMaterial}
             engineeringMaterial={engineeringMaterial}
+            renderType={orthoRenderType}
         />
       )}
       <div className="flex-grow h-1/2 md:h-full relative min-w-0">
@@ -1238,6 +1240,14 @@ const App: React.FC = () => {
                           <button onClick={() => setIsMultiviewOpen(!isMultiviewOpen)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <Squares2X2Icon className='w-5 h-5' /> {isMultiviewOpen ? 'Hide' : 'Show'} Ortho Views
                           </button>
+                          {isMultiviewOpen && (
+                              <Select
+                                  label="Ortho Render Mode"
+                                  value={orthoRenderType}
+                                  options={['shaded', 'wireframe', 'blueprint']}
+                                  onChange={(val) => setOrthoRenderType(val as 'shaded' | 'wireframe' | 'blueprint')}
+                              />
+                          )}
                           <button onClick={() => setIsExportModalOpen(true)} className="w-full flex items-center justify-center gap-2 bg-space-light text-light-gray font-semibold py-2 px-4 rounded-md hover:bg-space-light/80 transition-colors">
                               <CubeIcon className='w-5 h-5' /> Export GLB
                           </button>
