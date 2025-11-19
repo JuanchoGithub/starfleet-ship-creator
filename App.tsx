@@ -688,24 +688,24 @@ const App: React.FC = () => {
             {activeTab === 'design' && (
                 <div className="space-y-1">
                     <TechHeader title="Ship Parameters" icon={<CubeIcon className="w-5 h-5" />} />
-                    <ControlGroup groupName="Identity" configs={PARAM_CONFIG["Ship Identity"]} params={params} onParamChange={handleParamChange} />
-                    <Accordion title="Saucer Assembly">
+                    <ControlGroup groupName="Identity" configs={PARAM_CONFIG["Ship Identity"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
+                    <Accordion title="Saucer Assembly" defaultOpen={false}>
                         <ControlGroup groupName="Saucer" configs={PARAM_CONFIG["Saucer"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                         <ControlGroup groupName="Bridge" configs={PARAM_CONFIG["Bridge"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                         <ControlGroup groupName="Impulse Engines" configs={PARAM_CONFIG["Impulse Engines"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                     </Accordion>
-                    <Accordion title="Engineering Assembly">
+                    <Accordion title="Engineering Assembly" defaultOpen={false}>
                         <ControlGroup groupName="Engineering Hull" configs={PARAM_CONFIG["Engineering"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                         <Accordion title="Deflector Dish" defaultOpen={false}> {renderDeflectorControls()} </Accordion>
                         <ControlGroup groupName="Connecting Neck" configs={PARAM_CONFIG["Connecting Neck"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                     </Accordion>
-                    <Accordion title="Nacelle Assembly (Upper)">
+                    <Accordion title="Nacelle Assembly (Upper)" defaultOpen={false}>
                         <ControlGroup groupName="Nacelle Body" configs={PARAM_CONFIG["Nacelle Body (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                         <Accordion title="Bussard Collectors" defaultOpen={false}> {renderBussardControls('nacelle')} </Accordion>
                         <Accordion title="Warp Grills" defaultOpen={false}> {renderGrillControls('nacelle')} </Accordion>
                         <ControlGroup groupName="Pylons" configs={PARAM_CONFIG["Pylons (Upper)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                     </Accordion>
-                    <Accordion title="Nacelle Assembly (Lower)">
+                    <Accordion title="Nacelle Assembly (Lower)" defaultOpen={false}>
                         <ControlGroup groupName="Nacelle Body" configs={PARAM_CONFIG["Nacelle Body (Lower)"]} params={params} onParamChange={handleParamChange} defaultOpen={false} />
                         <Accordion title="Bussard Collectors" defaultOpen={false}> {renderBussardControls('nacelleLower')} </Accordion>
                         <Accordion title="Warp Grills" defaultOpen={false}> {renderGrillControls('nacelleLower')} </Accordion>
@@ -714,7 +714,7 @@ const App: React.FC = () => {
                     </Accordion>
                     
                     <TechHeader title="Material Synthesis" icon={<SparklesIcon className="w-5 h-5" />} />
-                    <Accordion title="Hull Texturing">
+                    <Accordion title="Hull Texturing" defaultOpen={false}>
                         <ControlGroup groupName="Saucer" configs={TEXTURE_PARAM_CONFIG["Saucer Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
                         <ControlGroup groupName="Neck" configs={TEXTURE_PARAM_CONFIG["Neck Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
                         <ControlGroup groupName="Bridge" configs={TEXTURE_PARAM_CONFIG["Bridge Texturing"]} params={params} onParamChange={handleParamChange} defaultOpen={false}/>
@@ -729,20 +729,20 @@ const App: React.FC = () => {
             {activeTab === 'environment' && (
                 <div className="space-y-1">
                      <TechHeader title="Stellar Cartography" icon={<SparklesIcon className="w-5 h-5" />} />
-                     <Accordion title="Lighting">
-                        <ControlGroup groupName="Directional Light" configs={LIGHT_PARAM_CONFIG["Directional Light"]} params={lightParams} onParamChange={handleLightParamChange} />
-                        <ControlGroup groupName="Ambient Light" configs={LIGHT_PARAM_CONFIG["Ambient Light"]} params={lightParams} onParamChange={handleLightParamChange} />
-                        <ControlGroup groupName="Environment Map" configs={LIGHT_PARAM_CONFIG["Environment"]} params={lightParams} onParamChange={handleLightParamChange} />
+                     <Accordion title="Lighting" defaultOpen={false}>
+                        <ControlGroup groupName="Directional Light" configs={LIGHT_PARAM_CONFIG["Directional Light"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
+                        <ControlGroup groupName="Ambient Light" configs={LIGHT_PARAM_CONFIG["Ambient Light"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
+                        <ControlGroup groupName="Environment Map" configs={LIGHT_PARAM_CONFIG["Environment"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                     </Accordion>
-                    <Accordion title="Background">
-                        <ControlGroup groupName="Procedural Nebula" configs={LIGHT_PARAM_CONFIG["Nebula Background"]} params={lightParams} onParamChange={handleLightParamChange} />
-                        <ControlGroup groupName="Milky Way" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange} />
+                    <Accordion title="Background" defaultOpen={false}>
+                        <ControlGroup groupName="Procedural Nebula" configs={LIGHT_PARAM_CONFIG["Nebula Background"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
+                        <ControlGroup groupName="Milky Way" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                     </Accordion>
-                    <TechHeader title="Sensor Calibration" icon={<Squares2X2Icon className="w-5 h-5" />} />
-                    <Accordion title="Post-Processing">
-                        <ControlGroup groupName="Bloom & Tone Mapping" configs={LIGHT_PARAM_CONFIG["Bloom & Post-processing"]} params={lightParams} onParamChange={handleLightParamChange} />
+                    <TechHeader title="Sensor Calibration" icon={<Squares2X2Icon className="w-5 h-5" />}  defaultOpen={false}/>
+                    <Accordion title="Post-Processing" defaultOpen={false}>
+                        <ControlGroup groupName="Bloom & Tone Mapping" configs={LIGHT_PARAM_CONFIG["Bloom & Post-processing"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                     </Accordion>
-                     <Accordion title="Multiview Options">
+                     <Accordion title="Multiview Options" defaultOpen={false}>
                         <div className="p-3 space-y-3">
                              <button onClick={() => setIsMultiviewOpen(!isMultiviewOpen)} className="w-full flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-light-gray hover:text-white">
                                 <span>Show Orthographic Views</span>
