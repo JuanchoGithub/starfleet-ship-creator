@@ -15,7 +15,8 @@
     "react-dom": "^19.2.0",
     "@react-three/fiber": "^9.4.0",
     "lil-gui": "^0.21.0",
-    "three-subdivide": "^1.1.5"
+    "three-subdivide": "^1.1.5",
+    "html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

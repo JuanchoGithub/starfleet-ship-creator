@@ -6,7 +6,7 @@ import { INITIAL_SHIP_PARAMS, PARAM_CONFIG, DEFLECTOR_PARAM_CONFIG } from './con
 import { TEXTURE_PARAM_CONFIG } from './constants/textureConstants';
 import { INITIAL_LIGHT_PARAMS, LIGHT_PARAM_CONFIG } from './constants/lightConstants';
 import { STOCK_SHIPS } from './ships';
-import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, Squares2X2Icon, SparklesIcon } from './components/icons';
+import { ShuffleIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, ClipboardDocumentIcon, ClipboardIcon, ArchiveBoxIcon, TrashIcon, XMarkIcon, ArrowUturnLeftIcon, CubeIcon, Squares2X2Icon, SparklesIcon, CameraIcon } from './components/icons';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { Multiview } from './components/Multiview';
@@ -18,6 +18,7 @@ import { generateBridgeTextures } from './components/BridgeTextureGenerator';
 import { generateNeckTextures } from './components/NeckTextureGenerator';
 import { Accordion, Slider, Toggle, ColorPicker, Select } from './components/forms';
 import { Archetype, generateShipParameters } from './randomizer';
+import html2canvas from 'html2canvas';
 
 // --- Visual Components ---
 
@@ -175,6 +176,7 @@ const App: React.FC = () => {
   const importInputRef = useRef<HTMLInputElement>(null);
   const shipRef = useRef<THREE.Group>(null);
   const animationRef = useRef<number | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   const [savedDesigns, setSavedDesigns] = useState<{ [name: string]: ShipParameters }>({});
   const [designName, setDesignName] = useState<string>('');
@@ -385,6 +387,28 @@ const App: React.FC = () => {
       setIsExportModalOpen(false);
   }, []);
 
+  const handleExportImage = useCallback(async () => {
+    if (!viewportRef.current) return;
+    try {
+        // Capture the viewport div, including WebGL canvas and HUD overlays
+        const canvas = await html2canvas(viewportRef.current, {
+            backgroundColor: '#000000', // Ensure background is black
+            useCORS: true, // Handle any cross-origin stuff if present
+            logging: false,
+        });
+        const image = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = image;
+        a.download = `${shipName.replace(/[^a-z0-9]/gi, '_')}_view.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (error) {
+        console.error("Image export failed:", error);
+        alert("Failed to export image.");
+    }
+  }, [shipName]);
+
   const handleImportClick = () => importInputRef.current?.click();
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; if (!file) return;
@@ -587,7 +611,7 @@ const App: React.FC = () => {
       )}
       
       {/* --- Viewport with High-Tech Frame --- */}
-      <div className="flex-grow h-1/2 md:h-full relative min-w-0 bg-black">
+      <div ref={viewportRef} className="flex-grow h-1/2 md:h-full relative min-w-0 bg-black">
         <Scene shipParams={params} shipRef={shipRef} hullMaterial={hullMaterial} saucerMaterial={saucerMaterial} bridgeMaterial={bridgeMaterial} secondaryMaterial={secondaryMaterial} nacelleMaterial={nacelleMaterial} engineeringMaterial={engineeringMaterial} neckMaterial={neckMaterial} lightParams={lightParams} />
         
         {/* Viewport HUD Frame */}
@@ -603,7 +627,7 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <div className="h-16 w-1 bg-gradient-to-b from-accent-blue to-transparent shadow-[0_0_8px_#388bfd]"></div>
                     <div>
-                        <h1 className="text-5xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-light-gray uppercase font-orbitron drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{shipName.replace('*', '')}</h1>
+                        <h1 className="text-5xl font-bold tracking-widest text-white uppercase font-orbitron drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{shipName.replace('*', '')}</h1>
                         <div className="flex items-center gap-4 mt-1">
                             <span className="bg-accent-blue/20 border border-accent-blue/40 px-2 py-0.5 text-xs font-mono text-accent-glow tracking-[0.2em] uppercase">{params.ship_registry || 'NO REGISTRY'}</span>
                             {shipName.endsWith('*') && <span className="text-[10px] text-red-400 uppercase tracking-widest animate-pulse">● UNSAVED CHANGES</span>}
@@ -782,8 +806,11 @@ const App: React.FC = () => {
                             <button onClick={handleExportJson} className="flex items-center justify-center gap-2 bg-space-dark hover:bg-space-light text-light-gray py-2 border border-space-light/30 transition-colors text-[10px] font-bold uppercase tracking-wide">
                                 <ArrowDownTrayIcon className='w-3 h-3'/> JSON
                             </button>
-                            <button onClick={() => setIsExportModalOpen(true)} className="col-span-2 flex items-center justify-center gap-2 bg-space-dark hover:bg-accent-blue/20 text-accent-glow py-2 border border-accent-blue/30 hover:border-accent-blue transition-all text-[10px] font-bold uppercase tracking-wide">
-                                <CubeIcon className='w-3 h-3' /> Export 3D Model (GLB)
+                            <button onClick={() => setIsExportModalOpen(true)} className="flex items-center justify-center gap-2 bg-space-dark hover:bg-accent-blue/20 text-accent-glow py-2 border border-accent-blue/30 hover:border-accent-blue transition-all text-[10px] font-bold uppercase tracking-wide">
+                                <CubeIcon className='w-3 h-3' /> Export GLB
+                            </button>
+                            <button onClick={handleExportImage} className="flex items-center justify-center gap-2 bg-space-dark hover:bg-accent-blue/20 text-accent-glow py-2 border border-accent-blue/30 hover:border-accent-blue transition-all text-[10px] font-bold uppercase tracking-wide">
+                                <CameraIcon className='w-3 h-3' /> Export PNG
                             </button>
                         </div>
                         <div className="flex gap-2 mt-2 pt-2 border-t border-space-light/10">
