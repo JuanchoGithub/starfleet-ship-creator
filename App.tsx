@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ShipParameters, LightParameters, ParamConfigGroups, ParamConfig, FlatParamGroup, SubParamGroup } from './types';
 import { Scene } from './components/Scene';
@@ -139,6 +140,12 @@ const ControlGroup: React.FC<{
   );
 });
 
+const lerpColor = (c1: string, c2: string, t: number) => {
+    const col1 = new THREE.Color(c1);
+    const col2 = new THREE.Color(c2);
+    col1.lerp(col2, t);
+    return '#' + col1.getHexString();
+};
 
 const App: React.FC = () => {
   const [params, setParams] = useState<ShipParameters>(INITIAL_SHIP_PARAMS);
@@ -148,6 +155,8 @@ const App: React.FC = () => {
 
   const importInputRef = useRef<HTMLInputElement>(null);
   const shipRef = useRef<THREE.Group>(null);
+  const animationRef = useRef<number | null>(null);
+
   const [savedDesigns, setSavedDesigns] = useState<{ [name: string]: ShipParameters }>({});
   const [designName, setDesignName] = useState<string>('');
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
@@ -209,6 +218,54 @@ const App: React.FC = () => {
     roughness: 0.4,
     emissive: '#ffffff',
   }));
+
+  const animateToParams = useCallback((targetParams: ShipParameters, duration: number = 600) => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+      const startParams = params;
+      const startTime = performance.now();
+
+      const animate = (time: number) => {
+          const elapsed = time - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease Out Quart: 1 - (1-t)^4
+          const ease = 1 - Math.pow(1 - progress, 4);
+
+          const currentFrameParams: ShipParameters = { ...targetParams };
+
+          (Object.keys(targetParams) as Array<keyof ShipParameters>).forEach(key => {
+              const s = startParams[key];
+              const e = targetParams[key];
+
+              if (typeof s === 'number' && typeof e === 'number') {
+                  // FIX: Use type assertion here because TypeScript can't narrow 'key' based on 'typeof s'
+                  (currentFrameParams as any)[key] = s + (e - s) * ease;
+              } else if (
+                  typeof s === 'string' && typeof e === 'string' && 
+                  s.startsWith('#') && e.startsWith('#') && 
+                  s.length > 1 && e.length > 1
+              ) {
+                   // FIX: Use type assertion here because TypeScript can't narrow 'key' based on 'typeof s'
+                  (currentFrameParams as any)[key] = lerpColor(s, e, ease);
+              }
+              // Booleans, enums, and text strings snap immediately to target 
+              // (handled by spreading targetParams initially)
+          });
+
+          setParams(currentFrameParams);
+
+          if (progress < 1) {
+              animationRef.current = requestAnimationFrame(animate);
+          } else {
+              animationRef.current = null;
+              // Ensure final exact values are set
+              setParams(targetParams);
+          }
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
+  }, [params]);
+
 
   const [isGeneratingTextures, setIsGeneratingTextures] = useState(false);
   const [isGeneratingSaucerTextures, setIsGeneratingSaucerTextures] = useState(false);
@@ -836,9 +893,9 @@ const App: React.FC = () => {
           finalArchetype = archetypes[Math.floor(Math.random() * archetypes.length)];
       }
       const newParams = generateShipParameters(finalArchetype, params);
-      setParams(newParams);
       setShipName(`Random ${finalArchetype}`);
-  }, [params]);
+      animateToParams(newParams);
+  }, [params, animateToParams]);
 
   const handleExportJson = useCallback(() => {
     const jsonString = JSON.stringify(params, null, 2);
@@ -900,8 +957,8 @@ const App: React.FC = () => {
           const importedParams = JSON.parse(text);
           if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
              const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
-             setParams(newParams);
              setShipName(file.name.replace(/\.json$/i, '') || 'Imported Design');
+             animateToParams(newParams);
           } else {
             alert('This does not appear to be a valid starship configuration file.');
           }
@@ -931,8 +988,8 @@ const App: React.FC = () => {
           const importedParams = JSON.parse(text);
           if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
               const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
-              setParams(newParams);
               setShipName('Pasted Design');
+              animateToParams(newParams);
           } else {
               alert('Clipboard content is not a valid starship configuration.');
           }
@@ -941,7 +998,7 @@ const App: React.FC = () => {
           alert('Could not read from clipboard. Please paste your configuration into the text box.');
           setIsPasteModalOpen(true);
       }
-  }, []);
+  }, [animateToParams]);
   
   const handleLoadFromTextarea = () => {
     try {
@@ -952,10 +1009,10 @@ const App: React.FC = () => {
         const importedParams = JSON.parse(pastebinText);
         if (typeof importedParams.primary_toggle !== 'undefined' && typeof importedParams.primary_radius !== 'undefined') {
             const newParams = { ...INITIAL_SHIP_PARAMS, ...importedParams };
-            setParams(newParams);
             setShipName('Pasted Design');
             setIsPasteModalOpen(false); // Close modal on success
             setPastebinText(''); // Clear textarea
+            animateToParams(newParams);
         } else {
             alert('Pasted text is not a valid starship configuration.');
         }
@@ -983,20 +1040,21 @@ const App: React.FC = () => {
 
   const handleLoadDesign = useCallback((name: string) => {
       if (savedDesigns[name]) {
-          setParams(savedDesigns[name]);
           setShipName(name);
+          animateToParams(savedDesigns[name]);
       }
-  }, [savedDesigns]);
+  }, [savedDesigns, animateToParams]);
   
-  const handleLoadStockDesign = (name: string, params: ShipParameters) => {
+  const handleLoadStockDesign = (name: string, stockParams: ShipParameters) => {
     // Merge with initial params to ensure new fields (like neck texture) have defaults if missing
-    setParams({ ...INITIAL_SHIP_PARAMS, ...params });
+    const finalParams = { ...INITIAL_SHIP_PARAMS, ...stockParams };
     setShipName(name);
+    animateToParams(finalParams);
   };
 
   const handleResetToDefault = () => {
-    setParams(INITIAL_SHIP_PARAMS);
     setShipName('Galaxy Class');
+    animateToParams(INITIAL_SHIP_PARAMS);
   };
 
   const handleDeleteDesign = useCallback((name: string) => {
