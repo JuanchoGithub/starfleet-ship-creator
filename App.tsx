@@ -1023,7 +1023,7 @@ const App: React.FC = () => {
                         <ControlGroup groupName="Procedural Nebula" configs={LIGHT_PARAM_CONFIG["Nebula Background"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                         <ControlGroup groupName="Milky Way" configs={LIGHT_PARAM_CONFIG["Milky Way Effect"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                     </Accordion>
-                    <TechHeader title="Sensor Calibration" icon={<Squares2X2Icon className="w-5 h-5" />}  defaultOpen={false}/>
+                    <TechHeader title="Sensor Calibration" icon={<Squares2X2Icon className="w-5 h-5" />} />
                     <Accordion title="Post-Processing" defaultOpen={false}>
                         <ControlGroup groupName="Bloom & Tone Mapping" configs={LIGHT_PARAM_CONFIG["Bloom & Post-processing"]} params={lightParams} onParamChange={handleLightParamChange}  defaultOpen={false}/>
                     </Accordion>

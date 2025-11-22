@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { ChevronDownIcon } from './icons';
 
 // --- Utilities ---
@@ -65,14 +65,20 @@ interface SliderProps {
 export const Slider: React.FC<SliderProps> = React.memo(({ label, value, min, max, step, onChange }) => {
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setLocalValue(value);
+    if (!isDragging.current) {
+      setLocalValue(value);
+    }
   }, [value]);
 
   const handleChange = (newValue: number) => {
     setLocalValue(newValue);
-    onChange(newValue);
+    startTransition(() => {
+        onChange(newValue);
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +117,8 @@ export const Slider: React.FC<SliderProps> = React.memo(({ label, value, min, ma
           max={max}
           step={step}
           value={localValue}
+          onPointerDown={() => { isDragging.current = true; }}
+          onPointerUp={() => { isDragging.current = false; }}
           onChange={(e) => handleChange(parseFloat(e.target.value))}
           className="absolute w-full h-full z-20 opacity-0 cursor-pointer"
         />
@@ -121,14 +129,14 @@ export const Slider: React.FC<SliderProps> = React.memo(({ label, value, min, ma
             <div className="w-full h-full opacity-20" style={{ backgroundImage: 'linear-gradient(90deg, transparent 49%, #fff 50%, transparent 51%)', backgroundSize: '10% 100%' }}></div>
             {/* Fill Bar */}
             <div 
-                className="absolute top-0 left-0 h-full bg-accent-blue/60 shadow-[0_0_8px_rgba(56,139,253,0.6)] transition-all duration-75" 
+                className="absolute top-0 left-0 h-full bg-accent-blue/60 shadow-[0_0_8px_rgba(56,139,253,0.6)]" 
                 style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
             ></div>
         </div>
 
         {/* Thumb Graphic */}
         <div 
-            className="absolute h-4 w-2 bg-white z-10 pointer-events-none transition-all duration-75 shadow-[0_0_10px_white]"
+            className="absolute h-4 w-2 bg-white z-10 pointer-events-none shadow-[0_0_10px_white]"
             style={{ 
                 left: `calc(${Math.min(100, Math.max(0, percentage))}% - 4px)`,
                 clipPath: 'polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%)'
