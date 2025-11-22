@@ -493,7 +493,20 @@ export const DeflectorDish: React.FC<DeflectorDishProps> = ({ params }) => {
 
         geo.computeVertexNormals();
         return geo;
-    }, [params]);
+    }, [
+        params.engineering_length, 
+        params.engineering_radius, 
+        params.engineering_widthRatio, 
+        params.engineering_dishRadius, 
+        params.engineering_dishInset, 
+        params.engineering_segments, 
+        params.engineering_skew, 
+        params.engineering_dishType, 
+        params.engineering_dishTextureScaleX, 
+        params.engineering_dishTextureScaleY, 
+        params.engineering_dishTextureShearX, 
+        params.engineering_dishTextureShearY
+    ]);
 
     useEffect(() => {
         return () => {

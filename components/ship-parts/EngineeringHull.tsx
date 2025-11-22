@@ -101,7 +101,21 @@ export const EngineeringHull: React.FC<EngineeringHullProps> = ({ params, materi
             geo = engGeo;
         }
         return geo;
-    }, [params]);
+    }, [
+        params.engineering_toggle, 
+        params.engineering_length, 
+        params.engineering_radius, 
+        params.engineering_widthRatio, 
+        params.engineering_skew, 
+        params.engineering_segments, 
+        params.engineering_undercut, 
+        params.engineering_undercutStart, 
+        params.engineering_undercutCurve, 
+        params.engineering_topcut, 
+        params.engineering_topcutStart, 
+        params.engineering_topcutCurve, 
+        params.engineering_dishRadius
+    ]);
     
     if (!params.engineering_toggle) return null;
 

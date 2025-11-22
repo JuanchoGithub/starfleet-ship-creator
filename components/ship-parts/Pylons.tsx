@@ -286,7 +286,51 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         }
 
         return geos;
-    }, [params]);
+    }, [
+        params.pylon_toggle, 
+        params.nacelle_x, 
+        params.nacelle_z, 
+        params.pylon_nacelleVerticalOffset, 
+        params.nacelle_y, 
+        params.engineering_radius, 
+        params.engineering_widthRatio, 
+        params.pylon_baseSpread, 
+        params.engineering_z, 
+        params.pylon_engineeringZOffset, 
+        params.engineering_y, 
+        params.nacelle_length, 
+        params.engineering_length, 
+        params.pylon_nacelleForeOffset, 
+        params.pylon_nacelleAftOffset, 
+        params.pylon_engineeringForeOffset, 
+        params.pylon_engineeringAftOffset, 
+        params.pylon_midPointOffset, 
+        params.pylon_midPointOffsetX, 
+        params.pylon_midPointOffsetY, 
+        params.pylon_midPointOffsetZ, 
+        params.pylon_thickness, 
+        params.pylon_subdivisions, 
+        params.pylonLower_toggle, 
+        params.pylonLower_engineeringForeOffset, 
+        params.pylonLower_engineeringAftOffset, 
+        params.pylonLower_boomForeAftOffset, 
+        params.boomLower_toggle, 
+        params.pylonLower_baseSpread, 
+        params.pylonLower_engineeringZOffset, 
+        params.nacelleLower_x, 
+        params.nacelleLower_z, 
+        params.pylonLower_nacelleVerticalOffset, 
+        params.nacelleLower_y, 
+        params.nacelleLower_length, 
+        params.pylonLower_nacelleForeOffset, 
+        params.pylonLower_nacelleAftOffset, 
+        params.pylonLower_midPointOffset, 
+        params.pylonLower_midPointOffsetX, 
+        params.pylonLower_midPointOffsetY, 
+        params.pylonLower_midPointOffsetZ, 
+        params.pylonLower_thickness, 
+        params.pylonLower_subdivisions
+    ]);
 
     return (
         <group name="Pylons">

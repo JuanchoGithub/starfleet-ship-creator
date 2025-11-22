@@ -155,7 +155,34 @@ export const Neck: React.FC<NeckProps> = ({ params, material }) => {
         geo.computeVertexNormals();
         return geo;
 
-    }, [params]);
+    }, [
+        params.neck_toggle, 
+        params.primary_toggle, 
+        params.engineering_toggle, 
+        params.primary_z, 
+        params.primary_thickness, 
+        params.neck_saucerVerticalOffset, 
+        params.primary_y, 
+        params.primary_radius, 
+        params.neck_primaryForeOffset, 
+        params.neck_primaryAftOffset, 
+        params.engineering_z, 
+        params.engineering_radius, 
+        params.neck_engineeringVerticalOffset, 
+        params.engineering_y, 
+        params.engineering_length, 
+        params.neck_engineeringForeOffset, 
+        params.neck_engineeringAftOffset, 
+        params.neck_primaryThickness, 
+        params.neck_taperSaucer, 
+        params.neck_foretaper, 
+        params.neck_afttaper, 
+        params.neck_taperEng, 
+        params.neck_undercut_location, 
+        params.neck_undercut_width, 
+        params.neck_undercut, 
+        params.neck_undercut_curve
+    ]);
 
     if (!neckGeo) return null;
 

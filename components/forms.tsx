@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDownIcon } from './icons';
 
 // --- Utilities ---
@@ -66,31 +66,23 @@ export const Slider: React.FC<SliderProps> = React.memo(({ label, value, min, ma
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<number | null>(null);
 
-  // Sync local state if prop changes externally (e.g. randomizer, load preset)
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
   const handleChange = (newValue: number) => {
     setLocalValue(newValue);
-    
-    // Debounce the parent update to improve UI responsiveness
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-        onChange(newValue);
-    }, 50); // 50ms delay is enough to smooth out high-frequency updates without feeling laggy
+    onChange(newValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseFloat(e.target.value);
       if (!isNaN(val)) {
-          // Clamp only for the committed value, allow typing freedom
           setLocalValue(val);
-          
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           timeoutRef.current = window.setTimeout(() => {
               onChange(Math.max(min, Math.min(max, val)));
-          }, 300); // Longer debounce for typing
+          }, 300);
       }
   };
 
@@ -177,39 +169,22 @@ interface ColorPickerProps {
     onChange: (value: string) => void;
 }
 
-export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({ label, value, onChange }) => {
-    const [localColor, setLocalColor] = useState(value);
-    const timeoutRef = useRef<number | null>(null);
-
-    useEffect(() => {
-        setLocalColor(value);
-    }, [value]);
-
-    const handleChange = (newColor: string) => {
-        setLocalColor(newColor);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = window.setTimeout(() => {
-            onChange(newColor);
-        }, 100);
-    };
-
-    return (
-        <div className="flex justify-between items-center py-1">
-            <label className="text-[10px] uppercase tracking-widest text-mid-gray font-bold">{label}</label>
-            <div className="flex items-center gap-2 bg-space-dark border border-space-light/30 p-1 pr-2 rounded-sm">
-                <div className="relative w-6 h-4 overflow-hidden border border-white/20 cursor-pointer">
-                    <input
-                        type="color"
-                        value={localColor}
-                        onChange={(e) => handleChange(e.target.value)}
-                        className="absolute -top-2 -left-2 w-10 h-10 p-0 border-0 cursor-pointer"
-                    />
-                </div>
-                <span className="text-[10px] font-mono text-light-gray uppercase tracking-wider">{localColor}</span>
+export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({ label, value, onChange }) => (
+    <div className="flex justify-between items-center py-1">
+        <label className="text-[10px] uppercase tracking-widest text-mid-gray font-bold">{label}</label>
+        <div className="flex items-center gap-2 bg-space-dark border border-space-light/30 p-1 pr-2 rounded-sm">
+            <div className="relative w-6 h-4 overflow-hidden border border-white/20 cursor-pointer">
+                <input
+                    type="color"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="absolute -top-2 -left-2 w-10 h-10 p-0 border-0 cursor-pointer"
+                />
             </div>
+            <span className="text-[10px] font-mono text-light-gray uppercase tracking-wider">{value}</span>
         </div>
-    );
-});
+    </div>
+));
 
 // --- Select ---
 interface SelectProps {

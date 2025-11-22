@@ -57,7 +57,15 @@ export const Bridge: React.FC<BridgeProps> = ({ params, material }) => {
         }
 
         return geo;
-    }, [params]);
+    }, [
+        params.primary_radius, 
+        params.primary_thickness, 
+        params.primary_widthRatio, 
+        params.primary_bridgeThickness, 
+        params.primary_bridgeRadius, 
+        params.primary_bridgeWidthRatio, 
+        params.primary_bridgeSegments
+    ]);
 
     return (
         <mesh

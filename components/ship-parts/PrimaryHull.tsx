@@ -222,7 +222,16 @@ export const PrimaryHull: React.FC<PrimaryHullProps> = ({ params, saucerMaterial
             }
         }
         return geos;
-    }, [params]);
+    }, [
+        params.primary_toggle, 
+        params.primary_radius, 
+        params.primary_thickness, 
+        params.primary_pointiness, 
+        params.primary_widthRatio, 
+        params.primary_notch_fore, 
+        params.primary_notch_aft, 
+        params.primary_segments
+    ]);
 
 
     if (!params.primary_toggle) return null;
