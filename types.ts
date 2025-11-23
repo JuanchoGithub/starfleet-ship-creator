@@ -209,6 +209,8 @@ export interface ShipParameters {
   pylon_midPointOffsetZ: number;
   pylon_thickness: number;
   pylon_subdivisions: number;
+  pylon_elbowLength_toggle: boolean;
+  pylon_elbowLength: number;
 
   // Lower Nacelles
   nacelleLower_toggle: boolean;
@@ -294,6 +296,8 @@ export interface ShipParameters {
   pylonLower_midPointOffsetZ: number;
   pylonLower_thickness: number;
   pylonLower_subdivisions: number;
+  pylonLower_elbowLength_toggle: boolean;
+  pylonLower_elbowLength: number;
 
   // Hull Texturing
   texture_toggle: boolean;

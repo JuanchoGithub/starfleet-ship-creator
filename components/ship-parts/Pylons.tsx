@@ -20,20 +20,21 @@ const createPylonGeo = (
         midpointOffsetZ: number,
         thickness: number,
         subdivisions: number,
+        elbowLength_toggle?: boolean,
+        elbowLength?: number,
     },
 ) => {
     const {
         nacelleForeOffset, nacelleAftOffset, engineeringForeOffset, engineeringAftOffset,
-        thickness, midpointOffset, midpointOffsetX, midpointOffsetY, midpointOffsetZ, subdivisions
+        thickness, midpointOffset, midpointOffsetX, midpointOffsetY, midpointOffsetZ, subdivisions,
+        elbowLength_toggle, elbowLength = 0
     } = pylonParams;
 
-    // --- Corrected Attachment Point Calculations ---
+    // --- Attachment Point Calculations ---
     const nacelleSpan = nacelleLength;
     const nacelleFront = nacelleCenter.z + nacelleSpan / 2;
     const nacelleBack = nacelleCenter.z - nacelleSpan / 2;
-    // A ForeOffset of 0 should be fully fore. As it increases, the point moves aft.
     let nacelleFore = nacelleFront - nacelleSpan * nacelleForeOffset;
-    // An AftOffset of 0 should be fully aft. As it increases, the point moves fore.
     let nacelleAft = nacelleBack + nacelleSpan * nacelleAftOffset;
 
     const engineeringSpan = engineeringLength;
@@ -48,120 +49,197 @@ const createPylonGeo = (
     const interpMidCenter = new THREE.Vector3().lerpVectors(engineeringCenter, nacelleCenter, midpointOffset);
     // The Z offset is applied to the fore/aft points, not the center point's Z.
     const midCenter = interpMidCenter.clone().add(new THREE.Vector3(midpointOffsetX, midpointOffsetY, 0));
+    
     // Interpolate the fore/aft Z positions for the elbow joint, and add the Z offset.
     const midFore = THREE.MathUtils.lerp(engineeringFore, nacelleFore, midpointOffset) + midpointOffsetZ;
     const midAft = THREE.MathUtils.lerp(engineeringAft, nacelleAft, midpointOffset) + midpointOffsetZ;
-    
-    // Calculate perpendicular thickness vectors for each segment
-    const delta_nm = new THREE.Vector3().subVectors(nacelleCenter, midCenter);
-    const angle_nm = Math.atan2(delta_nm.y, delta_nm.x);
-    const thicknessX_nm = -thickness * Math.sin(angle_nm);
-    const thicknessY_nm = thickness * Math.cos(angle_nm);
-    
-    const delta_em = new THREE.Vector3().subVectors(midCenter, engineeringCenter);
-    const angle_em = Math.atan2(delta_em.y, delta_em.x);
-    const thicknessX_em = -thickness * Math.sin(angle_em);
-    const thicknessY_em = thickness * Math.cos(angle_em);
-    
-    // --- Vertex Definition and Stitching ---
-    // Define vertices for two separate boxes, then stitch them by copying vertex positions.
-    const vertices = [
-        // engineering -> mid (vertices 0-7)
-        new THREE.Vector3(midCenter.x - thicknessX_em, midCenter.y - thicknessY_em, midFore), // 0
-        new THREE.Vector3(midCenter.x - thicknessX_em, midCenter.y - thicknessY_em, midAft),  // 1
-        new THREE.Vector3(engineeringCenter.x - thicknessX_em, engineeringCenter.y - thicknessY_em, engineeringFore), // 2
-        new THREE.Vector3(engineeringCenter.x - thicknessX_em, engineeringCenter.y - thicknessY_em, engineeringAft),   // 3
 
-        new THREE.Vector3(midCenter.x + thicknessX_em, midCenter.y + thicknessY_em, midFore), // 4
-        new THREE.Vector3(midCenter.x + thicknessX_em, midCenter.y + thicknessY_em, midAft),  // 5
-        new THREE.Vector3(engineeringCenter.x + thicknessX_em, engineeringCenter.y + thicknessY_em, engineeringFore), // 6
-        new THREE.Vector3(engineeringCenter.x + thicknessX_em, engineeringCenter.y + thicknessY_em, engineeringAft),   // 7
+    // --- Define Nodes ---
+    interface PylonNode {
+        center: THREE.Vector3;
+        zFore: number;
+        zAft: number;
+        u: number;
+    }
 
-        // mid -> nacelle (vertices 8-15)
-        new THREE.Vector3(nacelleCenter.x - thicknessX_nm, nacelleCenter.y - thicknessY_nm, nacelleFore), // 8
-        new THREE.Vector3(nacelleCenter.x - thicknessX_nm, nacelleCenter.y - thicknessY_nm, nacelleAft),  // 9
-        new THREE.Vector3(midCenter.x - thicknessX_nm, midCenter.y - thicknessY_nm, midFore), // 10
-        new THREE.Vector3(midCenter.x - thicknessX_nm, midCenter.y - thicknessY_nm, midAft),  // 11
+    const nodes: PylonNode[] = [];
 
-        new THREE.Vector3(nacelleCenter.x + thicknessX_nm, nacelleCenter.y + thicknessY_nm, nacelleFore), // 12
-        new THREE.Vector3(nacelleCenter.x + thicknessX_nm, nacelleCenter.y + thicknessY_nm, nacelleAft),  // 13
-        new THREE.Vector3(midCenter.x + thicknessX_nm, midCenter.y + thicknessY_nm, midFore), // 14
-        new THREE.Vector3(midCenter.x + thicknessX_nm, midCenter.y + thicknessY_nm, midAft),  // 15
-    ];
+    // Node 0: Engineering
+    nodes.push({
+        center: engineeringCenter,
+        zFore: engineeringFore,
+        zAft: engineeringAft,
+        u: 0
+    });
 
-    // Stitch the joint: copy the midpoint vertices from the nacelle segment
-    // onto the engineering segment to make them identical.
-    vertices[0].copy(vertices[10]);
-    vertices[1].copy(vertices[11]);
-    vertices[4].copy(vertices[14]);
-    vertices[5].copy(vertices[15]);
+    // Mid Node(s)
+    if (elbowLength_toggle && elbowLength > 0.01) {
+        // Split midpoint into bottom and top nodes
+        // Assuming Vertical length means along Y axis
+        const halfLen = elbowLength / 2;
+        
+        // Bottom of elbow
+        nodes.push({
+            center: new THREE.Vector3(midCenter.x, midCenter.y - halfLen, midCenter.z),
+            zFore: midFore,
+            zAft: midAft,
+            u: midpointOffset
+        });
 
+        // Top of elbow
+        nodes.push({
+            center: new THREE.Vector3(midCenter.x, midCenter.y + halfLen, midCenter.z),
+            zFore: midFore,
+            zAft: midAft,
+            u: midpointOffset
+        });
+    } else {
+        // Standard single midpoint
+        nodes.push({
+            center: midCenter,
+            zFore: midFore,
+            zAft: midAft,
+            u: midpointOffset
+        });
+    }
+
+    // Node End: Nacelle
+    nodes.push({
+        center: nacelleCenter,
+        zFore: nacelleFore,
+        zAft: nacelleAft,
+        u: 1
+    });
+
+    // --- Generate Vertices ---
+    const vertices: THREE.Vector3[] = [];
+    const uvArray: number[] = [];
+    const indices: number[] = [];
+
+    let vertexCount = 0;
+
+    // To ensure continuity at joints, we carry over the "end" vertices of the previous segment
+    // to be the "start" vertices of the current segment.
+    let prevSegmentEndVerts: THREE.Vector3[] | null = null;
+
+    for (let i = 0; i < nodes.length - 1; i++) {
+        const startNode = nodes[i];
+        const endNode = nodes[i + 1];
+
+        const dir = new THREE.Vector3().subVectors(endNode.center, startNode.center);
+        // Calculate perpendicular thickness vectors for this segment
+        // If direction is purely vertical (0, y, 0), atan2(y, x) -> atan2(y, 0) = PI/2 or -PI/2
+        // sin(PI/2) = 1, cos(PI/2) = 0. tx = -thickness, ty = 0. Correct.
+        const angle = Math.atan2(dir.y, dir.x);
+        const tx = -thickness * Math.sin(angle);
+        const ty = thickness * Math.cos(angle);
+
+        // 4 Vertices at Start of Segment
+        const vStart: THREE.Vector3[] = [];
+        if (prevSegmentEndVerts) {
+            // Reuse the exact objects to ensure welding if needed, or clones if we just want position match
+            // Here we want position match.
+            vStart.push(prevSegmentEndVerts[0].clone()); // Fore-Left
+            vStart.push(prevSegmentEndVerts[1].clone()); // Aft-Left
+            vStart.push(prevSegmentEndVerts[2].clone()); // Fore-Right
+            vStart.push(prevSegmentEndVerts[3].clone()); // Aft-Right
+        } else {
+            // First segment, calculate normally
+            vStart.push(new THREE.Vector3(startNode.center.x - tx, startNode.center.y - ty, startNode.zFore));
+            vStart.push(new THREE.Vector3(startNode.center.x - tx, startNode.center.y - ty, startNode.zAft));
+            vStart.push(new THREE.Vector3(startNode.center.x + tx, startNode.center.y + ty, startNode.zFore));
+            vStart.push(new THREE.Vector3(startNode.center.x + tx, startNode.center.y + ty, startNode.zAft));
+        }
+
+        // 4 Vertices at End of Segment
+        const vEnd: THREE.Vector3[] = [];
+        vEnd.push(new THREE.Vector3(endNode.center.x - tx, endNode.center.y - ty, endNode.zFore));
+        vEnd.push(new THREE.Vector3(endNode.center.x - tx, endNode.center.y - ty, endNode.zAft));
+        vEnd.push(new THREE.Vector3(endNode.center.x + tx, endNode.center.y + ty, endNode.zFore));
+        vEnd.push(new THREE.Vector3(endNode.center.x + tx, endNode.center.y + ty, endNode.zAft));
+
+        // Add to main list
+        // Order: Start[FL, AL, FR, AR], End[FL, AL, FR, AR]
+        // Indices: 0, 1, 2, 3, 4, 5, 6, 7 relative to this segment block
+        // Map to global `vertexCount`
+        
+        // We push 8 vertices per segment to allow independent normals/UVs if needed,
+        // though position continuity is enforced by vStart logic.
+        vertices.push(...vStart, ...vEnd);
+
+        // --- Indices ---
+        const base = vertexCount;
+        // Side 1 (Left/Bottom): 0, 1, 4, 5
+        indices.push(base + 0, base + 1, base + 4);
+        indices.push(base + 1, base + 5, base + 4);
+        
+        // Side 2 (Right/Top): 2, 3, 6, 7
+        indices.push(base + 2, base + 6, base + 3);
+        indices.push(base + 6, base + 7, base + 3);
+
+        // Side 3 (Fore): 0, 2, 4, 6
+        indices.push(base + 0, base + 4, base + 2);
+        indices.push(base + 4, base + 6, base + 2);
+
+        // Side 4 (Aft): 1, 3, 5, 7
+        indices.push(base + 1, base + 3, base + 5);
+        indices.push(base + 3, base + 7, base + 5);
+
+        // Caps
+        if (i === 0) {
+            // Start Cap at Engineering (0,1,2,3)
+            indices.push(base + 0, base + 2, base + 1);
+            indices.push(base + 2, base + 3, base + 1);
+        }
+        if (i === nodes.length - 2) {
+            // End Cap at Nacelle (4,5,6,7)
+            indices.push(base + 4, base + 5, base + 6);
+            indices.push(base + 5, base + 7, base + 6);
+        }
+
+        // --- UVs ---
+        // Give 45% of texture V-space to top, 45% to bottom, 5% to each side edge.
+        const v_s1_aft = 0.0;       // Side 1 Aft rail
+        const v_s1_fore = 0.45;     // Side 1 Fore rail
+        const v_s2_fore = 0.55;     // Side 2 Fore rail
+        const v_s2_aft = 1.0;       // Side 2 Aft rail
+
+        // vStart U is startNode.u, vEnd U is endNode.u
+        const uS = startNode.u;
+        const uE = endNode.u;
+
+        // 0: FL
+        uvArray.push(uS, v_s1_fore);
+        // 1: AL
+        uvArray.push(uS, v_s1_aft);
+        // 2: FR
+        uvArray.push(uS, v_s2_fore);
+        // 3: AR
+        uvArray.push(uS, v_s2_aft);
+
+        // 4: FL (End)
+        uvArray.push(uE, v_s1_fore);
+        // 5: AL (End)
+        uvArray.push(uE, v_s1_aft);
+        // 6: FR (End)
+        uvArray.push(uE, v_s2_fore);
+        // 7: AR (End)
+        uvArray.push(uE, v_s2_aft);
+
+        // Prepare for next loop
+        prevSegmentEndVerts = vEnd;
+        vertexCount += 8;
+    }
+
+    const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(vertices.flatMap(v => [v.x, v.y, v.z]));
-
-    const indices = [
-      // Eng-Mid segment box (12 triangles)
-      0, 2, 1,   2, 3, 1, // Side
-      4, 5, 6,   5, 7, 6, // Side
-      0, 1, 4,   1, 5, 4, // End Cap (at mid)
-      2, 6, 3,   6, 7, 3, // End Cap (at eng)
-      0, 4, 2,   4, 6, 2, // Top/Bottom
-      1, 3, 5,   3, 7, 5, // Top/Bottom
-
-      // Mid-Nacelle segment box (12 triangles)
-      8, 10, 9,  10, 11, 9, // Side
-      12, 13, 14, 13, 15, 14, // Side
-      8, 9, 12,  9, 13, 12, // End Cap (at nacelle)
-      10, 14, 11, 14, 15, 11, // End Cap (at mid)
-      8, 12, 10, 12, 14, 10, // Top/Bottom
-      9, 11, 13, 11, 15, 13, // Top/Bottom
-    ];
-
-    let geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvArray), 2));
     geo.setIndex(indices);
     geo.computeVertexNormals();
 
-    // --- Manual UV Unwrapping ---
-    // The U coordinate runs along the pylon's length (engineering -> nacelle).
-    // The V coordinate wraps around the pylon's cross-section. This prioritizes
-    // the top and bottom surfaces, preventing texture stretching.
-    const uvs = new Float32Array(16 * 2);
-    const u_eng = 0;
-    const u_mid = midpointOffset;
-    const u_nac = 1;
-
-    // Give 45% of texture V-space to top, 45% to bottom, 5% to each side edge.
-    const v_s1_aft = 0.0;       // Side 1 Aft rail (e.g., bottom-aft edge)
-    const v_s1_fore = 0.45;     // Side 1 Fore rail (e.g., bottom-fore edge)
-    const v_s2_fore = 0.55;     // Side 2 Fore rail (e.g., top-fore edge)
-    const v_s2_aft = 1.0;       // Side 2 Aft rail (e.g., top-aft edge)
-
-    // Assign UVs to match the `vertices` array order.
-    // Segment 1: eng -> mid
-    uvs.set([u_mid, v_s1_fore], 0 * 2);  // 0: mid, side 1, fore
-    uvs.set([u_mid, v_s1_aft], 1 * 2);   // 1: mid, side 1, aft
-    uvs.set([u_eng, v_s1_fore], 2 * 2);  // 2: eng, side 1, fore
-    uvs.set([u_eng, v_s1_aft], 3 * 2);   // 3: eng, side 1, aft
-    uvs.set([u_mid, v_s2_fore], 4 * 2);  // 4: mid, side 2, fore
-    uvs.set([u_mid, v_s2_aft], 5 * 2);   // 5: mid, side 2, aft
-    uvs.set([u_eng, v_s2_fore], 6 * 2);  // 6: eng, side 2, fore
-    uvs.set([u_eng, v_s2_aft], 7 * 2);   // 7: eng, side 2, aft
-
-    // Segment 2: mid -> nacelle
-    uvs.set([u_nac, v_s1_fore], 8 * 2);  // 8: nacelle, side 1, fore
-    uvs.set([u_nac, v_s1_aft], 9 * 2);   // 9: nacelle, side 1, aft
-    uvs.set([u_mid, v_s1_fore], 10 * 2); // 10: mid, side 1, fore
-    uvs.set([u_mid, v_s1_aft], 11 * 2);  // 11: mid, side 1, aft
-    uvs.set([u_nac, v_s2_fore], 12 * 2); // 12: nacelle, side 2, fore
-    uvs.set([u_nac, v_s2_aft], 13 * 2);  // 13: nacelle, side 2, aft
-    uvs.set([u_mid, v_s2_fore], 14 * 2); // 14: mid, side 2, fore
-    uvs.set([u_mid, v_s2_aft], 15 * 2);  // 15: mid, side 2, aft
-    
-    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-
-
     if (subdivisions > 0) {
-        geo = LoopSubdivision.modify(geo, Math.floor(subdivisions), { flatOnly: true });
+        return LoopSubdivision.modify(geo, Math.floor(subdivisions), { flatOnly: true });
     }
     
     return geo;
@@ -200,6 +278,8 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
                         midpointOffsetZ: params.pylon_midPointOffsetZ,
                         thickness: params.pylon_thickness,
                         subdivisions: params.pylon_subdivisions,
+                        elbowLength_toggle: params.pylon_elbowLength_toggle,
+                        elbowLength: params.pylon_elbowLength,
                     }
                 );
 
@@ -236,22 +316,15 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
                         geos.lowerBoom = boomGeo;
                     }
                 } else {
-                    // Original vertical boom - Refactored for stability
+                    // Original vertical boom
                     const diff = new THREE.Vector3().subVectors(pylonJunctionBase, boomTop);
                     const length = diff.length();
                     if (length > 0.01) {
                         const midpoint = new THREE.Vector3().addVectors(pylonJunctionBase, boomTop).multiplyScalar(0.5);
-                        
-                        // Create a cylinder with the correct length directly
                         const boomGeo = new THREE.CylinderGeometry(params.pylonLower_thickness, params.pylonLower_thickness, length, 16);
-                        
-                        // The cylinder is created along the Y axis. We need to align it with the `diff` vector.
                         const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff.clone().normalize());
                         boomGeo.applyQuaternion(orientation);
-                        
-                        // Then translate it to the midpoint.
                         boomGeo.translate(midpoint.x, midpoint.y, midpoint.z);
-                        
                         geos.lowerBoom = boomGeo;
                     }
                 }
@@ -277,6 +350,8 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
                         midpointOffsetZ: params.pylonLower_midPointOffsetZ,
                         thickness: params.pylonLower_thickness,
                         subdivisions: params.pylonLower_subdivisions,
+                        elbowLength_toggle: params.pylonLower_elbowLength_toggle,
+                        elbowLength: params.pylonLower_elbowLength,
                     }
                 );
 
@@ -310,6 +385,8 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         params.pylon_midPointOffsetZ, 
         params.pylon_thickness, 
         params.pylon_subdivisions, 
+        params.pylon_elbowLength_toggle,
+        params.pylon_elbowLength,
         params.pylonLower_toggle, 
         params.pylonLower_engineeringForeOffset, 
         params.pylonLower_engineeringAftOffset, 
@@ -329,7 +406,9 @@ export const Pylons: React.FC<{ params: ShipParameters, material: THREE.Material
         params.pylonLower_midPointOffsetY, 
         params.pylonLower_midPointOffsetZ, 
         params.pylonLower_thickness, 
-        params.pylonLower_subdivisions
+        params.pylonLower_subdivisions,
+        params.pylonLower_elbowLength_toggle,
+        params.pylonLower_elbowLength,
     ]);
 
     return (

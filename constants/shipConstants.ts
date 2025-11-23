@@ -20,6 +20,10 @@ const DEFAULT_NECK_PARAMS = {
     neck_texture_torpedo_size: 1.0,
     neck_texture_torpedo_glow: 3.0,
     neck_texture_window_width_scale: 1.0,
+    pylon_elbowLength_toggle: false,
+    pylon_elbowLength: 2.0,
+    pylonLower_elbowLength_toggle: false,
+    pylonLower_elbowLength: 2.0,
 };
 
 // Apply defaults first, then overwrite with specific ship parameters
@@ -279,6 +283,8 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       pylon_midPointOffsetX: { label: "Offset X (Out/In)", min: -20, max: 20, step: 0.1, type: 'slider' },
       pylon_midPointOffsetY: { label: "Offset Y (Up/Down)", min: -20, max: 20, step: 0.1, type: 'slider' },
       pylon_midPointOffsetZ: { label: "Offset Z (Fwd/Aft)", min: -20, max: 20, step: 0.1, type: 'slider' },
+      pylon_elbowLength_toggle: { label: "Enable Vertical Elbow", type: 'toggle' },
+      pylon_elbowLength: { label: "Elbow Length", min: 0.1, max: 10, step: 0.1, type: 'slider' },
     }
   },
   "Nacelle Body (Lower)": {
@@ -392,6 +398,8 @@ export const PARAM_CONFIG: ParamConfigGroups = {
       pylonLower_midPointOffsetX: { label: "Offset X (Out/In)", min: -20, max: 20, step: 0.1, type: 'slider' },
       pylonLower_midPointOffsetY: { label: "Offset Y (Up/Down)", min: -20, max: 20, step: 0.1, type: 'slider' },
       pylonLower_midPointOffsetZ: { label: "Offset Z (Fwd/Aft)", min: -20, max: 20, step: 0.1, type: 'slider' },
+      pylonLower_elbowLength_toggle: { label: "Enable Vertical Elbow", type: 'toggle' },
+      pylonLower_elbowLength: { label: "Elbow Length", min: 0.1, max: 10, step: 0.1, type: 'slider' },
     }
   },
 };

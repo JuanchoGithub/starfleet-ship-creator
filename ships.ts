@@ -1,3 +1,4 @@
+
 import { ShipParameters } from './types';
 import { stargazerClassShip } from './ships/stargazer';
 import { advancedEnterpriseShip } from './ships/advancedEnterprise';
@@ -6,6 +7,7 @@ import { enterpriseNX01Ship } from './ships/enterpriseNX01';
 import { voyagerShip } from './ships/voyager';
 import { excelsiorClassShip } from './ships/excelsior';
 import { belisariusShip } from './ships/belisarius';
+import { crossfieldClassShip } from './ships/crossfield';
 
 export const STOCK_SHIPS: { [name: string]: ShipParameters } = {
   'Stargazer Class': stargazerClassShip,
@@ -15,4 +17,5 @@ export const STOCK_SHIPS: { [name: string]: ShipParameters } = {
   'Voyager': voyagerShip,
   'Excelsior Class': excelsiorClassShip,
   'Belisarius Class': belisariusShip,
+  'Crossfield Class': crossfieldClassShip,
 };

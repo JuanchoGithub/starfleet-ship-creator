@@ -11,7 +11,7 @@ interface NeckProps {
 export const Neck: React.FC<NeckProps> = ({ params, material }) => {
 
     const neckGeo = useMemo(() => {
-        if (!params.neck_toggle || !params.primary_toggle || !params.engineering_toggle) {
+        if (!params.neck_toggle || !params.primary_toggle) {
             return null;
         }
 
@@ -158,7 +158,6 @@ export const Neck: React.FC<NeckProps> = ({ params, material }) => {
     }, [
         params.neck_toggle, 
         params.primary_toggle, 
-        params.engineering_toggle, 
         params.primary_z, 
         params.primary_thickness, 
         params.neck_saucerVerticalOffset, 
